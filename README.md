@@ -20,7 +20,8 @@ Just Our Kid's Album (JOKA)는 가족만을 위한 사진 앨범 웹앱입니다
 
 이 프로젝트는  
 *공유는 간단하게, 관리 부담은 최소로*라는 목표로 설계되었으며,  
-초대받은 가족 구성원만 접근할 수 있는 사적인 사진 공간을 지향합니다.
+초대받은 가족 구성원만 접근할 수 있는  
+사적인 사진 공간을 지향합니다.
 
 ---
 
@@ -110,23 +111,35 @@ Just Our Kid's Album (JOKA)는 가족만을 위한 사진 앨범 웹앱입니다
     </tr>
     <tr>
       <td align="center">
-        <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #6EABC7 0%, #4A90A4 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; overflow: hidden;">
+        <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #6EABC7 0%, #4A90A4 100%);  display: flex; align-items: center; justify-content: center; margin: 0 auto; overflow: hidden;">
           <span>
-            <img src="https://avatars.githubusercontent.com/u/86094395?v=4" alt="Injuk" width=150 />
+            <img src="https://ca.slack-edge.com/T02MLGUDB0T-U02MNPLLJRJ-8f61ff48e03d-512" alt="Injuk" width=150 />
           </span>
         </div>
       </td>
       <td align="center">
-        <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #FFDE74 0%, #FFD700 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; overflow: hidden;">
+        <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #FFDE74 0%, #FFD700 100%);  display: flex; align-items: center; justify-content: center; margin: 0 auto; overflow: hidden;">
           <span>
-            <img src="https://avatars.githubusercontent.com/u/147925385?v=4" alt="Minda" width=150 />
+            <img src="https://ca.slack-edge.com/T02MLGUDB0T-U02MLGLH7HQ-e505c6b03401-512" alt="Minda" width=150 />
           </span>
         </div>
       </td>
     </tr>
     <tr>
+      <td align="center"><a href="https://github.com/injuk">@injuk</a></td>
+      <td align="center"><a href="https://github.com/mindaaaa">@mindaaaa</a></td>
+    </tr>
+    <tr>
       <td align="center"><b>Backend Lead</b><br/>시스템 설계 & API</td>
       <td align="center"><b>Frontend Lead</b><br/>UX & 인터랙션</td>
+    </tr>
+    <tr>
+     <td align="center">
+    ((🍾) => 🍾.length &gt; 3<br />
+    ? throw new Error()<br />
+    : "ok")();
+      </td>
+      <td align="center">귀여움 담당😘</td>
     </tr>
   </tbody>
 </table>
@@ -139,4 +152,4 @@ Made with 👶 by **Team Mindjuk**
 
 ---
 
-> _by you, for family, memories, and precious moments._
+> \_by you, for family, memories, and precious moments.
