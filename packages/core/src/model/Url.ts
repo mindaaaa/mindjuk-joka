@@ -6,10 +6,11 @@ export class Url {
         assert.ok(isNotEmpty(url), "Url path is empty");
 
         const parsed = new URL(url as string);
-        if (["http", "https"].includes(parsed.protocol)) {
+        const protocol = parsed.protocol.replaceAll(":", "");
+        if (["http", "https"].includes(protocol)) {
             return new Url(parsed);
         } else {
-            throw new Error(`${parsed.protocol} is not a valid protocol`);
+            throw new Error(`${protocol} is not a valid protocol`);
         }
     }
 
