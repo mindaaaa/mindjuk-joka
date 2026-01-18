@@ -1,5 +1,6 @@
 {
   "packages/**/src/**/*.{ts,tsx,js,jsx}": [
+    "eslint --fix",
     "bash -c 'if grep -n \"console\\.log\" \"$@\"; then echo \"console.log가 발견되었습니다. 테스트/디버깅용 console.log는 제거해주세요.\"; exit 1; fi' --"
   ]
 }
