@@ -1,0 +1,34 @@
+name: QA / Investigation
+description: 확인이 필요한 이슈, 원인 분석, 재현 조사
+title: '[QA] '
+labels: ['type: qa']
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🧪 확인 내용
+        무엇을 확인하거나 조사해야 하는지 작성해주세요.
+
+  - type: textarea
+    id: qa-description
+    attributes:
+      label: 확인 사항
+      placeholder: |
+        * 의심되는 문제
+        * 확인이 필요한 동작
+        * 불명확한 요구사항
+    validations:
+      required: true
+
+  - type: textarea
+    id: result
+    attributes:
+      label: 확인 결과 (작성 후 채우기)
+      placeholder: |
+        * 재현 여부
+        * 원인 정리
+        * 다음 액션
+    validations:
+      required: false
