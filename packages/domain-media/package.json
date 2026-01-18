@@ -1,0 +1,17 @@
+{
+  "name": "@joka/domain-media",
+  "version": "0.0.1",
+  "description": "domain-media package",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@joka/core": "workspace:*",
+    "mime-types": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^3.0.1"
+  }
+}
