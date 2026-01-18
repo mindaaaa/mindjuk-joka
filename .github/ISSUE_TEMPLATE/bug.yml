@@ -1,0 +1,50 @@
+name: Bug report
+description: 기능 오류, 예외 상황, 의도하지 않은 동작
+title: '[Bug] '
+labels: ['type: bug']
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐞 문제 설명
+        어떤 문제가 발생했는지 명확히 작성해주세요.
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 문제 설명
+      placeholder: |
+        * 어떤 동작에서
+        * 무엇이 잘못 동작하는지
+        * 기대했던 결과는 무엇이었는지
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔁 재현 방법 (BDD)
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 재현 조건
+      placeholder: |
+        - Given: [어떤 상태에서]
+        - When: [어떤 행동을 하면]
+        - Then: [문제가 발생한다]
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 로그 / 스크린샷 (선택)
+      placeholder: |
+        * 에러 로그
+        * 콘솔 출력
+        * 화면 캡처
+    validations:
+      required: false
