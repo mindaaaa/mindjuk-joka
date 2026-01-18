@@ -55,8 +55,8 @@ echo "${BLUE}🧪 변경된 패키지 테스트 실행 중...${NC}"
 echo "${CYAN}   대상: $(echo $CHANGED_PACKAGES | tr '\n' ' ')${NC}"
 
 # Turbo의 --filter 옵션으로 특정 패키지만 테스트
-FILTERS=$(echo "$CHANGED_PACKAGES" | tr '\n' ',' | sed 's/,$//')
-pnpm exec turbo run test --filter="$FILTERS"
+FILTERS=$(echo "$CHANGED_PACKAGES" | sed 's/^/--filter=/' | tr '\n' ' ')
+pnpm exec turbo run test $FILTERS
 
 if [ $? -eq 0 ]; then
   echo "${GREEN}✓ 모든 검사를 통과했습니다.${NC}"
