@@ -1,0 +1,14 @@
+{
+  "name": "@joka/infra-thumbnail",
+  "version": "0.0.1",
+  "description": "infra-thumbnail package",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "blurhash": "^2.0.5",
+    "sharp": "^0.34.5"
+  }
+}
