@@ -6,5 +6,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "zod": "^4.3.5"
   }
 }
