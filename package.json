@@ -8,14 +8,20 @@
   "scripts": {
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
-    "test:coverage": "turbo run test:coverage"
+    "test:coverage": "turbo run test:coverage",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
   "license": "ISC",
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.9",
     "dotenv": "^17.2.3",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
+    "lint-staged": "^16.2.7",
     "ts-jest": "^29.4.6",
     "turbo": "^2.7.5",
     "typescript": "^5.9.3"

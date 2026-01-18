@@ -24,5 +24,3 @@ export class MimeType {
         return this.value.split("/").at(1) as string;
     }
 }
-
-console.log(mime.extension("image/png"));
