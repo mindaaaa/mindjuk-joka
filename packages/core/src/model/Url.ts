@@ -1,22 +1,39 @@
-import * as assert from "node:assert";
-import { isNotEmpty } from "../util/string.util";
+import { z } from 'zod';
 
 export class Url {
-    static from(url: unknown): Url {
-        assert.ok(isNotEmpty(url), "Url path is empty");
+  private readonly url: URL;
 
-        const parsed = new URL(url as string);
-        const protocol = parsed.protocol.replaceAll(":", "");
-        if (["http", "https"].includes(protocol)) {
-            return new Url(parsed);
-        } else {
-            throw new Error(`${protocol} is not a valid protocol`);
-        }
-    }
+  static from(url: unknown): Url {
+    Url.Schema.parse(url);
+    return new Url(url as string);
+  }
 
-    private constructor(public readonly url: URL) {}
+  static get Schema() {
+    return z
+      .string()
+      .url()
+      .refine(
+        (url: string) => {
+          try {
+            const parsed = new URL(url);
+            return ['http:', 'https:'].includes(parsed.protocol);
+          } catch {
+            return false;
+          }
+        },
+        {
+          message: 'URL은 http 또는 https 프로토콜을 사용해야 합니다',
+        },
+      );
+  }
 
-    get path() {
-        return this.url.href;
-    }
+  private constructor(url: string) {
+    this.url = new URL(url);
+  }
+
+  get path() {
+    return this.url.href;
+  }
 }
+
+export type UrlInput = z.infer<typeof Url.Schema>;

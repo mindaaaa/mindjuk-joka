@@ -1,22 +1,33 @@
-import {Email} from "./Email";
+import { z } from 'zod';
+
+import { Email } from './Email';
 
 interface ConstructorParameters {
-    id: string;
-    name: string;
-    email: Email;
+  id: string;
+  name: string;
+  email: string;
 }
 
 export class User {
-    static from(params: ConstructorParameters): User {
-        return new User(
-            params.id,
-            params.name,
-            params.email,
-        )
-    }
-    private constructor(
-        public readonly id: string,
-        public readonly name: string,
-        public readonly email: Email,
-    ) {}
+  static from(params: ConstructorParameters): User {
+    User.Schema.parse(params);
+
+    return new User(params.id, params.name, Email.from(params.email));
+  }
+
+  static get Schema() {
+    return z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      email: Email.Schema,
+    });
+  }
+
+  private constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly email: Email,
+  ) {}
 }
+
+export type UserInput = z.infer<typeof User.Schema>;

@@ -1,18 +1,17 @@
-import { isNotEmpty } from "../util/string.util";
+import { z } from 'zod';
 
 export class Email {
-    static from(email: unknown): Email {
-        const emailRegex = /^[a-zA-Z0-0._%+-]+@[a-zA-Z0-0.-]+\.[a-zA-Z]{2,}$/;
+  static from(email: unknown): Email {
+    Email.Schema.parse(email);
 
-        const isValidEmail = isNotEmpty(email) && emailRegex.test(email as string);
-        if (isValidEmail) {
-            return new Email(email as string);
-        } else {
-            throw new Error(`${email} is not a valid email`);
-        }
-    }
+    return new Email(email as string);
+  }
 
-    constructor(
-        public readonly value: string,
-    ) {}
+  static get Schema() {
+    return z.email();
+  }
+
+  constructor(public readonly value: string) {}
 }
+
+export type EmailInput = z.infer<typeof Email.Schema>;

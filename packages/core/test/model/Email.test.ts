@@ -24,10 +24,10 @@ describe("Email", () => {
         });
 
         it("유효하지 않은 이메일 형식인 경우 에러를 던진다", () => {
-            expect(() => Email.from("invalid")).toThrow("is not a valid email");
-            expect(() => Email.from("@example.com")).toThrow("is not a valid email");
-            expect(() => Email.from("user@")).toThrow("is not a valid email");
-            expect(() => Email.from("")).toThrow("is not a valid email");
+            expect(() => Email.from("invalid")).toThrow();
+            expect(() => Email.from("@example.com")).toThrow();
+            expect(() => Email.from("user@")).toThrow();
+            expect(() => Email.from("")).toThrow();
         });
 
         it("빈 문자열이나 공백만 있는 경우 에러를 던진다", () => {

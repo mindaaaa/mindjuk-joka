@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-import { emailSchema } from './email';
+import { Email } from '../model/Email';
 
 export const actionedBySchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: emailSchema,
+  email: Email.Schema,
 });
 
 export const actionedSchema = z.object({
