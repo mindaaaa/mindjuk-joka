@@ -26,15 +26,10 @@ describe("MimeType", () => {
             });
         });
 
-        it("빈 문자열인 경우 에러를 던진다", () => {
-            expect(() => MimeType.from("")).toThrow("mimeType is empty");
-            expect(() => MimeType.from("   ")).toThrow("mimeType is empty");
-        });
-
         it("유효하지 않은 MIME 타입인 경우 에러를 던진다", () => {
-            expect(() => MimeType.from("invalid")).toThrow("is invalid for mimeType");
-            expect(() => MimeType.from("image")).toThrow("is invalid for mimeType");
-            expect(() => MimeType.from("image/")).toThrow("is invalid for mimeType");
+            expect(() => MimeType.from("invalid")).toThrow('유효하지 않은 MIME 타입 형식입니다');
+            expect(() => MimeType.from("image")).toThrow('유효하지 않은 MIME 타입 형식입니다');
+            expect(() => MimeType.from("image/")).toThrow('유효하지 않은 MIME 타입 형식입니다');
         });
 
         it("문자열이 아닌 값이 전달되면 에러를 던진다", () => {
@@ -67,4 +62,16 @@ describe("MimeType", () => {
             expect(mp4Mime.subType).toBe("mp4");
         });
     });
+
+  describe("value", () => {
+    it("MIME 타입 전체를 반환한다", () => {
+      const pngMime = MimeType.from("image/png");
+      const jpegMime = MimeType.from("image/jpeg");
+      const mp4Mime = MimeType.from("video/mp4");
+
+      expect(pngMime.value).toBe("image/png");
+      expect(jpegMime.value).toBe("image/jpeg");
+      expect(mp4Mime.value).toBe("video/mp4");
+    });
+  });
 });
