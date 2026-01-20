@@ -72,6 +72,22 @@ importers:
         specifier: ^4.3.5
         version: 4.3.5
 
+  packages/domain-content:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      mime-types:
+        specifier: ^3.0.2
+        version: 3.0.2
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+    devDependencies:
+      '@types/mime-types':
+        specifier: ^3.0.1
+        version: 3.0.1
+
   packages/domain-media:
     dependencies:
       '@joka/core':
