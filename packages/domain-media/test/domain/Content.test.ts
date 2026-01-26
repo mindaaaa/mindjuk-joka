@@ -96,4 +96,23 @@ describe("Content", () => {
       ).toThrow();
     });
   });
+
+  describe("data", () => {
+    it("객체 데이터를 반환한다", () => {
+      const content = Content.from({
+        url: "https://example.com/video.mp4",
+        size: 10240,
+        eTag: "video-etag",
+        mimeType: "video/mp4",
+        thumbnail: null,
+      });
+      const data = content.data;
+
+      expect(data.url).toBe(content.url.path);
+      expect(data.size).toBe(content.size);
+      expect(data.eTag).toBe(content.eTag);
+      expect(data.mimeType).toBe(content.mimeType.value);
+      expect(data.thumbnail).toBe(content.thumbnail);
+    });
+  });
 });

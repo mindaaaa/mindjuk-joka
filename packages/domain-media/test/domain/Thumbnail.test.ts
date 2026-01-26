@@ -73,4 +73,23 @@ describe("Thumbnail", () => {
       ).toThrow();
     });
   });
+
+  describe("data", () => {
+    it("객체 데이터를 반환한다", () => {
+      const thumbnail = Thumbnail.from({
+        url: "https://example.com/thumbnail.jpg",
+        size: 1024,
+        eTag: "abc123",
+        mimeType: "image/jpeg",
+        blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+      });
+      const data = thumbnail.data;
+
+      expect(data.url).toBe(thumbnail.url.path);
+      expect(data.size).toBe(thumbnail.size);
+      expect(data.eTag).toBe(thumbnail.eTag);
+      expect(data.mimeType).toBe(thumbnail.mimeType.value);
+      expect(data.blurhash).toBe(thumbnail.blurhash);
+    });
+  });
 });
