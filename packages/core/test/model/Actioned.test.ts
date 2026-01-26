@@ -19,4 +19,22 @@ describe("Actioned", () => {
       expect(actioned.by.email).toBe(user.email);
     });
   });
+
+  describe("data", () => {
+    it("객체 데이터를 반환한다", () => {
+      const at = new Date();
+      const user = User.from({
+        id: "user-123",
+        name: "홍길동",
+        email: "test@example.com",
+      });
+      const data = Actioned.from({ at, by: user })
+        .data;
+
+      expect(data.at.getTime()).toBe(at.getTime());
+      expect(data.by.id).toBe(user.id);
+      expect(data.by.name).toBe(user.name);
+      expect(data.by.email).toBe(user.email.value);
+    });
+  });
 });
