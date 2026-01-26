@@ -39,6 +39,18 @@ export class Thumbnail {
     public readonly mimeType: MimeType,
     public readonly blurhash: string,
   ) {}
+
+  get data() {
+    const mimeType = {
+      ...this,
+      url: this.url.path,
+      mimeType: this.mimeType.value,
+    };
+
+    Thumbnail.Schema.parse(mimeType);
+
+    return mimeType;
+  }
 }
 
 export type ThumbnailCreateInput = z.infer<typeof Thumbnail.Schema>;

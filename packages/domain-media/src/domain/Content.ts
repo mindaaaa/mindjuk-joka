@@ -42,6 +42,23 @@ export class Content {
     public readonly thumbnail: Nullable<Thumbnail>,
   ) {}
 
+  get data() {
+    const url = this.url.path;
+    const mimeType = this.mimeType.value;
+    const thumbnail = this.thumbnail ? this.thumbnail.data : null;
+
+    const result = {
+      ...this,
+      url,
+      mimeType,
+      thumbnail,
+    };
+
+    Content.Schema.parse(result);
+
+    return result;
+  }
+
   // TODO: Content가 Thumbnail을 만들 수 있도록 하기
 }
 
