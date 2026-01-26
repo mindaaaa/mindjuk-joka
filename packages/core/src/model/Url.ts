@@ -32,7 +32,11 @@ export class Url {
   }
 
   get path() {
-    return this.url.href;
+    const url = this.url.href;
+
+    Url.Schema.parse(url);
+
+    return url;
   }
 }
 

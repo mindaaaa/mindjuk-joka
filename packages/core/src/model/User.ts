@@ -28,6 +28,17 @@ export class User {
     public readonly name: string,
     public readonly email: Email,
   ) {}
+
+  get data() {
+    const user = {
+      ...this,
+      email: this.email.value,
+    };
+
+    User.Schema.parse(user);
+
+    return user;
+  }
 }
 
 export type UserInput = z.infer<typeof User.Schema>;
