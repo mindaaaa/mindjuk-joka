@@ -15,6 +15,7 @@ export class Media {
   static get State() {
     return {
       DRAFT: 'DRAFT',
+      PREPARING: 'PREPARING',
       COMPLETE: 'COMPLETE',
     } as const;
   }
