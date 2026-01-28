@@ -3,14 +3,14 @@ import { z } from 'zod';
 import { User } from './User';
 
 interface ConstructorParameters {
-  at: Date | string | number;
+  at?: Date | string | number;
   by: User;
 }
 
 export class Actioned {
   static from(params: ConstructorParameters): Actioned {
-    const { at, by } = params;
-    const actioned = new Actioned(new Date(at), by);
+    const at = params.at ? new Date(params.at) : new Date();
+    const actioned = new Actioned(at, params.by);
 
     Actioned.Schema.parse(actioned.data);
 
