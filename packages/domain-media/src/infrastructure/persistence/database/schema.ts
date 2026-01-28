@@ -29,7 +29,7 @@ export const users = jokaSchema.table('users', {
   lastAccessedAt: timestamp('last_accessed_at').defaultNow().notNull(),
 });
 
-export const tenants = jokaSchema.table('tenants', {
+export const albums = jokaSchema.table('albums', {
   id: serial('id').primaryKey(),
   cid: uuid('cid')
     .$defaultFn(() => uuidv7())
@@ -46,7 +46,7 @@ export const userRoles = jokaSchema.table(
   {
     id: serial('id').primaryKey(),
     userId: integer('user_id').notNull(),
-    tenantId: integer('tenant_id').notNull(),
+    albumId: integer('album_id').notNull(),
     role: varchar('role', { length: 20 }).default('VIEWER').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
@@ -60,13 +60,13 @@ export const userRoles = jokaSchema.table(
 
     // SQL의 constraint user_roles_fk_2 반영
     userRolesFk2: foreignKey({
-      columns: [t.tenantId],
-      foreignColumns: [tenants.id],
+      columns: [t.albumId],
+      foreignColumns: [albums.id],
       name: 'user_roles_fk_2',
     }).onDelete('cascade'),
 
     // SQL의 constraint user_roles_uq_1 반영
-    userRolesUq1: unique('user_roles_uq_1').on(t.userId, t.tenantId),
+    userRolesUq1: unique('user_roles_uq_1').on(t.userId, t.albumId),
   }),
 );
 
