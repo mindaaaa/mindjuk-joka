@@ -1,5 +1,15 @@
 CREATE SCHEMA "joka";
 --> statement-breakpoint
+CREATE TABLE "joka"."albums" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"cid" uuid NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"description" varchar(1024),
+	"is_deleted" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "albums_cid_unique" UNIQUE("cid")
+);
+--> statement-breakpoint
 CREATE TABLE "joka"."contents" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"cid" uuid NOT NULL,
@@ -22,16 +32,6 @@ CREATE TABLE "joka"."media" (
 	CONSTRAINT "media_cid_unique" UNIQUE("cid")
 );
 --> statement-breakpoint
-CREATE TABLE "joka"."tenants" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"cid" uuid NOT NULL,
-	"name" varchar(255) NOT NULL,
-	"description" varchar(1024),
-	"is_deleted" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "tenants_cid_unique" UNIQUE("cid")
-);
---> statement-breakpoint
 CREATE TABLE "joka"."thumbnails" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"cid" uuid NOT NULL,
@@ -47,10 +47,10 @@ CREATE TABLE "joka"."thumbnails" (
 CREATE TABLE "joka"."user_roles" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
-	"tenant_id" integer NOT NULL,
+	"album_id" integer NOT NULL,
 	"role" varchar(20) DEFAULT 'VIEWER' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "user_roles_uq_1" UNIQUE("user_id","tenant_id")
+	CONSTRAINT "user_roles_uq_1" UNIQUE("user_id","album_id")
 );
 --> statement-breakpoint
 CREATE TABLE "joka"."users" (
@@ -68,4 +68,4 @@ CREATE TABLE "joka"."users" (
 ALTER TABLE "joka"."contents" ADD CONSTRAINT "contents_media_id_fk" FOREIGN KEY ("media_id") REFERENCES "joka"."media"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "joka"."thumbnails" ADD CONSTRAINT "thumbnails_content_id_fk" FOREIGN KEY ("content_id") REFERENCES "joka"."contents"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "joka"."user_roles" ADD CONSTRAINT "user_roles_fk_1" FOREIGN KEY ("user_id") REFERENCES "joka"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "joka"."user_roles" ADD CONSTRAINT "user_roles_fk_2" FOREIGN KEY ("tenant_id") REFERENCES "joka"."tenants"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "joka"."user_roles" ADD CONSTRAINT "user_roles_fk_2" FOREIGN KEY ("album_id") REFERENCES "joka"."albums"("id") ON DELETE cascade ON UPDATE no action;

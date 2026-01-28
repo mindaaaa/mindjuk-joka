@@ -1,9 +1,68 @@
 {
-  "id": "b036e173-4d8d-419e-a61e-14768f8cb09c",
+  "id": "0a3e9ee8-81c6-4ade-a1a5-a2fb9040ee7a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "joka.albums": {
+      "name": "albums",
+      "schema": "joka",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cid": {
+          "name": "cid",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(1024)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "albums_cid_unique": {
+          "name": "albums_cid_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "cid"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "joka.contents": {
       "name": "contents",
       "schema": "joka",
@@ -148,65 +207,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "joka.tenants": {
-      "name": "tenants",
-      "schema": "joka",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "cid": {
-          "name": "cid",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "varchar(1024)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "is_deleted": {
-          "name": "is_deleted",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "tenants_cid_unique": {
-          "name": "tenants_cid_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "cid"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "joka.thumbnails": {
       "name": "thumbnails",
       "schema": "joka",
@@ -307,8 +307,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "tenant_id": {
-          "name": "tenant_id",
+        "album_id": {
+          "name": "album_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -347,10 +347,10 @@
         "user_roles_fk_2": {
           "name": "user_roles_fk_2",
           "tableFrom": "user_roles",
-          "tableTo": "tenants",
+          "tableTo": "albums",
           "schemaTo": "joka",
           "columnsFrom": [
-            "tenant_id"
+            "album_id"
           ],
           "columnsTo": [
             "id"
@@ -366,7 +366,7 @@
           "nullsNotDistinct": false,
           "columns": [
             "user_id",
-            "tenant_id"
+            "album_id"
           ]
         }
       },
