@@ -19,6 +19,23 @@ describe("Actioned", () => {
       expect(actioned.by.name).toBe(user.name);
       expect(actioned.by.email).toBe(user.email);
     });
+
+    it("at이 누락되어도 Actioned 객체를 생성한다", () => {
+      const current = Date.now();
+      const user = User.from({
+        id: 1,
+        cid: "user-123",
+        name: "홍길동",
+        email: "test@example.com",
+      });
+      const actioned = Actioned.from({ by: user });
+
+      expect(actioned).toBeInstanceOf(Actioned);
+      expect(actioned.at.getTime()).toBeGreaterThanOrEqual(current);
+      expect(actioned.by.id).toBe(user.id);
+      expect(actioned.by.name).toBe(user.name);
+      expect(actioned.by.email).toBe(user.email);
+    });
   });
 
   describe("data", () => {
