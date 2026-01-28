@@ -1,26 +1,41 @@
-import * as mime from "mime-types";
-import { isNotEmpty } from "@joka/core/src/util/string.util";
-import * as assert from "node:assert";
+import * as mime from 'mime-types';
+import { z } from 'zod';
 
 export class MimeType {
-    static from(value: unknown): MimeType {
-        assert.ok(isNotEmpty(value), "mimeType is empty");
-        assert.ok(MimeType.isValidMimeType(value as string), `${value} is invalid for mimeType`);
+  public readonly type: string;
+  public readonly subType: string;
 
-        return new MimeType(value as string);
-    }
+  static from(value: unknown): MimeType {
+    MimeType.Schema.parse(value);
 
-    private static isValidMimeType(value: string): boolean {
-        return !!mime.extension(value);
-    }
+    return new MimeType(value as string);
+  }
 
-    private constructor(public readonly value: string) {}
+  static get Schema() {
+    return z.string().refine(
+      (value) => {
+        /**
+         * MIME 타입 형식 검증
+         * - 알파벳/숫자/하이픈/플러스 조합 (예: png, jpeg, x-www-form-urlencoded)
+         * @example image/png, video/mp4, audio/mpeg
+         */
+        const mimeTypeRegex = /^[a-z]+\/[a-z0-9\-+]+$/i;
+        return mimeTypeRegex.test(value) && !!mime.extension(value);
+      },
+      {
+        message: '유효하지 않은 MIME 타입 형식입니다',
+      },
+    );
+  }
 
-    get type(): string {
-        return this.value.split("/").at(0) as string;
-    }
+  private constructor(value: string) {
+    const [type, subType] = value.split('/');
 
-    get subType(): string {
-        return this.value.split("/").at(1) as string;
-    }
+    this.type = type as string;
+    this.subType = subType as string;
+  }
+
+  get value() {
+    return [this.type, this.subType].join('/');
+  }
 }

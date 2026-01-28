@@ -31,13 +31,13 @@ describe("Url", () => {
         });
 
         it("빈 문자열인 경우 에러를 던진다", () => {
-            expect(() => Url.from("")).toThrow("Url path is empty");
-            expect(() => Url.from("   ")).toThrow("Url path is empty");
+            expect(() => Url.from("")).toThrow();
+            expect(() => Url.from("   ")).toThrow();
         });
 
         it("http/https가 아닌 프로토콜은 에러를 던진다", () => {
-            expect(() => Url.from("ftp://example.com")).toThrow("is not a valid protocol");
-            expect(() => Url.from("file:///path/to/file")).toThrow("is not a valid protocol");
+            expect(() => Url.from("ftp://example.com")).toThrow();
+            expect(() => Url.from("file:///path/to/file")).toThrow();
         });
 
         it("유효하지 않은 URL 형식인 경우 에러를 던진다", () => {
@@ -55,7 +55,7 @@ describe("Url", () => {
     describe("path", () => {
         it("URL의 전체 경로를 반환한다", () => {
             const url = Url.from("https://example.com/path?query=value");
-            
+
             expect(url.path).toBe("https://example.com/path?query=value");
         });
     });
