@@ -6,7 +6,8 @@ describe("Actioned", () => {
     it("유효한 파라미터로 Actioned 객체를 생성한다", () => {
       const at = new Date();
       const user = User.from({
-        id: "user-123",
+        id: 1,
+        cid: "user-123",
         name: "홍길동",
         email: "test@example.com",
       });
@@ -24,7 +25,8 @@ describe("Actioned", () => {
     it("객체 데이터를 반환한다", () => {
       const at = new Date();
       const user = User.from({
-        id: "user-123",
+        id: 1,
+        cid: "user-123",
         name: "홍길동",
         email: "test@example.com",
       });

@@ -5,7 +5,8 @@ import {Content} from "../../src/domain/Content";
 describe("Media", () => {
   const createTestUser = () => {
     return User.from({
-      id: "user-123",
+      id: 1,
+      cid: "user-123",
       name: "홍길동",
       email: "test@example.com",
     });
@@ -16,6 +17,7 @@ describe("Media", () => {
       const user = createTestUser();
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "우리 아이의 첫 생일",
         user,
       });
@@ -34,6 +36,7 @@ describe("Media", () => {
 
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트 미디어",
         user,
       });
@@ -52,6 +55,7 @@ describe("Media", () => {
       const user = createTestUser();
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user,
       });
@@ -63,6 +67,7 @@ describe("Media", () => {
       const user = createTestUser();
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user,
       });
@@ -74,6 +79,7 @@ describe("Media", () => {
       const user = createTestUser();
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user,
       });
@@ -92,6 +98,7 @@ describe("Media", () => {
       descriptions.forEach((description, index) => {
         const media = Media.from({
           id: index + 1,
+          cid: "media-123",
           description,
           user,
         });
@@ -113,6 +120,7 @@ describe("Media", () => {
       });
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user: createTestUser(),
       })
@@ -131,6 +139,7 @@ describe("Media", () => {
       });
       const original = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user: createTestUser(),
       });
@@ -152,6 +161,7 @@ describe("Media", () => {
       });
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user: createTestUser(),
       })
@@ -163,6 +173,7 @@ describe("Media", () => {
     it("상태가 DRAFT이지만 content가 존재하지 않는다면 COMPLETE 상태로 전이할 수 없다", () => {
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user: createTestUser(),
       });
@@ -176,6 +187,7 @@ describe("Media", () => {
       const user = createTestUser();
       const media = Media.from({
         id: 1,
+        cid: "media-123",
         description: "테스트",
         user,
       });
