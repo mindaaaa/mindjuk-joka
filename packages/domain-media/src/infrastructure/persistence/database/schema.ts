@@ -93,7 +93,7 @@ export const contents = jokaSchema.table(
       .$defaultFn(() => uuidv7())
       .unique()
       .notNull(),
-    mediaId: integer('media_id').notNull(),
+    mediaId: integer('media_id').notNull().unique(),
     url: varchar('url', { length: 1024 }).notNull(),
     size: integer('size').notNull(),
     eTag: varchar('eTag', { length: 100 }).notNull(),
@@ -116,7 +116,7 @@ export const thumbnails = jokaSchema.table(
       .$defaultFn(() => uuidv7())
       .unique()
       .notNull(),
-    contentId: integer('content_id').notNull(),
+    contentId: integer('content_id').notNull().unique(),
     url: varchar('url', { length: 1024 }).notNull(),
     size: integer('size').notNull(),
     eTag: varchar('eTag', { length: 100 }).notNull(),
