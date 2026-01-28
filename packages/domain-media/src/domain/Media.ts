@@ -7,21 +7,24 @@ import { Content } from './Content';
 
 interface ConstructorParameters {
   id: number;
+  cid: string;
   description: string;
   user: User;
 }
 
+const MediaState = {
+  DRAFT: 'DRAFT',
+  PREPARING: 'PREPARING',
+  COMPLETE: 'COMPLETE',
+} as const;
+
 export class Media {
   static get State() {
-    return {
-      DRAFT: 'DRAFT',
-      PREPARING: 'PREPARING',
-      COMPLETE: 'COMPLETE',
-    } as const;
+    return MediaState;
   }
 
   static from(params: ConstructorParameters): Media {
-    const { id, description, user } = params;
+    const { id, cid, description, user } = params;
     const created = Actioned.from({
       at: new Date(),
       by: user,
@@ -29,6 +32,7 @@ export class Media {
 
     const instance = new Media(
       id,
+      cid,
       description,
       Media.State.DRAFT,
       null,
@@ -44,8 +48,9 @@ export class Media {
   static get Schema() {
     return z.object({
       id: z.number().positive(),
-      description: z.string(),
-      state: z.string(),
+      cid: z.string().min(1),
+      description: z.string().min(1),
+      state: z.string().min(1),
       content: Content.Schema.nullable(),
       isFavorite: z.boolean(),
       created: Actioned.Schema,
@@ -54,6 +59,7 @@ export class Media {
 
   private constructor(
     public readonly id: number,
+    public readonly cid: string,
     public readonly description: string,
     public readonly state: keyof typeof Media.State,
     public readonly content: Nullable<Content>,
@@ -65,6 +71,7 @@ export class Media {
     // TODO: created는 깊은 복사하기
     const media = new Media(
       this.id,
+      this.cid,
       this.description,
       this.state,
       content,
