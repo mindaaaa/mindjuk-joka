@@ -14,12 +14,21 @@ describe("Media", () => {
     });
   };
 
+  const album = Album.from({
+    id: 1,
+    cid: "album-123",
+    name: "우리 조카",
+    description: "우리 조카를 위한 앨범",
+    isDeleted: false,
+  });
+
   describe("from", () => {
     it("유효한 파라미터로 Media 객체를 생성한다", () => {
       const user = createTestUser();
       const media = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "우리 아이의 첫 생일",
         state: Media.State.COMPLETE,
         content: null,
@@ -43,6 +52,7 @@ describe("Media", () => {
       const media = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "테스트 미디어",
         state: Media.State.COMPLETE,
         content: null,
@@ -73,6 +83,7 @@ describe("Media", () => {
         const media = Media.from({
           id: index + 1,
           cid: "media-123",
+          albumId: album.id,
           description,
           state: Media.State.COMPLETE,
           content: null,
@@ -88,14 +99,6 @@ describe("Media", () => {
   });
 
   describe("draft", () => {
-    const album = Album.from({
-      id: 1,
-      cid: "album-123",
-      name: "우리 조카",
-      description: "우리 조카를 위한 앨범",
-      isDeleted: false,
-    });
-
     it("상태는 항상 DRAFT이다", () => {
       const media = DraftMedia.from({
         album,
@@ -139,6 +142,7 @@ describe("Media", () => {
       const media = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "테스트",
         state: Media.State.COMPLETE,
         content: null,
@@ -162,6 +166,7 @@ describe("Media", () => {
       const original = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "테스트",
         state: Media.State.COMPLETE,
         content: null,
@@ -188,6 +193,7 @@ describe("Media", () => {
       const media = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "테스트",
         state: Media.State.DRAFT,
         content: null,
@@ -204,6 +210,7 @@ describe("Media", () => {
       const media = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "테스트",
         state: Media.State.COMPLETE,
         content: null,
@@ -221,6 +228,7 @@ describe("Media", () => {
       const media = Media.from({
         id: 1,
         cid: "media-123",
+        albumId: album.id,
         description: "테스트",
         state: Media.State.COMPLETE,
         content: null,

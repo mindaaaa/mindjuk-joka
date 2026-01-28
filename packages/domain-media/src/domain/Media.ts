@@ -91,6 +91,7 @@ export class Media {
     const instance = new Media(
       params.id,
       params.cid,
+      params.albumId,
       params.description,
       params.state as keyof typeof Media.State,
       params.content as Nullable<Content>,
@@ -114,6 +115,7 @@ export class Media {
     return z.object({
       id: z.number().positive(),
       cid: z.string().min(1),
+      albumId: z.number().positive(),
       description: z.string().min(1),
       state: z.string().min(1),
       content: Content.Schema.nullable(),
@@ -126,6 +128,7 @@ export class Media {
   private constructor(
     public readonly id: number,
     public readonly cid: string,
+    public readonly albumId: number,
     public readonly description: string,
     public readonly state: keyof typeof Media.State,
     public readonly content: Nullable<Content>,
@@ -139,6 +142,7 @@ export class Media {
     const media = new Media(
       this.id,
       this.cid,
+      this.albumId,
       this.description,
       this.state,
       content,
