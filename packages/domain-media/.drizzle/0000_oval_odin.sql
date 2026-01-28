@@ -29,6 +29,7 @@ CREATE TABLE "joka"."media" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"created_by_id" integer NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"updated_by_id" integer NOT NULL,
 	CONSTRAINT "media_cid_unique" UNIQUE("cid")
 );
 --> statement-breakpoint

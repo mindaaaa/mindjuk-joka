@@ -1,5 +1,5 @@
 {
-  "id": "0a3e9ee8-81c6-4ade-a1a5-a2fb9040ee7a",
+  "id": "ecf38cb2-4c91-4c8a-b542-032b5dd7ca3b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -189,6 +189,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "updated_by_id": {
+          "name": "updated_by_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},

@@ -81,6 +81,7 @@ export const media = jokaSchema.table('media', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdById: integer('created_by_id').notNull(), // 여기에 users.id FK가 필요하다면 추가 가능!
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedById: integer('updated_by_id').notNull(), // 여기에 users.id FK가 필요하다면 추가 가능!
 });
 
 export const contents = jokaSchema.table(
