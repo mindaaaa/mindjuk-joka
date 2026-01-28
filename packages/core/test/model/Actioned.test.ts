@@ -1,5 +1,5 @@
-import {Actioned} from "../../src/model/Actioned";
-import {User} from "../../src/model/User";
+import { Actioned } from "../../src/model/Actioned";
+import { User } from "../../src/model/User";
 
 describe("Actioned", () => {
   describe("from", () => {
