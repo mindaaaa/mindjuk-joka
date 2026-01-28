@@ -6,8 +6,6 @@ import { z } from 'zod';
 import { Content } from './Content';
 
 interface ConstructorParameters {
-  id: number;
-  cid: string;
   description: string;
   user: User;
 }
@@ -18,26 +16,78 @@ const MediaState = {
   COMPLETE: 'COMPLETE',
 } as const;
 
+class DraftMedia {
+  public readonly state = MediaState.DRAFT;
+  public readonly content: Nullable<Content> = null;
+  public readonly isFavorite = false;
+
+  static from(params: ConstructorParameters): DraftMedia {
+    const { description, user } = params;
+    const draft = new DraftMedia(description, Actioned.from({ by: user }));
+
+    DraftMedia.Schema.parse(draft.data);
+
+    return draft;
+  }
+
+  static get Schema() {
+    return z.object({
+      description: z.string().min(1),
+      state: z.string().min(1),
+      content: Content.Schema.nullable(),
+      isFavorite: z.boolean(),
+      created: Actioned.Schema,
+    });
+  }
+
+  private constructor(
+    public readonly description: string,
+    public readonly created: Actioned,
+  ) {}
+
+  get data() {
+    const { at, by } = this.created;
+
+    const draft = {
+      ...this,
+      created: {
+        at,
+        by: {
+          ...by,
+          email: by.email.value,
+        },
+      },
+    };
+
+    DraftMedia.Schema.parse(draft);
+
+    return draft;
+  }
+}
+
+type MediaType = z.infer<typeof Media.Schema>;
+
 export class Media {
   static get State() {
     return MediaState;
   }
 
-  static from(params: ConstructorParameters): Media {
-    const { id, cid, description, user } = params;
-    const created = Actioned.from({
-      at: new Date(),
-      by: user,
-    });
+  static draft(params: ConstructorParameters): DraftMedia {
+    return DraftMedia.from(params);
+  }
 
+  static from(params: MediaType): Media {
     const instance = new Media(
-      id,
-      cid,
-      description,
-      Media.State.DRAFT,
-      null,
-      false,
-      created,
+      params.id,
+      params.cid,
+      params.description,
+      params.state as keyof typeof Media.State,
+      params.content as Nullable<Content>,
+      params.isFavorite,
+      Actioned.from({
+        at: params.created.at,
+        by: User.from(params.created.by),
+      }),
     );
 
     Media.Schema.parse(instance.data);
