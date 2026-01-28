@@ -3,9 +3,8 @@ import postgres from 'postgres';
 
 import * as schema from './schema';
 
-// TODO: url 환경 변수로 빼기
-const connectionString =
-  'postgres://admin:my-very-secure-pw@localhost:5432/mindjuk';
+const DB_ENDPOINT = process.env.DB_ENDPOINT!;
 
-const client = postgres(connectionString);
+const client = postgres(DB_ENDPOINT);
+
 export const db = drizzle(client, { schema });

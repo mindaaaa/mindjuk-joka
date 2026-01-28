@@ -1,12 +1,13 @@
 import { defineConfig } from 'drizzle-kit';
 
-// TODO: url 환경 변수로 빼기
+const DB_ENDPOINT = process.env.DB_ENDPOINT!;
+
 export default defineConfig({
   schema: './src/infrastructure/persistence/database/schema.ts',
   out: './.drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: "postgres://admin:my-very-secure-pw@localhost:5432/mindjuk",
+    url: DB_ENDPOINT,
   },
   schemaFilter: ["joka"],
 });
