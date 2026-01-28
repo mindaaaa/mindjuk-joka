@@ -1,6 +1,6 @@
 import { User } from "@joka/core/src/model/User";
 import { Actioned } from "@joka/core/src/model/Actioned";
-import { Media } from "../../src/domain/Media";
+import { Media, DraftMedia } from "../../src/domain/Media";
 import { Content } from "../../src/domain/Content";
 
 describe("Media", () => {
@@ -24,6 +24,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: user }).data,
+        updated: Actioned.from({ by: user }).data,
       });
 
       expect(media).toBeInstanceOf(Media);
@@ -46,6 +47,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: user }).data,
+        updated: Actioned.from({ by: user }).data,
       });
 
       const afterCreate = new Date();
@@ -75,6 +77,7 @@ describe("Media", () => {
           content: null,
           isFavorite: false,
           created: Actioned.from({ by: user }).data,
+          updated: Actioned.from({ by: user }).data,
         });
 
         expect(media.description).toBe(description);
@@ -85,7 +88,7 @@ describe("Media", () => {
 
   describe("draft", () => {
     it("상태는 항상 DRAFT이다", () => {
-      const media = Media.draft({
+      const media = DraftMedia.from({
         description: "테스트",
         user: createTestUser(),
       });
@@ -94,7 +97,7 @@ describe("Media", () => {
     });
 
     it("초기 content는 항상 null이다", () => {
-      const media = Media.draft({
+      const media = DraftMedia.from({
         description: "테스트",
         user: createTestUser(),
       });
@@ -103,7 +106,7 @@ describe("Media", () => {
     });
 
     it("초기 isFavorite는 항상 false이다", () => {
-      const media = Media.draft({
+      const media = DraftMedia.from({
         description: "테스트",
         user: createTestUser(),
       });
@@ -129,6 +132,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: createTestUser() }).data,
+        updated: Actioned.from({ by: createTestUser() }).data,
       })
         .setContent(content);
 
@@ -151,6 +155,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: createTestUser() }).data,
+        updated: Actioned.from({ by: createTestUser() }).data,
       });
       const newOne = original.setContent(content);
 
@@ -176,6 +181,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: createTestUser() }).data,
+        updated: Actioned.from({ by: createTestUser() }).data,
       })
         .setContent(content);
 
@@ -191,6 +197,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: createTestUser() }).data,
+        updated: Actioned.from({ by: createTestUser() }).data,
       });
 
       expect(media.isReadyToComplete).toBe(false);
@@ -207,6 +214,7 @@ describe("Media", () => {
         content: null,
         isFavorite: false,
         created: Actioned.from({ by: createTestUser() }).data,
+        updated: Actioned.from({ by: createTestUser() }).data,
       });
       const data = media.data;
 

@@ -16,14 +16,14 @@ const MediaState = {
   COMPLETE: 'COMPLETE',
 } as const;
 
-class DraftMedia {
+export class DraftMedia {
   public readonly state = MediaState.DRAFT;
-  public readonly content: Nullable<Content> = null;
+  public readonly content = null;
   public readonly isFavorite = false;
 
   static from(params: ConstructorParameters): DraftMedia {
-    const { description, user } = params;
-    const draft = new DraftMedia(description, Actioned.from({ by: user }));
+    const user = Actioned.from({ by: params.user });
+    const draft = new DraftMedia(params.description, user, user);
 
     DraftMedia.Schema.parse(draft.data);
 
@@ -43,18 +43,24 @@ class DraftMedia {
   private constructor(
     public readonly description: string,
     public readonly created: Actioned,
+    public readonly updated: Actioned,
   ) {}
 
   get data() {
-    const { at, by } = this.created;
-
     const draft = {
       ...this,
       created: {
-        at,
+        at: this.created.at,
         by: {
-          ...by,
-          email: by.email.value,
+          ...this.created.by,
+          email: this.created.by.email.value,
+        },
+      },
+      updated: {
+        at: this.updated.at,
+        by: {
+          ...this.updated.by,
+          email: this.updated.by.email.value,
         },
       },
     };
@@ -72,10 +78,6 @@ export class Media {
     return MediaState;
   }
 
-  static draft(params: ConstructorParameters): DraftMedia {
-    return DraftMedia.from(params);
-  }
-
   static from(params: MediaType): Media {
     const instance = new Media(
       params.id,
@@ -87,6 +89,10 @@ export class Media {
       Actioned.from({
         at: params.created.at,
         by: User.from(params.created.by),
+      }),
+      Actioned.from({
+        at: params.updated.at,
+        by: User.from(params.updated.by),
       }),
     );
 
@@ -104,6 +110,7 @@ export class Media {
       content: Content.Schema.nullable(),
       isFavorite: z.boolean(),
       created: Actioned.Schema,
+      updated: Actioned.Schema,
     });
   }
 
@@ -115,6 +122,7 @@ export class Media {
     public readonly content: Nullable<Content>,
     public readonly isFavorite: boolean,
     public readonly created: Actioned,
+    public readonly updated: Actioned,
   ) {}
 
   setContent(content: Nullable<Content>): Media {
@@ -127,6 +135,7 @@ export class Media {
       content,
       this.isFavorite,
       this.created,
+      this.updated,
     );
 
     Media.Schema.parse(media.data);
@@ -139,16 +148,21 @@ export class Media {
   }
 
   get data() {
-    const { at, by } = this.created;
-
     const media = {
       ...this,
       content: this.content ? this.content.data : null,
       created: {
-        at,
+        at: this.created.at,
         by: {
-          ...by,
-          email: by.email.value,
+          ...this.created.by,
+          email: this.created.by.email.value,
+        },
+      },
+      updated: {
+        at: this.updated.at,
+        by: {
+          ...this.updated.by,
+          email: this.updated.by.email.value,
         },
       },
     };
