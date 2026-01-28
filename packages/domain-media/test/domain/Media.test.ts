@@ -1,4 +1,5 @@
 import { User } from "@joka/core/src/model/User";
+import { Album } from "@joka/core/src/model/Album";
 import { Actioned } from "@joka/core/src/model/Actioned";
 import { Media, DraftMedia } from "../../src/domain/Media";
 import { Content } from "../../src/domain/Content";
@@ -87,8 +88,17 @@ describe("Media", () => {
   });
 
   describe("draft", () => {
+    const album = Album.from({
+      id: 1,
+      cid: "album-123",
+      name: "우리 조카",
+      description: "우리 조카를 위한 앨범",
+      isDeleted: false,
+    });
+
     it("상태는 항상 DRAFT이다", () => {
       const media = DraftMedia.from({
+        album,
         description: "테스트",
         user: createTestUser(),
       });
@@ -98,6 +108,7 @@ describe("Media", () => {
 
     it("초기 content는 항상 null이다", () => {
       const media = DraftMedia.from({
+        album,
         description: "테스트",
         user: createTestUser(),
       });
@@ -107,6 +118,7 @@ describe("Media", () => {
 
     it("초기 isFavorite는 항상 false이다", () => {
       const media = DraftMedia.from({
+        album,
         description: "테스트",
         user: createTestUser(),
       });

@@ -76,6 +76,7 @@ export const media = jokaSchema.table('media', {
     .$defaultFn(() => uuidv7())
     .unique()
     .notNull(),
+  albumId: integer('album_id').notNull(),
   description: varchar('description', { length: 255 }).notNull(),
   state: varchar('state', { length: 20 }).default(Media.State.DRAFT).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

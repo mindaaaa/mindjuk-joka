@@ -1,4 +1,5 @@
 import { Actioned } from '@joka/core/src/model/Actioned';
+import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
 import { Nullable } from '@joka/core/src/type';
 import { z } from 'zod';
@@ -6,6 +7,7 @@ import { z } from 'zod';
 import { Content } from './Content';
 
 interface ConstructorParameters {
+  album: Album;
   description: string;
   user: User;
 }
@@ -23,7 +25,12 @@ export class DraftMedia {
 
   static from(params: ConstructorParameters): DraftMedia {
     const user = Actioned.from({ by: params.user });
-    const draft = new DraftMedia(params.description, user, user);
+    const draft = new DraftMedia(
+      params.album.id,
+      params.description,
+      user,
+      user,
+    );
 
     DraftMedia.Schema.parse(draft.data);
 
@@ -32,6 +39,7 @@ export class DraftMedia {
 
   static get Schema() {
     return z.object({
+      albumId: z.number().positive(),
       description: z.string().min(1),
       state: z.string().min(1),
       content: Content.Schema.nullable(),
@@ -41,6 +49,7 @@ export class DraftMedia {
   }
 
   private constructor(
+    public readonly albumId: number,
     public readonly description: string,
     public readonly created: Actioned,
     public readonly updated: Actioned,
