@@ -1,4 +1,13 @@
-import { BaseException, InvalidArgumentException, NotFoundException, UnauthorizedException, UncaughtException, ForbiddenException } from "../../src/exception";
+import {
+  BaseException,
+  InvalidArgumentException,
+  IllegalStateException,
+  NotFoundException,
+  UnauthorizedException,
+  UncaughtException,
+  ForbiddenException,
+  ConflictException,
+} from "../../src/exception";
 
 describe("Exception", () => {
   describe("InvalidArgumentException", () => {
@@ -10,6 +19,18 @@ describe("Exception", () => {
       expect(fun).toThrow(Error);
       expect(fun).toThrow(BaseException);
       expect(fun).toThrow(InvalidArgumentException);
+    });
+  });
+
+  describe("IllegalStateException", () => {
+    it("instanceof 체크에 통과한다", () => {
+      const fun = () => {
+        throw new IllegalStateException();
+      }
+
+      expect(fun).toThrow(Error);
+      expect(fun).toThrow(BaseException);
+      expect(fun).toThrow(IllegalStateException);
     });
   });
 
@@ -58,6 +79,18 @@ describe("Exception", () => {
       expect(fun).toThrow(Error);
       expect(fun).toThrow(BaseException);
       expect(fun).toThrow(ForbiddenException);
+    });
+  });
+
+  describe("ConflictException", () => {
+    it("instanceof 체크에 통과한다", () => {
+      const fun = () => {
+        throw new ConflictException();
+      }
+
+      expect(fun).toThrow(Error);
+      expect(fun).toThrow(BaseException);
+      expect(fun).toThrow(ConflictException);
     });
   });
 });
