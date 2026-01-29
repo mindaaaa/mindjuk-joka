@@ -1,3 +1,4 @@
+import { IllegalStateException } from '@joka/core/src/exception';
 import { Actioned } from '@joka/core/src/model/Actioned';
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
@@ -138,7 +139,73 @@ export class Media {
     public readonly isFavorite: boolean,
     public readonly created: Actioned,
     public readonly updated: Actioned,
-  ) {}
+  ) {
+    if (this.created.by.id !== this.updated.by.id) {
+      throw new IllegalStateException('ACTIONED_USER_MISMATCHED', [
+        `Media를 생성한 사람과 수정한 사람은 다를 수 없습니다.`,
+      ]);
+    }
+  }
+
+  setDescription(description: string): Media {
+    // TODO: created는 깊은 복사하기
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      description,
+      this.state,
+      this.version,
+      this.content,
+      this.isFavorite,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
+  setState(state: keyof typeof Media.State): Media {
+    // TODO: created는 깊은 복사하기
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      state,
+      this.version,
+      this.content,
+      this.isFavorite,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
+  setVersion(version: number): Media {
+    // TODO: created는 깊은 복사하기
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      this.state,
+      version,
+      this.content,
+      this.isFavorite,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
 
   setContent(content: Nullable<Content>): Media {
     // TODO: created는 깊은 복사하기
@@ -160,12 +227,40 @@ export class Media {
     return media;
   }
 
+  setUpdated(updated: Actioned): Media {
+    // TODO: created는 깊은 복사하기
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      this.state,
+      this.version,
+      this.content,
+      this.isFavorite,
+      this.created,
+      updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
   get isReadyToComplete(): boolean {
     return this.state === Media.State.DRAFT && !!this.content;
   }
 
   get hasNoContent(): boolean {
     return !this.content;
+  }
+
+  get hasNoThumbnail(): boolean {
+    return !this.content?.thumbnail;
+  }
+
+  get hasThumbnail(): boolean {
+    return !this.hasNoThumbnail;
   }
 
   get data() {
