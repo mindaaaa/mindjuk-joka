@@ -7,6 +7,7 @@ import {
   UncaughtException,
   ForbiddenException,
   ConflictException,
+  NotImplementedException,
 } from "../../src/exception";
 
 describe("Exception", () => {
@@ -91,6 +92,18 @@ describe("Exception", () => {
       expect(fun).toThrow(Error);
       expect(fun).toThrow(BaseException);
       expect(fun).toThrow(ConflictException);
+    });
+  });
+
+  describe("NotImplementedException", () => {
+    it("instanceof 체크에 통과한다", () => {
+      const fun = () => {
+        throw new NotImplementedException();
+      }
+
+      expect(fun).toThrow(Error);
+      expect(fun).toThrow(BaseException);
+      expect(fun).toThrow(NotImplementedException);
     });
   });
 });

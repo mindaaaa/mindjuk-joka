@@ -52,3 +52,9 @@ export class ConflictException extends BaseException {
     super(code, messages);
   }
 }
+
+export class NotImplementedException extends BaseException {
+  constructor(code: string = 'NOT_IMPLEMENTED', messages: string[] = []) {
+    super(code, messages);
+  }
+}
