@@ -94,6 +94,7 @@ export class Media {
       params.albumId,
       params.description,
       params.state as keyof typeof Media.State,
+      params.version,
       params.content as Nullable<Content>,
       params.isFavorite,
       Actioned.from({
@@ -118,6 +119,7 @@ export class Media {
       albumId: z.number().positive(),
       description: z.string().min(1),
       state: z.string().min(1),
+      version: z.int().positive(),
       content: Content.Schema.nullable(),
       isFavorite: z.boolean(),
       created: Actioned.Schema,
@@ -131,6 +133,7 @@ export class Media {
     public readonly albumId: number,
     public readonly description: string,
     public readonly state: keyof typeof Media.State,
+    public readonly version: number,
     public readonly content: Nullable<Content>,
     public readonly isFavorite: boolean,
     public readonly created: Actioned,
@@ -145,6 +148,7 @@ export class Media {
       this.albumId,
       this.description,
       this.state,
+      this.version,
       content,
       this.isFavorite,
       this.created,
@@ -158,6 +162,10 @@ export class Media {
 
   get isReadyToComplete(): boolean {
     return this.state === Media.State.DRAFT && !!this.content;
+  }
+
+  get hasNoContent(): boolean {
+    return !this.content;
   }
 
   get data() {

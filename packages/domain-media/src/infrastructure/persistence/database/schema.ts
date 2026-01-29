@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   pgSchema,
   serial,
@@ -51,39 +52,59 @@ export const userRoles = jokaSchema.table(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({
-    // SQL의 constraint user_roles_fk_1 반영
     userRolesFk1: foreignKey({
       columns: [t.userId],
       foreignColumns: [users.id],
       name: 'user_roles_fk_1',
     }).onDelete('cascade'),
 
-    // SQL의 constraint user_roles_fk_2 반영
     userRolesFk2: foreignKey({
       columns: [t.albumId],
       foreignColumns: [albums.id],
       name: 'user_roles_fk_2',
     }).onDelete('cascade'),
 
-    // SQL의 constraint user_roles_uq_1 반영
     userRolesUq1: unique('user_roles_uq_1').on(t.userId, t.albumId),
   }),
 );
 
-export const media = jokaSchema.table('media', {
-  id: serial('id').primaryKey(),
-  cid: uuid('cid')
-    .$defaultFn(() => uuidv7())
-    .unique()
-    .notNull(),
-  albumId: integer('album_id').notNull(),
-  description: varchar('description', { length: 255 }).notNull(),
-  state: varchar('state', { length: 20 }).default(Media.State.DRAFT).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  createdById: integer('created_by_id').notNull(), // 여기에 users.id FK가 필요하다면 추가 가능!
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  updatedById: integer('updated_by_id').notNull(), // 여기에 users.id FK가 필요하다면 추가 가능!
-});
+export const media = jokaSchema.table(
+  'media',
+  {
+    id: serial('id').primaryKey(),
+    cid: uuid('cid')
+      .$defaultFn(() => uuidv7())
+      .unique()
+      .notNull(),
+    albumId: integer('album_id').notNull(),
+    description: varchar('description', { length: 255 }).notNull(),
+    state: varchar('state', { length: 20 })
+      .default(Media.State.DRAFT)
+      .notNull(),
+    version: integer('version').default(1).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdById: integer('created_by_id').notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    updatedById: integer('updated_by_id').notNull(),
+  },
+  (t) => ({
+    mediaAlbumFk: foreignKey({
+      columns: [t.albumId],
+      foreignColumns: [albums.id],
+      name: 'media_album_id_fk',
+    }),
+    mediaCreatedByFk: foreignKey({
+      columns: [t.createdById],
+      foreignColumns: [users.id],
+      name: 'media_created_by_fk',
+    }),
+    mediaUpdatedByFk: foreignKey({
+      columns: [t.updatedById],
+      foreignColumns: [users.id],
+      name: 'media_updated_by_fk',
+    }),
+  }),
+);
 
 export const contents = jokaSchema.table(
   'contents',
@@ -103,7 +124,7 @@ export const contents = jokaSchema.table(
     contentsMediaFk: foreignKey({
       columns: [t.mediaId],
       foreignColumns: [media.id],
-      name: 'contents_media_id_fk', // SQL 명세엔 없었지만 관례상 추가
+      name: 'contents_media_id_fk',
     }),
   }),
 );
@@ -131,3 +152,52 @@ export const thumbnails = jokaSchema.table(
     }),
   }),
 );
+
+/** Relations */
+export const mediaRelations = relations(media, ({ one }) => ({
+  album: one(albums, {
+    fields: [media.albumId],
+    references: [albums.id],
+  }),
+  content: one(contents, {
+    fields: [media.id],
+    references: [contents.mediaId],
+  }),
+  createdBy: one(users, {
+    fields: [media.createdById],
+    references: [users.id],
+    relationName: 'media_creator',
+  }),
+  updatedBy: one(users, {
+    fields: [media.updatedById],
+    references: [users.id],
+    relationName: 'media_updater',
+  }),
+}));
+
+export const contentsRelations = relations(contents, ({ one }) => ({
+  media: one(media, {
+    fields: [contents.mediaId],
+    references: [media.id],
+  }),
+  thumbnail: one(thumbnails, {
+    fields: [contents.id],
+    references: [thumbnails.contentId],
+  }),
+}));
+
+export const thumbnailsRelations = relations(thumbnails, ({ one }) => ({
+  content: one(contents, {
+    fields: [thumbnails.contentId],
+    references: [contents.id],
+  }),
+}));
+
+export const albumsRelations = relations(albums, ({ many }) => ({
+  media: many(media, { relationName: 'media_album' }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  createdMedia: many(media, { relationName: 'media_creator' }),
+  updatedMedia: many(media, { relationName: 'media_updater' }),
+}));
