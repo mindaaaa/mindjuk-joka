@@ -5,10 +5,9 @@ interface ConstructorParameters {
   limit?: unknown;
   filter: Filter;
   cursor?: Nullish<Cursor>;
-  sortOrder?: Nullish<(typeof SortOrder)[keyof typeof SortOrder]>;
+  sortOrder?: Nullish<string>;
 }
 
-// TODO: state는 단건이 아닌 다건 조회를 지원
 interface Filter {
   albumId: number;
   states: string[];
@@ -37,9 +36,14 @@ export class ListMediaCondition {
     const limit = Number(params.limit) || ListMediaCondition.DefaultLimit;
     const filter = params.filter;
     const cursor = params.cursor || null;
-    const sortOrder = params.sortOrder || null;
+    const sortOrder = params.sortOrder || SortOrder.DESC;
 
-    const condition = new ListMediaCondition(limit, filter, cursor, sortOrder);
+    const condition = new ListMediaCondition(
+      limit,
+      filter,
+      cursor,
+      sortOrder as (typeof SortOrder)[keyof typeof SortOrder],
+    );
 
     ListMediaCondition.Schema.parse(condition);
 
@@ -55,11 +59,10 @@ export class ListMediaCondition {
       }),
       cursor: z
         .object({
-          createdAt: z.date(),
           cid: z.string().min(1),
         })
         .nullable(),
-      sortOrder: z.enum(Object.values(SortOrder)).nullable(),
+      sortOrder: z.enum(Object.values(SortOrder)),
     });
   }
 
@@ -67,9 +70,7 @@ export class ListMediaCondition {
     public readonly limit: number,
     public readonly filter: Filter,
     public readonly cursor: Nullable<Cursor>,
-    public readonly sortOrder: Nullable<
-      (typeof SortOrder)[keyof typeof SortOrder]
-    >,
+    public readonly sortOrder: (typeof SortOrder)[keyof typeof SortOrder],
   ) {}
 
   get hasDescendingOrder(): boolean {

@@ -1,4 +1,7 @@
-import { IllegalStateException } from '@joka/core/src/exception';
+import {
+  ConflictException,
+  IllegalStateException,
+} from '@joka/core/src/exception';
 import { Actioned } from '@joka/core/src/model/Actioned';
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
@@ -6,6 +9,8 @@ import { Nullable } from '@joka/core/src/type';
 import { z } from 'zod';
 
 import { Content } from './Content';
+import { Thumbnail } from './Thumbnail';
+import { UpdateMediaRequest } from './UpdateMediaRequest';
 
 interface ConstructorParameters {
   album: Album;
@@ -89,6 +94,13 @@ export class Media {
   }
 
   static from(params: MediaType): Media {
+    const thumbnail = params.content?.thumbnail
+      ? Thumbnail.from(params.content.thumbnail)
+      : null;
+    const content = params.content
+      ? Content.from({ ...params.content, thumbnail })
+      : null;
+
     const instance = new Media(
       params.id,
       params.cid,
@@ -96,7 +108,7 @@ export class Media {
       params.description,
       params.state as keyof typeof Media.State,
       params.version,
-      params.content as Nullable<Content>,
+      content,
       params.isFavorite,
       Actioned.from({
         at: params.created.at,
@@ -145,46 +157,6 @@ export class Media {
         `Media를 생성한 사람과 수정한 사람은 다를 수 없습니다.`,
       ]);
     }
-  }
-
-  setDescription(description: string): Media {
-    // TODO: created는 깊은 복사하기
-    const media = new Media(
-      this.id,
-      this.cid,
-      this.albumId,
-      description,
-      this.state,
-      this.version,
-      this.content,
-      this.isFavorite,
-      this.created,
-      this.updated,
-    );
-
-    Media.Schema.parse(media.data);
-
-    return media;
-  }
-
-  setState(state: keyof typeof Media.State): Media {
-    // TODO: created는 깊은 복사하기
-    const media = new Media(
-      this.id,
-      this.cid,
-      this.albumId,
-      this.description,
-      state,
-      this.version,
-      this.content,
-      this.isFavorite,
-      this.created,
-      this.updated,
-    );
-
-    Media.Schema.parse(media.data);
-
-    return media;
   }
 
   setVersion(version: number): Media {
@@ -240,6 +212,51 @@ export class Media {
       this.isFavorite,
       this.created,
       updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
+  // TODO: 모든 요청이 현재 상태와 같다면 예외 던지기
+  updateBy(request: UpdateMediaRequest): Media {
+    if (this.cid !== request.cid) {
+      throw new ConflictException(`MEDIA_CID_MISMATCHED`, [
+        `Media(${this.cid})에 대한 수정 요청이 아닙니다.`,
+      ]);
+    }
+
+    // TODO: 상태 전이 검증하기
+    const order = [
+      Media.State.DRAFT,
+      Media.State.PREPARING,
+      Media.State.COMPLETE,
+    ];
+    if (
+      request.state &&
+      order.indexOf(request.state) <= order.indexOf(this.state)
+    ) {
+      throw new ConflictException(`INVALID_STATE_TRANSITION`, [
+        `${this.state}에서 ${request.state} 상태로 전이할 수 없습니다.`,
+      ]);
+    }
+
+    const desiredContent = request.shouldUpdateContent
+      ? request.content
+      : this.content;
+
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      request.description || this.description,
+      request.state || this.state,
+      this.version,
+      desiredContent,
+      this.isFavorite,
+      this.created,
+      this.updated,
     );
 
     Media.Schema.parse(media.data);
