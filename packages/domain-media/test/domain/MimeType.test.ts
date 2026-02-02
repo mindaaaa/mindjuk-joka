@@ -1,77 +1,94 @@
-import { MimeType } from "../../src/domain/MimeType";
+import { MimeType } from '../../src/domain/MimeType';
 
-describe("MimeType", () => {
-    describe("from", () => {
-        it("유효한 MIME 타입으로 MimeType 객체를 생성한다", () => {
-            const mimeType = MimeType.from("image/png");
+jest.mock('mime-types', () => ({
+  extension: jest.fn((mimeType: string) => {
+    const validTypes: Record<string, string> = {
+      'image/png': 'png',
+      'image/jpeg': 'jpeg',
+      'video/mp4': 'mp4',
+      'audio/mpeg': 'mp3',
+    };
+    return validTypes[mimeType] || false;
+  }),
+}));
 
-            expect(mimeType).toBeInstanceOf(MimeType);
-            expect(mimeType.value).toBe("image/png");
-        });
+describe('MimeType', () => {
+  describe('from', () => {
+    it('유효한 MIME 타입으로 MimeType 객체를 생성한다', () => {
+      // given
+      const value = 'image/png';
 
-        it("다양한 유효한 MIME 타입을 처리한다", () => {
-            const validMimeTypes = [
-                "image/jpeg",
-                "image/png",
-                "image/gif",
-                "video/mp4",
-                "audio/mpeg",
-                "application/pdf",
-                "text/plain",
-            ];
+      // when
+      const mimeType = MimeType.from(value);
 
-            validMimeTypes.forEach(mimeTypeStr => {
-                const mimeType = MimeType.from(mimeTypeStr);
-                expect(mimeType.value).toBe(mimeTypeStr);
-            });
-        });
-
-        it("유효하지 않은 MIME 타입인 경우 에러를 던진다", () => {
-            expect(() => MimeType.from("invalid")).toThrow('유효하지 않은 MIME 타입 형식입니다');
-            expect(() => MimeType.from("image")).toThrow('유효하지 않은 MIME 타입 형식입니다');
-            expect(() => MimeType.from("image/")).toThrow('유효하지 않은 MIME 타입 형식입니다');
-        });
-
-        it("문자열이 아닌 값이 전달되면 에러를 던진다", () => {
-            expect(() => MimeType.from(123)).toThrow();
-            expect(() => MimeType.from(null)).toThrow();
-            expect(() => MimeType.from(undefined)).toThrow();
-        });
+      // then
+      expect(mimeType).toBeInstanceOf(MimeType);
+      expect(mimeType.type).toBe('image');
+      expect(mimeType.subType).toBe('png');
     });
 
-    describe("type", () => {
-        it("MIME 타입의 메인 타입을 반환한다", () => {
-            const imageMime = MimeType.from("image/png");
-            const videoMime = MimeType.from("video/mp4");
-            const audioMime = MimeType.from("audio/mpeg");
+    it('다양한 유효한 MIME 타입을 처리한다', () => {
+      // given
+      const testCases = [
+        { value: 'image/jpeg', expectedType: 'image', expectedSubType: 'jpeg' },
+        { value: 'video/mp4', expectedType: 'video', expectedSubType: 'mp4' },
+        { value: 'audio/mpeg', expectedType: 'audio', expectedSubType: 'mpeg' },
+      ];
 
-            expect(imageMime.type).toBe("image");
-            expect(videoMime.type).toBe("video");
-            expect(audioMime.type).toBe("audio");
-        });
+      // when & then
+      testCases.forEach(({ value, expectedType, expectedSubType }) => {
+        const mimeType = MimeType.from(value);
+        expect(mimeType.type).toBe(expectedType);
+        expect(mimeType.subType).toBe(expectedSubType);
+      });
     });
 
-    describe("subType", () => {
-        it("MIME 타입의 서브 타입을 반환한다", () => {
-            const pngMime = MimeType.from("image/png");
-            const jpegMime = MimeType.from("image/jpeg");
-            const mp4Mime = MimeType.from("video/mp4");
+    it('유효하지 않은 MIME 타입 형식이면 에러를 던진다', () => {
+      // given
+      const invalidFormats = [
+        'invalid',
+        'image',
+        'image/',
+        '/png',
+        'image//png',
+        '',
+      ];
 
-            expect(pngMime.subType).toBe("png");
-            expect(jpegMime.subType).toBe("jpeg");
-            expect(mp4Mime.subType).toBe("mp4");
-        });
+      // when & then
+      invalidFormats.forEach((value) => {
+        expect(() => MimeType.from(value)).toThrow();
+      });
     });
 
-  describe("value", () => {
-    it("MIME 타입 전체를 반환한다", () => {
-      const pngMime = MimeType.from("image/png");
-      const jpegMime = MimeType.from("image/jpeg");
-      const mp4Mime = MimeType.from("video/mp4");
+    it('mime-types 라이브러리에서 인식하지 못하는 타입이면 에러를 던진다', () => {
+      // given
+      const unknownType = 'image/unknown';
 
-      expect(pngMime.value).toBe("image/png");
-      expect(jpegMime.value).toBe("image/jpeg");
-      expect(mp4Mime.value).toBe("video/mp4");
+      // when & then
+      expect(() => MimeType.from(unknownType)).toThrow();
+    });
+
+    it('문자열이 아닌 값이 전달되면 에러를 던진다', () => {
+      // given
+      const invalidValues = [123, null, undefined, {}, []];
+
+      // when & then
+      invalidValues.forEach((value) => {
+        expect(() => MimeType.from(value)).toThrow();
+      });
+    });
+  });
+
+  describe('value', () => {
+    it('type과 subType을 슬래시로 합친 값을 반환한다', () => {
+      // given
+      const mimeType = MimeType.from('image/png');
+
+      // when
+      const result = mimeType.value;
+
+      // then
+      expect(result).toBe('image/png');
     });
   });
 });

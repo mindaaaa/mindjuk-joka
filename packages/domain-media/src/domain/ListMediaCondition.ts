@@ -32,6 +32,7 @@ export class ListMediaCondition {
     return SortOrder;
   }
 
+  // TODO: 잘못된 요청이 들어왔으면 InvalidArgumentException 던지도록 개선
   static from(params: ConstructorParameters): ListMediaCondition {
     const limit = Number(params.limit) || ListMediaCondition.DefaultLimit;
     const filter = params.filter;

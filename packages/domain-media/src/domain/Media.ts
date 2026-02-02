@@ -152,6 +152,7 @@ export class Media {
     public readonly created: Actioned,
     public readonly updated: Actioned,
   ) {
+    // TODO: 이거 zod한테 맡길 수 있어보임
     if (this.created.by.id !== this.updated.by.id) {
       throw new IllegalStateException('ACTIONED_USER_MISMATCHED', [
         `Media를 생성한 사람과 수정한 사람은 다를 수 없습니다.`,

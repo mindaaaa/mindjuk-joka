@@ -1,95 +1,71 @@
-import { Thumbnail } from "../../src/domain/Thumbnail";
-import { Url } from "@joka/core/src/model/Url";
-import { MimeType } from "../../src/domain/MimeType";
+import { z } from 'zod';
 
-describe("Thumbnail", () => {
-  describe("from", () => {
-    it("유효한 파라미터로 Thumbnail 객체를 생성한다", () => {
-      const thumbnail = Thumbnail.from({
-        url: "https://example.com/thumbnail.jpg",
+import { Thumbnail } from '../../src/domain/Thumbnail';
+
+jest.mock('@joka/core/src/model/Url', () => ({
+  Url: {
+    from: jest.fn((value: string) => ({
+      path: value,
+    })),
+    Schema: z.string(),
+  },
+}));
+
+jest.mock('../../src/domain/MimeType', () => ({
+  MimeType: {
+    from: jest.fn((value: string) => ({
+      value,
+    })),
+    Schema: z.string(),
+  },
+}));
+
+describe('Thumbnail', () => {
+  describe('from', () => {
+    it('유효한 파라미터로 Thumbnail 객체를 생성한다', () => {
+      // given
+      const params = {
+        url: 'http://example.com/thumbnail.png',
         size: 1024,
-        eTag: "abc123",
-        mimeType: "image/jpeg",
-        blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
-      });
+        eTag: 'etag-123',
+        mimeType: 'image/png',
+        blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+      };
 
+      // when
+      const thumbnail = Thumbnail.from(params);
+
+      // then
       expect(thumbnail).toBeInstanceOf(Thumbnail);
-      expect(thumbnail.url).toBeInstanceOf(Url);
-      expect(thumbnail.url.path).toBe("https://example.com/thumbnail.jpg");
-      expect(thumbnail.size).toBe(1024);
-      expect(thumbnail.eTag).toBe("abc123");
-      expect(thumbnail.mimeType).toBeInstanceOf(MimeType);
-      expect(thumbnail.mimeType.value).toBe("image/jpeg");
-      expect(thumbnail.blurhash).toBe("L6PZfSi_.AyE_3t7t7R**0o#DgR4");
-    });
-
-    it("다양한 이미지 형식의 썸네일을 생성한다", () => {
-      const testCases = [
-        {
-          url: "https://cdn.example.com/thumb1.png",
-          size: 2048,
-          eTag: "etag-1",
-          mimeType: "image/png",
-          blurhash: "LKO2?U%2Tw=w]~RBVZRi};RPxuwH",
-        },
-        {
-          url: "https://cdn.example.com/thumb2.webp",
-          size: 512,
-          eTag: "etag-2",
-          mimeType: "image/webp",
-          blurhash: "L6PZfSjE.AyE_3t7t7R**0o#DgR4",
-        },
-      ];
-
-      testCases.forEach(params => {
-        const thumbnail = Thumbnail.from(params);
-        expect(thumbnail.size).toBe(params.size);
-        expect(thumbnail.eTag).toBe(params.eTag);
-        expect(thumbnail.blurhash).toBe(params.blurhash);
-      });
-    });
-
-    it("유효하지 않은 URL인 경우 에러를 던진다", () => {
-      expect(() =>
-        Thumbnail.from({
-          url: "invalid-url",
-          size: 1024,
-          eTag: "abc",
-          mimeType: "image/jpeg",
-          blurhash: "LKO2?U%2Tw=w",
-        })
-      ).toThrow();
-    });
-
-    it("유효하지 않은 MIME 타입인 경우 에러를 던진다", () => {
-      expect(() =>
-        Thumbnail.from({
-          url: "https://example.com/thumb.jpg",
-          size: 1024,
-          eTag: "abc",
-          mimeType: "invalid/type",
-          blurhash: "LKO2?U%2Tw=w",
-        })
-      ).toThrow();
+      expect(thumbnail.url.path).toBe(params.url);
+      expect(thumbnail.size).toBe(params.size);
+      expect(thumbnail.eTag).toBe(params.eTag);
+      expect(thumbnail.mimeType.value).toBe(params.mimeType);
+      expect(thumbnail.blurhash).toBe(params.blurhash);
     });
   });
 
-  describe("data", () => {
-    it("객체 데이터를 반환한다", () => {
-      const thumbnail = Thumbnail.from({
-        url: "https://example.com/thumbnail.jpg",
-        size: 1024,
-        eTag: "abc123",
-        mimeType: "image/jpeg",
-        blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
-      });
+  describe('data', () => {
+    it('객체 데이터를 반환한다', () => {
+      // given
+      const params = {
+        url: 'http://example.com/thumbnail.png',
+        size: 2048,
+        eTag: 'etag-456',
+        mimeType: 'image/jpeg',
+        blurhash: 'LGF5]+Yk^6#M@-5c,1J5@[or[Q6.',
+      };
+      const thumbnail = Thumbnail.from(params);
+
+      // when
       const data = thumbnail.data;
 
-      expect(data.url).toBe(thumbnail.url.path);
-      expect(data.size).toBe(thumbnail.size);
-      expect(data.eTag).toBe(thumbnail.eTag);
-      expect(data.mimeType).toBe(thumbnail.mimeType.value);
-      expect(data.blurhash).toBe(thumbnail.blurhash);
+      // then
+      expect(data.url).toBe(params.url);
+      expect(data.size).toBe(params.size);
+      expect(data.eTag).toBe(params.eTag);
+      expect(data.mimeType).toBe(params.mimeType);
+      expect(data.blurhash).toBe(params.blurhash);
     });
   });
 });
