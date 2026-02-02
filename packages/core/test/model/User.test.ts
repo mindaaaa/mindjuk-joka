@@ -1,35 +1,43 @@
-import {User} from "../../src/model/User";
-import {Email} from "../../src/model/Email";
+import { Email } from '../../src/model/Email';
+import { User } from '../../src/model/User';
 
-describe("User", () => {
-  describe("from", () => {
-    it("유효한 파라미터로 User 객체를 생성한다", () => {
-      const email = "test@example.com";
+describe('User', () => {
+  describe('from', () => {
+    it('유효한 파라미터로 User 객체를 생성한다', () => {
+      // given
+      const email = 'test@example.com';
+
+      // when
       const user = User.from({
         id: 1,
-        cid: "user-123",
-        name: "홍길동",
+        cid: 'user-123',
+        name: '홍길동',
         email,
       });
 
+      // then
       expect(user).toBeInstanceOf(User);
       expect(user.id).toBe(1);
-      expect(user.cid).toBe("user-123");
-      expect(user.name).toBe("홍길동");
+      expect(user.cid).toBe('user-123');
+      expect(user.name).toBe('홍길동');
       expect(user.email).toStrictEqual(Email.from(email));
     });
   });
 
-  describe("data", () => {
-    it("객체 데이터를 반환한다", () => {
-      const email = "test@example.com";
+  describe('data', () => {
+    it('객체 데이터를 반환한다', () => {
+      // given
+      const email = 'test@example.com';
+
+      // when
       const user = User.from({
         id: 1,
-        cid: "user-123",
-        name: "홍길동",
+        cid: 'user-123',
+        name: '홍길동',
         email,
       });
 
+      // then
       expect(user.data.id).toBe(user.id);
       expect(user.data.cid).toBe(user.cid);
       expect(user.data.name).toBe(user.name);

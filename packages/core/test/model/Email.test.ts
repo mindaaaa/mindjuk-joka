@@ -1,43 +1,58 @@
-import { Email } from "../../src/model/Email";
+import { Email } from '../../src/model/Email';
 
-describe("Email", () => {
-    describe("from", () => {
-        it("유효한 이메일로 Email 객체를 생성한다", () => {
-            const email = Email.from("test@example.com");
+describe('Email', () => {
+  describe('from', () => {
+    it('유효한 이메일로 Email 객체를 생성한다', () => {
+      // given
+      // when
+      const email = Email.from('test@example.com');
 
-            expect(email).toBeInstanceOf(Email);
-            expect(email.value).toBe("test@example.com");
-        });
-
-        it("다양한 유효한 이메일 형식을 처리한다", () => {
-            const validEmails = [
-                "user@domain.com",
-                "user.name@domain.com",
-                "user+tag@domain.com",
-                "user_name@domain.co.kr",
-            ];
-
-            validEmails.forEach(emailStr => {
-                const email = Email.from(emailStr);
-                expect(email.value).toBe(emailStr);
-            });
-        });
-
-        it("유효하지 않은 이메일 형식인 경우 에러를 던진다", () => {
-            expect(() => Email.from("invalid")).toThrow();
-            expect(() => Email.from("@example.com")).toThrow();
-            expect(() => Email.from("user@")).toThrow();
-            expect(() => Email.from("")).toThrow();
-        });
-
-        it("빈 문자열이나 공백만 있는 경우 에러를 던진다", () => {
-            expect(() => Email.from("   ")).toThrow();
-        });
-
-        it("문자열이 아닌 값이 전달되면 에러를 던진다", () => {
-            expect(() => Email.from(123)).toThrow();
-            expect(() => Email.from(null)).toThrow();
-            expect(() => Email.from(undefined)).toThrow();
-        });
+      // then
+      expect(email).toBeInstanceOf(Email);
+      expect(email.value).toBe('test@example.com');
     });
+
+    it('다양한 유효한 이메일 형식을 처리한다', () => {
+      // given
+      const validEmails = [
+        'user@domain.com',
+        'user.name@domain.com',
+        'user+tag@domain.com',
+        'user_name@domain.co.kr',
+      ];
+
+      // when
+      // then
+      validEmails.forEach((emailStr) => {
+        const email = Email.from(emailStr);
+        expect(email.value).toBe(emailStr);
+      });
+    });
+
+    it('유효하지 않은 이메일 형식인 경우 에러를 던진다', () => {
+      // given
+      // when
+      // then
+      expect(() => Email.from('invalid')).toThrow();
+      expect(() => Email.from('@example.com')).toThrow();
+      expect(() => Email.from('user@')).toThrow();
+      expect(() => Email.from('')).toThrow();
+    });
+
+    it('빈 문자열이나 공백만 있는 경우 에러를 던진다', () => {
+      // given
+      // when
+      // then
+      expect(() => Email.from('   ')).toThrow();
+    });
+
+    it('문자열이 아닌 값이 전달되면 에러를 던진다', () => {
+      // given
+      // when
+      // then
+      expect(() => Email.from(123)).toThrow();
+      expect(() => Email.from(null)).toThrow();
+      expect(() => Email.from(undefined)).toThrow();
+    });
+  });
 });
