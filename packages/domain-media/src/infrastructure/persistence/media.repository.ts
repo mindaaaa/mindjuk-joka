@@ -4,10 +4,20 @@ import {
   UncaughtException,
 } from '@joka/core/src/exception';
 import { Actioned } from '@joka/core/src/model/Actioned';
-import { eq, and, desc, asc, inArray } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  desc,
+  asc,
+  inArray,
+  aliasedTable,
+  lte,
+  gte,
+  SQL,
+} from 'drizzle-orm';
 
 import { db } from './database';
-import { media, contents, thumbnails, albums } from './database/schema';
+import { media, contents, thumbnails, users } from './database/schema';
 import { Content } from '../../domain/Content';
 import { ListMediaCondition } from '../../domain/ListMediaCondition';
 import { Media, DraftMedia } from '../../domain/Media';
@@ -43,21 +53,21 @@ export const insert = async (draft: DraftMedia): Promise<Media> => {
 
 // 상특: any를 쓰는데 거리낌이 없음
 const refine = (media: any): Media => {
-  const thumbnail = media?.content?.thumbnail?.url
+  const thumbnail = media?.thumbnailUrl
     ? Thumbnail.from({
-        url: media.content.thumbnail.url,
-        size: media.content.thumbnail.size,
-        eTag: media.content.thumbnail.eTag,
-        mimeType: media.content.thumbnail.mimeType,
-        blurhash: media.content.thumbnail.blurhash,
+        url: media.thumbnailUrl,
+        size: media.thumbnailSize,
+        eTag: media.thumbnailETag,
+        mimeType: media.thumbnailMimeType,
+        blurhash: media.thumbnailBlurhash,
       })
     : null;
-  const content = media?.content?.url
+  const content = media?.contentUrl
     ? Content.from({
-        url: media.content.url,
-        size: media.content.size,
-        eTag: media.content.eTag,
-        mimeType: media.content.mimeType,
+        url: media.contentUrl,
+        size: media.contentSize,
+        eTag: media.contentETag,
+        mimeType: media.contentMimeType,
         thumbnail,
       }).data
     : null;
@@ -74,56 +84,89 @@ const refine = (media: any): Media => {
     created: {
       at: media.createdAt,
       by: {
-        id: media.createdBy.id,
-        cid: media.createdBy.cid,
-        name: media.createdBy.name,
-        email: media.createdBy.email,
+        id: media.createdById,
+        cid: media.createdByCId,
+        name: media.createdByName,
+        email: media.createdByEmail,
       },
     },
     updated: {
       at: media.updatedAt,
       by: {
-        id: media.updatedBy.id,
-        cid: media.updatedBy.cid,
-        name: media.updatedBy.name,
-        email: media.updatedBy.email,
+        id: media.updatedById,
+        cid: media.updatedByCId,
+        name: media.updatedByName,
+        email: media.updatedByEmail,
       },
     },
   });
 };
 
+const selectAndJoinClause = () => {
+  const u1 = aliasedTable(users, 'u1');
+  const u2 = aliasedTable(users, 'u2');
+
+  return db
+    .select({
+      id: media.id,
+      cid: media.cid,
+      albumId: media.albumId,
+      description: media.description,
+      state: media.state,
+      version: media.version,
+      contentUrl: contents.url,
+      contentSize: contents.size,
+      contentETag: contents.eTag,
+      contentMimeType: contents.mimeType,
+      thumbnailUrl: thumbnails.url,
+      thumbnailSize: thumbnails.size,
+      thumbnailETag: thumbnails.eTag,
+      thumbnailMimeType: thumbnails.mimeType,
+      thumbnailBlurhash: thumbnails.blurhash,
+      createdAt: media.createdAt,
+      createdById: u1.id,
+      createdByCId: u1.cid,
+      createdByName: u1.name,
+      createdByEmail: u1.email,
+      updatedAt: media.updatedAt,
+      updatedById: u2.id,
+      updatedByCId: u2.cid,
+      updatedByName: u2.name,
+      updatedByEmail: u2.email,
+    })
+    .from(media)
+    .leftJoin(contents, eq(contents.mediaId, media.id))
+    .leftJoin(thumbnails, eq(thumbnails.contentId, contents.id))
+    .leftJoin(u1, eq(u1.id, media.createdById))
+    .leftJoin(u2, eq(u2.id, media.updatedById));
+};
+
 export const findMany = async (
-  _condition: ListMediaCondition,
-): Promise<unknown> => {
-  const responses = await db.query.media.findMany({
-    where: (media, { lt, gt, and }) => {
-      // TODO: 이게 먹히나 모르겠네...?
-      const whereClause = _condition.filter.states.length
-        ? [
-            eq(media.albumId, _condition.filter.albumId),
-            inArray(media.state, _condition.filter.states),
-          ]
-        : [eq(media.albumId, _condition.filter.albumId)];
+  condition: ListMediaCondition,
+): Promise<{
+  items: Media[];
+  nextCursor: { cid: string } | null;
+}> => {
+  const whereClause: SQL<unknown>[] = [
+    eq(media.albumId, condition.filter.albumId),
+  ];
+  if (condition.filter.states.length) {
+    whereClause.push(inArray(media.state, condition.filter.states));
+  }
+  if (condition.cursor) {
+    whereClause.push(
+      condition.hasDescendingOrder
+        ? lte(media.cid, condition.cursor.cid)
+        : gte(media.cid, condition.cursor.cid),
+    );
+  }
 
-      if (!_condition.cursor) {
-        return and(...whereClause);
-      } else if (_condition.hasDescendingOrder) {
-        return and(lt(media.cid, _condition.cursor.cid), ...whereClause);
-      } else {
-        return and(gt(media.cid, _condition.cursor.cid), ...whereClause);
-      }
-    },
-    limit: _condition.adjustedLimit,
-    orderBy: [_condition.hasDescendingOrder ? desc(media.cid) : asc(media.cid)],
-    with: {
-      album: true,
-      content: { with: { thumbnail: true } },
-      createdBy: true,
-      updatedBy: true,
-    },
-  });
+  const responses = await selectAndJoinClause()
+    .where(and(...whereClause))
+    .orderBy(condition.hasDescendingOrder ? desc(media.cid) : asc(media.cid))
+    .limit(condition.adjustedLimit);
 
-  if (responses.length <= _condition.limit) {
+  if (responses.length <= condition.limit) {
     return {
       items: responses.map(refine),
       nextCursor: null,
@@ -139,31 +182,26 @@ export const findMany = async (
   };
 };
 
+export const findOneOrNull = async (
+  albumId: number,
+  cid: string,
+): Promise<Media | null> => {
+  const [found] = await selectAndJoinClause()
+    // TODO: album 삭제 여부는 서비스 단에서 처리할 것!
+    .where(and(eq(media.cid, cid), eq(media.albumId, albumId)));
+
+  return found ? refine(found) : null;
+};
+
 export const findOne = async (albumId: number, cid: string): Promise<Media> => {
-  const found = await db.query.media.findFirst({
-    where: and(
-      eq(media.cid, cid),
-      eq(media.albumId, albumId),
-      eq(albums.isDeleted, false),
-    ),
-    with: {
-      album: true,
-      content: {
-        with: {
-          thumbnail: true,
-        },
-      },
-      createdBy: true,
-      updatedBy: true,
-    },
-  });
-  if (!found) {
+  const media = await findOneOrNull(albumId, cid);
+  if (!media) {
     throw new NotFoundException('MEDIA_NOT_FOUND', [
       `Media(${cid})가 존재하지 않습니다.`,
     ]);
   }
 
-  return refine(found);
+  return media;
 };
 
 export const update = (target: Media): Promise<Media> => {
@@ -296,11 +334,18 @@ export const deleteOne = (target: Media): Promise<null> => {
 
     const [deleted] = await trx
       .delete(media)
-      .where(eq(media.id, target.id))
+      .where(
+        and(
+          eq(media.albumId, target.albumId),
+          eq(media.cid, target.cid),
+          eq(media.version, target.version),
+        ),
+      )
       .returning();
     if (!deleted) {
-      throw new NotFoundException('MEDIA_NOT_FOUND', [
-        `Media(${target.cid})가 존재하지 않습니다.`,
+      throw new ConflictException('MEDIA_VERSION_MISMATCHED', [
+        `Media(${target.cid}) 수정에 실패했습니다.`,
+        `데이터가 이미 수정되었거나 존재하지 않습니다.`,
       ]);
     }
 
