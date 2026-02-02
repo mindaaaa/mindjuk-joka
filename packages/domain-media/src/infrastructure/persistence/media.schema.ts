@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { v7 as uuidv7 } from 'uuid';
 
-import { Media } from '../../../domain/Media';
+import { Media } from '../../domain/Media';
 
 export const jokaSchema = pgSchema('joka');
 
@@ -153,6 +153,7 @@ export const thumbnails = jokaSchema.table(
   }),
 );
 
+// TODO: 얘네 필요함?
 /** Relations */
 export const mediaRelations = relations(media, ({ one }) => ({
   album: one(albums, {
