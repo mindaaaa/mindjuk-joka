@@ -1,0 +1,17 @@
+{
+  "name": "@joka/infra-object-storage",
+  "version": "0.0.1",
+  "description": "infra-object-storage package",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@joka/core": "workspace:*",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260131.0"
+  }
+}

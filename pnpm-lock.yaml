@@ -109,6 +109,19 @@ importers:
         specifier: ^0.31.8
         version: 0.31.8
 
+  packages/infra-object-storage:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260131.0
+        version: 4.20260203.0
+
   packages/infra-thumbnail:
     dependencies:
       blurhash:
