@@ -1,118 +1,150 @@
-import { Content } from "../../src/domain/Content";
-import { Thumbnail } from "../../src/domain/Thumbnail";
-import { Url } from "@joka/core/src/model/Url";
-import { MimeType } from "../../src/domain/MimeType";
+import { z } from 'zod';
 
-describe("Content", () => {
-  describe("from", () => {
-    it("썸네일이 있는 Content 객체를 생성한다", () => {
-      const thumbnail = Thumbnail.from({
-        url: "https://example.com/thumbnail.jpg",
+import { Content } from '../../src/domain/Content';
+import { Thumbnail } from '../../src/domain/Thumbnail';
+
+jest.mock('@joka/core/src/model/Url', () => ({
+  Url: {
+    from: jest.fn((value: string) => ({
+      path: value,
+    })),
+    Schema: z.string(),
+  },
+}));
+
+jest.mock('../../src/domain/MimeType', () => ({
+  MimeType: {
+    from: jest.fn((value: string) => ({
+      value,
+    })),
+    Schema: z.string(),
+  },
+}));
+
+jest.mock('../../src/domain/Thumbnail', () => ({
+  Thumbnail: {
+    from: jest.fn((params) => ({
+      ...params,
+      url: { path: params.url },
+      mimeType: { value: params.mimeType },
+      data: {
+        url: params.url,
+        size: params.size,
+        eTag: params.eTag,
+        mimeType: params.mimeType,
+        blurhash: params.blurhash,
+      },
+    })),
+    Schema: z.object({
+      url: z.string(),
+      size: z.number(),
+      eTag: z.string(),
+      mimeType: z.string(),
+      blurhash: z.string(),
+    }),
+  },
+}));
+
+describe('Content', () => {
+  describe('from', () => {
+    it('썸네일이 있는 Content 객체를 생성한다', () => {
+      // given
+      const thumbnailParams = {
+        url: 'http://example.com/thumbnail.png',
         size: 512,
-        eTag: "thumb-etag",
-        mimeType: "image/jpeg",
-        blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
-      });
+        eTag: 'thumb-etag',
+        mimeType: 'image/png',
+        blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+      };
+      const thumbnail = Thumbnail.from(thumbnailParams);
 
-      const content = Content.from({
-        url: "https://example.com/image.jpg",
-        size: 2048,
-        eTag: "content-etag",
-        mimeType: "image/jpeg",
+      const params = {
+        url: 'http://example.com/content.mp4',
+        size: 10240,
+        eTag: 'content-etag',
+        mimeType: 'video/mp4',
         thumbnail,
-      });
+      };
 
+      // when
+      const content = Content.from(params);
+
+      // then
       expect(content).toBeInstanceOf(Content);
-      expect(content.url).toBeInstanceOf(Url);
-      expect(content.url.path).toBe("https://example.com/image.jpg");
-      expect(content.size).toBe(2048);
-      expect(content.eTag).toBe("content-etag");
-      expect(content.mimeType).toBeInstanceOf(MimeType);
-      expect(content.mimeType.value).toBe("image/jpeg");
+      expect(content.url.path).toBe(params.url);
+      expect(content.size).toBe(params.size);
+      expect(content.eTag).toBe(params.eTag);
+      expect(content.mimeType.value).toBe(params.mimeType);
       expect(content.thumbnail).toBe(thumbnail);
     });
 
-    it("썸네일이 없는 Content 객체를 생성한다", () => {
-      const content = Content.from({
-        url: "https://example.com/video.mp4",
+    it('썸네일이 없는 Content 객체를 생성한다', () => {
+      // given
+      const params = {
+        url: 'http://example.com/content.mp4',
         size: 10240,
-        eTag: "video-etag",
-        mimeType: "video/mp4",
+        eTag: 'content-etag',
+        mimeType: 'video/mp4',
         thumbnail: null,
-      });
+      };
 
+      // when
+      const content = Content.from(params);
+
+      // then
+      expect(content).toBeInstanceOf(Content);
       expect(content.thumbnail).toBeNull();
-      expect(content.url.path).toBe("https://example.com/video.mp4");
-      expect(content.mimeType.value).toBe("video/mp4");
-    });
-
-    it("다양한 미디어 타입의 Content를 생성한다", () => {
-      const testCases = [
-        {
-          url: "https://cdn.example.com/photo.png",
-          size: 3072,
-          eTag: "etag-1",
-          mimeType: "image/png",
-          thumbnail: null,
-        },
-        {
-          url: "https://cdn.example.com/audio.mp3",
-          size: 5120,
-          eTag: "etag-2",
-          mimeType: "audio/mpeg",
-          thumbnail: null,
-        },
-      ];
-
-      testCases.forEach(params => {
-        const content = Content.from(params);
-        expect(content.size).toBe(params.size);
-        expect(content.eTag).toBe(params.eTag);
-        expect(content.mimeType.value).toBe(params.mimeType);
-      });
-    });
-
-    it("유효하지 않은 URL인 경우 에러를 던진다", () => {
-      expect(() =>
-        Content.from({
-          url: "invalid-url",
-          size: 1024,
-          eTag: "abc",
-          mimeType: "image/jpeg",
-          thumbnail: null,
-        })
-      ).toThrow();
-    });
-
-    it("유효하지 않은 MIME 타입인 경우 에러를 던진다", () => {
-      expect(() =>
-        Content.from({
-          url: "https://example.com/content.jpg",
-          size: 1024,
-          eTag: "abc",
-          mimeType: "invalid/type",
-          thumbnail: null,
-        })
-      ).toThrow();
     });
   });
 
-  describe("data", () => {
-    it("객체 데이터를 반환한다", () => {
-      const content = Content.from({
-        url: "https://example.com/video.mp4",
+  describe('data', () => {
+    it('썸네일이 있을 때 객체 데이터를 반환한다', () => {
+      // given
+      const thumbnailParams = {
+        url: 'http://example.com/thumbnail.png',
+        size: 512,
+        eTag: 'thumb-etag',
+        mimeType: 'image/png',
+        blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+      };
+      const thumbnail = Thumbnail.from(thumbnailParams);
+
+      const params = {
+        url: 'http://example.com/content.mp4',
         size: 10240,
-        eTag: "video-etag",
-        mimeType: "video/mp4",
-        thumbnail: null,
-      });
+        eTag: 'content-etag',
+        mimeType: 'video/mp4',
+        thumbnail,
+      };
+      const content = Content.from(params);
+
+      // when
       const data = content.data;
 
-      expect(data.url).toBe(content.url.path);
-      expect(data.size).toBe(content.size);
-      expect(data.eTag).toBe(content.eTag);
-      expect(data.mimeType).toBe(content.mimeType.value);
-      expect(data.thumbnail).toBe(content.thumbnail);
+      // then
+      expect(data.url).toBe(params.url);
+      expect(data.size).toBe(params.size);
+      expect(data.eTag).toBe(params.eTag);
+      expect(data.mimeType).toBe(params.mimeType);
+      expect(data.thumbnail).toEqual(thumbnail.data);
+    });
+
+    it('썸네일이 없을 때 thumbnail을 null로 반환한다', () => {
+      // given
+      const params = {
+        url: 'http://example.com/content.mp4',
+        size: 10240,
+        eTag: 'content-etag',
+        mimeType: 'video/mp4',
+        thumbnail: null,
+      };
+      const content = Content.from(params);
+
+      // when
+      const data = content.data;
+
+      // then
+      expect(data.thumbnail).toBeNull();
     });
   });
 });

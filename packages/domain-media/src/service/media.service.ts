@@ -1,0 +1,93 @@
+import { Album } from '@joka/core/src/model/Album';
+import { User } from '@joka/core/src/model/User';
+import { Nullable } from '@joka/core/src/type';
+
+import { ListMediaCondition } from '../domain/ListMediaCondition';
+import { Media, DraftMedia } from '../domain/Media';
+import { UpdateMediaRequest } from '../domain/UpdateMediaRequest';
+import { MediaRepository } from '../infrastructure/persistence/media.repository';
+
+interface Context {
+  album: Album;
+  user: User;
+}
+interface CreateRequest {
+  description: string;
+}
+interface ListRequest {
+  limit?: number;
+  states?: string[];
+  cursor?: string;
+  sortOrder?: string;
+}
+interface ListResponse<E, P> {
+  items: E[];
+  pagination: { size: number } & P;
+}
+interface GetRequest {
+  cid: string;
+}
+interface DeleteRequest {
+  cid: string;
+}
+
+export class MediaService {
+  constructor(private repository: MediaRepository) {}
+
+  create(context: Context, request: CreateRequest): Promise<Media> {
+    return this.repository.insert(
+      DraftMedia.from({
+        album: context.album,
+        user: context.user,
+        description: request.description,
+      }),
+    );
+  }
+
+  async list(
+    context: Context,
+    request: ListRequest,
+  ): Promise<
+    ListResponse<
+      Media,
+      { order: string; nextCursor: Nullable<string>; hasNext: boolean }
+    >
+  > {
+    const condition = ListMediaCondition.from({
+      limit: request.limit,
+      filter: { albumId: context.album.id, states: request.states || [] },
+      cursor: request.cursor ? { cid: request.cursor } : null,
+      sortOrder: request.sortOrder,
+    });
+
+    const { items, nextCursor } = await this.repository.findMany(condition);
+
+    return {
+      items,
+      pagination: {
+        size: condition.limit,
+        order: condition.sortOrder,
+        nextCursor: nextCursor ? nextCursor.cid : null,
+        hasNext: !!nextCursor,
+      },
+    };
+  }
+
+  get(context: Context, request: GetRequest): Promise<Media> {
+    return this.repository.findOne(context.album.id, request.cid);
+  }
+
+  async update(context: Context, request: UpdateMediaRequest): Promise<Media> {
+    const found = await this.repository.findOne(context.album.id, request.cid);
+
+    const desired = found.updateBy(request);
+
+    return this.repository.update(desired);
+  }
+
+  async delete(context: Context, request: DeleteRequest): Promise<null> {
+    const target = await this.repository.findOne(context.album.id, request.cid);
+
+    return this.repository.deleteOne(target);
+  }
+}

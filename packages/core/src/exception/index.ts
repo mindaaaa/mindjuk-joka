@@ -17,6 +17,12 @@ export class InvalidArgumentException extends BaseException {
   }
 }
 
+export class IllegalStateException extends BaseException {
+  constructor(code: string = 'ILLEGAL_STATE', messages: string[] = []) {
+    super(code, messages);
+  }
+}
+
 export class NotFoundException extends BaseException {
   constructor(code: string = 'NOT_FOUND', messages: string[] = []) {
     super(code, messages);
@@ -37,6 +43,18 @@ export class UnauthorizedException extends BaseException {
 
 export class ForbiddenException extends BaseException {
   constructor(code: string = 'FORBIDDEN', messages: string[] = []) {
+    super(code, messages);
+  }
+}
+
+export class ConflictException extends BaseException {
+  constructor(code: string = 'CONFLICT', messages: string[] = []) {
+    super(code, messages);
+  }
+}
+
+export class NotImplementedException extends BaseException {
+  constructor(code: string = 'NOT_IMPLEMENTED', messages: string[] = []) {
     super(code, messages);
   }
 }
