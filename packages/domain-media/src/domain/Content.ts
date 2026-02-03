@@ -43,7 +43,7 @@ export class Content {
   ) {}
 
   get data() {
-    const url = this.url.path;
+    const url = this.url.fullPath;
     const mimeType = this.mimeType.value;
     const thumbnail = this.thumbnail ? this.thumbnail.data : null;
 

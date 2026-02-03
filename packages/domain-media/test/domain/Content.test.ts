@@ -6,7 +6,7 @@ import { Thumbnail } from '../../src/domain/Thumbnail';
 jest.mock('@joka/core/src/model/Url', () => ({
   Url: {
     from: jest.fn((value: string) => ({
-      path: value,
+      fullPath: value,
     })),
     Schema: z.string(),
   },
@@ -71,7 +71,7 @@ describe('Content', () => {
 
       // then
       expect(content).toBeInstanceOf(Content);
-      expect(content.url.path).toBe(params.url);
+      expect(content.url.fullPath).toBe(params.url);
       expect(content.size).toBe(params.size);
       expect(content.eTag).toBe(params.eTag);
       expect(content.mimeType.value).toBe(params.mimeType);

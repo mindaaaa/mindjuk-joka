@@ -43,7 +43,7 @@ export class Thumbnail {
   get data() {
     const mimeType = {
       ...this,
-      url: this.url.path,
+      url: this.url.fullPath,
       mimeType: this.mimeType.value,
     };
 
