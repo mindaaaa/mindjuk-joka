@@ -72,4 +72,8 @@ export class R2Client implements ObjectStorageClient {
   async getPresignedUrlForUpload(_bucket: string, _key: string): Promise<Url> {
     throw new NotImplementedException();
   }
+
+  async deleteMany(_keys: string[]): Promise<null> {
+    throw new NotImplementedException();
+  }
 }

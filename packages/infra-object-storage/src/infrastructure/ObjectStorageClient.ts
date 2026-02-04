@@ -7,4 +7,5 @@ export interface ObjectStorageClient {
   headOrThrow(url: Url): Promise<BucketObject>;
   getPresignedUrl(bucket: string, key: string): Promise<Url>;
   getPresignedUrlForUpload(bucket: string, key: string): Promise<Url>;
+  deleteMany(keys: string[]): Promise<null>;
 }
