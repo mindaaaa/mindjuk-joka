@@ -1,8 +1,8 @@
 import { Url } from '@joka/core/src/model/Url';
 import { Nullable } from '@joka/core/src/type';
+import { MimeType } from '@joka/lib-mime/src/domain/MimeType';
 import { z } from 'zod';
 
-import { MimeType } from './MimeType';
 import { Thumbnail } from './Thumbnail';
 
 interface ConstructorParameters {

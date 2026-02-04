@@ -11,7 +11,7 @@ jest.mock('@joka/core/src/model/Url', () => ({
   },
 }));
 
-jest.mock('../../src/domain/MimeType', () => ({
+jest.mock('../../../lib-mime/src/domain/MimeType', () => ({
   MimeType: {
     from: jest.fn((value: string) => ({
       value,

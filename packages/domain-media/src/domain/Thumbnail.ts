@@ -1,7 +1,6 @@
 import { Url } from '@joka/core/src/model/Url';
+import { MimeType } from '@joka/lib-mime/src/domain/MimeType';
 import { z } from 'zod';
-
-import { MimeType } from './MimeType';
 
 interface ConstructorParameters {
   url: string;
