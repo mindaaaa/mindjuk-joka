@@ -39,6 +39,12 @@ export class Url {
   getPath(options?: { withoutBeginningSlash?: boolean }) {
     const { withoutBeginningSlash = false } = options || {};
     return withoutBeginningSlash
+      ? this.removeBeginningSlashSafely()
+      : this.url.pathname;
+  }
+
+  private removeBeginningSlashSafely(): string {
+    return this.url.pathname.startsWith('/')
       ? this.url.pathname.slice(1)
       : this.url.pathname;
   }
