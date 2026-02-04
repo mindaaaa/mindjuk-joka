@@ -1,0 +1,17 @@
+{
+  "name": "@joka/lib-mime",
+  "version": "0.0.1",
+  "description": "lib-mime package",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "mime-types": "^3.0.2",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^3.0.1"
+  }
+}
