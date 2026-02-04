@@ -1,11 +1,16 @@
 import { R2Bucket } from '@cloudflare/workers-types';
-import { NotFoundException, UncaughtException } from '@joka/core/src/exception';
+import {
+  NotFoundException,
+  NotImplementedException,
+  UncaughtException,
+} from '@joka/core/src/exception';
 import { Url } from '@joka/core/src/model/Url';
 import { Nullable } from '@joka/core/src/type';
 
-import { R2Object } from '../../domain/R2Object';
+import { BucketObject } from '../../domain/BucketObject';
+import { ObjectStorageClient } from '../ObjectStorageClient';
 
-export class R2Client {
+export class R2Client implements ObjectStorageClient {
   private static instance: Nullable<R2Client> = null;
 
   static init(binding: R2Bucket) {
@@ -32,12 +37,13 @@ export class R2Client {
 
   private constructor(private readonly binding: R2Bucket) {}
 
-  async head(url: Url): Promise<R2Object | null> {
+  async head(url: Url): Promise<BucketObject | null> {
     const objectKey = url.getPath({ withoutBeginningSlash: true });
     const object = await this.binding.head(objectKey);
 
     if (object) {
-      return R2Object.from({
+      return BucketObject.from({
+        bucket: 'TBD',
         key: object.key,
         size: object.size,
         eTag: object.etag,
@@ -48,7 +54,7 @@ export class R2Client {
     return null;
   }
 
-  async headOrThrow(url: Url): Promise<R2Object> {
+  async headOrThrow(url: Url): Promise<BucketObject> {
     const object = await this.head(url);
     if (!object) {
       throw new NotFoundException(`OBJECT_NOT_FOUND`, [
@@ -57,5 +63,13 @@ export class R2Client {
     }
 
     return object;
+  }
+
+  async getPresignedUrl(_bucket: string, _key: string): Promise<Url> {
+    throw new NotImplementedException();
+  }
+
+  async getPresignedUrlForUpload(_bucket: string, _key: string): Promise<Url> {
+    throw new NotImplementedException();
   }
 }
