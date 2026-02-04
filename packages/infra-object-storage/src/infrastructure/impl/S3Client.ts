@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { NotFoundException, UncaughtException } from '@joka/core/src/exception';
 import { Url } from '@joka/core/src/model/Url';
+import { Nullable } from '@joka/core/src/type';
 import { AwsClient } from 'aws4fetch';
 
 import { BucketObject } from '../../domain/BucketObject';
@@ -15,38 +16,38 @@ export interface S3ClientConfig {
 }
 
 export class S3Client implements ObjectStorageClient {
-  private static instances: Map<string, S3Client> = new Map();
+  private static instance: Nullable<S3Client> = null;
 
   private readonly client: AwsClient;
   private readonly bucket: string;
   private readonly endpoint: string;
 
-  static init(config: S3ClientConfig): void {
-    if (S3Client.instances.has(config.bucket)) {
+  static init(config: S3ClientConfig): S3Client {
+    if (S3Client.instance) {
       throw new UncaughtException('S3_CLIENT_ALREADY_INITIALIZED', [
-        `오브젝트 스토리지 클라이언트(${config.bucket})가 이미 초기화되어 있습니다.`,
+        `오브젝트 스토리지 클라이언트가 이미 초기화되어 있습니다.`,
         '관리자에게 문의하세요.',
       ]);
     }
 
-    S3Client.instances.set(config.bucket, new S3Client(config));
+    S3Client.instance = new S3Client(config);
+
+    return S3Client.instance;
   }
 
-  static getInstance(bucket: string): S3Client {
-    const instance = S3Client.instances.get(bucket);
-
-    if (!instance) {
+  static getInstance(): S3Client {
+    if (!S3Client.instance) {
       throw new UncaughtException('S3_CLIENT_NOT_INITIALIZED', [
-        `오브젝트 스토리지 클라이언트(${bucket})가 초기화되지 않았습니다.`,
+        `오브젝트 스토리지 클라이언트가 초기화되지 않았습니다.`,
         '관리자에게 문의하세요.',
       ]);
     }
 
-    return instance;
+    return S3Client.instance;
   }
 
-  static clearInstances(): void {
-    S3Client.instances.clear();
+  static clearInstance(): void {
+    S3Client.instance = null;
   }
 
   private constructor(config: S3ClientConfig) {

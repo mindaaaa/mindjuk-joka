@@ -3,7 +3,6 @@ import { Url } from '@joka/core/src/model/Url';
 import { S3Client } from '../../../src/infrastructure/impl/S3Client';
 
 const TEST_BUCKET = process.env.MINIO_BUCKET_NAME!;
-console.log(TEST_BUCKET);
 const TEST_ENDPOINT = process.env.MINIO_ENDPOINT!;
 const TEST_ACCESS_KEY = process.env.MINIO_ACCESS_KEY!;
 const TEST_SECRET_KEY = process.env.MINIO_SECRET_KEY!;
@@ -16,11 +15,11 @@ const TEST_SECRET_KEY = process.env.MINIO_SECRET_KEY!;
  */
 describe('S3Client Integration', () => {
   beforeEach(() => {
-    S3Client.clearInstances();
+    S3Client.clearInstance();
   });
 
   afterEach(() => {
-    S3Client.clearInstances();
+    S3Client.clearInstance();
   });
 
   describe('init / getInstance', () => {
@@ -35,8 +34,8 @@ describe('S3Client Integration', () => {
 
       // when
       S3Client.init(config);
-      const instance1 = S3Client.getInstance(TEST_BUCKET);
-      const instance2 = S3Client.getInstance(TEST_BUCKET);
+      const instance1 = S3Client.getInstance();
+      const instance2 = S3Client.getInstance();
 
       // then
       expect(instance1).toBe(instance2);
@@ -60,9 +59,7 @@ describe('S3Client Integration', () => {
 
     it('초기화되지 않은 버킷의 인스턴스를 요청하면 에러를 던진다', () => {
       // when & then
-      expect(() => S3Client.getInstance('non-existent-bucket')).toThrow(
-        'S3_CLIENT_NOT_INITIALIZED',
-      );
+      expect(() => S3Client.getInstance()).toThrow('S3_CLIENT_NOT_INITIALIZED');
     });
   });
 
@@ -76,7 +73,7 @@ describe('S3Client Integration', () => {
         bucket: TEST_BUCKET,
         endpoint: TEST_ENDPOINT,
       });
-      client = S3Client.getInstance(TEST_BUCKET);
+      client = S3Client.getInstance();
     });
 
     it('Presigned URL로 파일을 업로드하고 head로 조회한다', async () => {
