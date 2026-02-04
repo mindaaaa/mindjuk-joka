@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "description": "infra-object-storage package",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest --testPathPatterns='\\.test\\.ts$' --passWithNoTests",
+    "test:integration": "jest --testPathPatterns='\\.integration\\.spec\\.ts$'",
+    "test:all": "jest",
+    "test:watch": "jest --watch --testPathPatterns='\\.test\\.ts$'",
+    "test:coverage": "jest --coverage --testPathPatterns='\\.test\\.ts$' --passWithNoTests"
   },
   "dependencies": {
     "@joka/core": "workspace:*",
