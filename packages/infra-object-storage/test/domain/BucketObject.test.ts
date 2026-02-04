@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { BucketObject } from '../../src/domain/BucketObject';
+import { BucketObject } from '../../src/domain/model/BucketObject';
 
 jest.mock('@joka/lib-mime/src/domain/MimeType', () => ({
   MimeType: {

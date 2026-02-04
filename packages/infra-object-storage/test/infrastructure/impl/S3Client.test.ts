@@ -18,7 +18,7 @@ jest.mock('aws4fetch', () => ({
 }));
 
 // Mock BucketObject
-jest.mock('../../../src/domain/BucketObject', () => ({
+jest.mock('../../../src/domain/model/BucketObject', () => ({
   BucketObject: {
     from: jest.fn().mockImplementation((params) => ({
       bucket: params.bucket,
@@ -190,25 +190,6 @@ describe('S3Client', () => {
       // then
       expect(result?.eTag).toBe('quoted-etag');
     });
-
-    it('content-type이 없으면 application/octet-stream을 사용한다', async () => {
-      // given
-      const url = Url.from('http://example.com/file.bin');
-      mockFetch.mockResolvedValue({
-        status: 200,
-        ok: true,
-        headers: new Map([
-          ['content-length', '1024'],
-          ['etag', '"abc123"'],
-        ]),
-      });
-
-      // when
-      const result = await client.head(url);
-
-      // then
-      expect(result?.contentType.value).toBe('application/octet-stream');
-    });
   });
 
   describe('headOrThrow', () => {
@@ -281,7 +262,7 @@ describe('S3Client', () => {
       );
     });
 
-    it('기본 만료 시간은 3600초이다', async () => {
+    it('기본 만료 시간은 180초이다', async () => {
       // given
       mockSign.mockResolvedValue({ url: 'http://signed-url' });
 
@@ -293,7 +274,7 @@ describe('S3Client', () => {
         aws: { signQuery: true },
       });
       const calledRequest = mockSign.mock.calls[0][0] as Request;
-      expect(calledRequest.url).toContain('X-Amz-Expires=3600');
+      expect(calledRequest.url).toContain('X-Amz-Expires=180');
     });
 
     it('만료 시간을 지정할 수 있다', async () => {

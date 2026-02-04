@@ -5,7 +5,8 @@ import { Url } from '@joka/core/src/model/Url';
 import { Nullable } from '@joka/core/src/type';
 import { AwsClient } from 'aws4fetch';
 
-import { BucketObject } from '../../domain/BucketObject';
+import { DefaultExpiry } from '../../domain/constant';
+import { BucketObject } from '../../domain/model/BucketObject';
 import { ObjectStorageClient } from '../ObjectStorageClient';
 
 export interface S3ClientConfig {
@@ -63,11 +64,12 @@ export class S3Client implements ObjectStorageClient {
 
   async head(url: Url): Promise<BucketObject | null> {
     const objectKey = url.getPath({ withoutBeginningSlash: true });
-    const requestUrl = `${this.endpoint}/${this.bucket}/${objectKey}`;
-
-    const response = await this.client.fetch(requestUrl, {
-      method: 'HEAD',
-    });
+    const response = await this.client.fetch(
+      `${this.endpoint}/${this.bucket}/${objectKey}`,
+      {
+        method: 'HEAD',
+      },
+    );
 
     if (response.status === 404) {
       return null;
@@ -77,19 +79,26 @@ export class S3Client implements ObjectStorageClient {
       throw new UncaughtException('S3_HEAD_FAILED', [
         `오브젝트(${objectKey}) 조회에 실패했습니다.`,
         `상태 코드: ${response.status}`,
+        '관리자에게 문의하세요.',
       ]);
     }
 
-    const contentLength = response.headers.get('content-length');
+    const contentLength = Number(response.headers.get('content-length'));
     const contentType = response.headers.get('content-type');
     const eTag = response.headers.get('etag');
+    if (!contentLength || !contentType || !eTag) {
+      throw new UncaughtException('INVALID_S3_OBJECT_HEADER', [
+        `오브젝트(${objectKey})에 필수 헤더가 누락되었습니다.`,
+        '관리자에게 문의하세요.',
+      ]);
+    }
 
     return BucketObject.from({
       bucket: this.bucket,
       key: objectKey,
-      size: contentLength ? parseInt(contentLength, 10) : 0,
-      eTag: eTag?.replace(/"/g, '') ?? '',
-      contentType: contentType ?? 'application/octet-stream',
+      size: contentLength,
+      eTag: eTag.replace(/"/g, ''),
+      contentType: contentType,
     });
   }
 
@@ -108,12 +117,13 @@ export class S3Client implements ObjectStorageClient {
   async getPresignedUrl(
     bucket: string,
     key: string,
-    expiresIn: number = 3600,
+    expiresIn: number = DefaultExpiry,
   ): Promise<Url> {
-    const requestUrl = `${this.endpoint}/${bucket}/${key}?X-Amz-Expires=${expiresIn}`;
-
     const signedRequest = await this.client.sign(
-      new Request(requestUrl, { method: 'GET' }),
+      new Request(
+        `${this.endpoint}/${bucket}/${key}?X-Amz-Expires=${expiresIn}`,
+        { method: 'GET' },
+      ),
       { aws: { signQuery: true } },
     );
 
@@ -123,12 +133,13 @@ export class S3Client implements ObjectStorageClient {
   async getPresignedUrlForUpload(
     bucket: string,
     key: string,
-    expiresIn: number = 3600,
+    expiresIn: number = DefaultExpiry,
   ): Promise<Url> {
-    const requestUrl = `${this.endpoint}/${bucket}/${key}?X-Amz-Expires=${expiresIn}`;
-
     const signedRequest = await this.client.sign(
-      new Request(requestUrl, { method: 'PUT' }),
+      new Request(
+        `${this.endpoint}/${bucket}/${key}?X-Amz-Expires=${expiresIn}`,
+        { method: 'PUT' },
+      ),
       { aws: { signQuery: true } },
     );
 
@@ -136,7 +147,7 @@ export class S3Client implements ObjectStorageClient {
   }
 
   async deleteMany(keys: string[]): Promise<null> {
-    if (keys.length === 0) {
+    if (!keys.length) {
       return null;
     }
 
@@ -145,24 +156,26 @@ export class S3Client implements ObjectStorageClient {
       .join('');
     const requestBody = `<?xml version="1.0" encoding="UTF-8"?><Delete>${objectsXml}</Delete>`;
 
-    const requestUrl = `${this.endpoint}/${this.bucket}?delete`;
-
     // S3 Delete Multiple Objects API requires Content-MD5 header
     const contentMd5 = createHash('md5').update(requestBody).digest('base64');
 
-    const response = await this.client.fetch(requestUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/xml',
-        'Content-MD5': contentMd5,
+    const response = await this.client.fetch(
+      `${this.endpoint}/${this.bucket}?delete`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/xml',
+          'Content-MD5': contentMd5,
+        },
+        body: requestBody,
       },
-      body: requestBody,
-    });
+    );
 
     if (!response.ok) {
       throw new UncaughtException('S3_DELETE_MANY_FAILED', [
         `오브젝트 삭제에 실패했습니다.`,
         `상태 코드: ${response.status}`,
+        '관리자에게 문의하세요.',
       ]);
     }
 
