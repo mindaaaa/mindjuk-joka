@@ -190,6 +190,60 @@ describe('S3Client', () => {
       // then
       expect(result?.eTag).toBe('quoted-etag');
     });
+
+    it('content-length 헤더가 없으면 에러를 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/file.png');
+      mockFetch.mockResolvedValue({
+        status: 200,
+        ok: true,
+        headers: new Map([
+          ['content-type', 'image/png'],
+          ['etag', '"abc123"'],
+        ]),
+      });
+
+      // when & then
+      await expect(client.head(url)).rejects.toThrow(
+        'INVALID_S3_OBJECT_HEADER',
+      );
+    });
+
+    it('content-type 헤더가 없으면 에러를 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/file.png');
+      mockFetch.mockResolvedValue({
+        status: 200,
+        ok: true,
+        headers: new Map([
+          ['content-length', '1024'],
+          ['etag', '"abc123"'],
+        ]),
+      });
+
+      // when & then
+      await expect(client.head(url)).rejects.toThrow(
+        'INVALID_S3_OBJECT_HEADER',
+      );
+    });
+
+    it('etag 헤더가 없으면 에러를 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/file.png');
+      mockFetch.mockResolvedValue({
+        status: 200,
+        ok: true,
+        headers: new Map([
+          ['content-length', '1024'],
+          ['content-type', 'image/png'],
+        ]),
+      });
+
+      // when & then
+      await expect(client.head(url)).rejects.toThrow(
+        'INVALID_S3_OBJECT_HEADER',
+      );
+    });
   });
 
   describe('headOrThrow', () => {
