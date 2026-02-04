@@ -8,7 +8,9 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@joka/core": "workspace:*"
+    "@joka/core": "workspace:*",
+    "@joka/lib-mime": "workspace:*",
+    "aws4fetch": "^1.0.20"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260131.0"
