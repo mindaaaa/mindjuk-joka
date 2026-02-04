@@ -8,8 +8,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "mime-types": "^3.0.2",
-    "zod": "^4.3.5"
+    "mime-types": "^3.0.2"
   },
   "devDependencies": {
     "@types/mime-types": "^3.0.1"

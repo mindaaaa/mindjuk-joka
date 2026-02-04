@@ -8,8 +8,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@joka/core": "workspace:*",
-    "zod": "^4.3.5"
+    "@joka/core": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260131.0"

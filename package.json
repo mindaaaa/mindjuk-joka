@@ -13,6 +13,9 @@
     "lint-staged": "lint-staged"
   },
   "license": "ISC",
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
