@@ -6,13 +6,13 @@ import { UseCase } from './UseCase';
 
 const UseCaseName = 'GetMedia' as const;
 
-interface Request {
+export interface Request {
   album: Album;
   user: User;
   mediaCid: string;
 }
 
-type Response = Media;
+export type Response = Media;
 
 export abstract class GetMedia implements UseCase<Request, Response> {
   get name(): string {
