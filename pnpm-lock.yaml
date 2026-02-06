@@ -70,6 +70,28 @@ importers:
         specifier: ^8.53.0
         version: 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  apps/joka-api:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@joka/domain-media':
+        specifier: workspace:*
+        version: link:../../packages/domain-media
+      '@joka/infra-object-storage':
+        specifier: workspace:*
+        version: link:../../packages/infra-object-storage
+      '@joka/lib-mime':
+        specifier: workspace:*
+        version: link:../../packages/lib-mime
+      hono:
+        specifier: ^4.11.8
+        version: 4.11.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260131.0
+        version: 4.20260203.0
+
   infra/cloudflare:
     devDependencies:
       '@cloudflare/workers-types':
@@ -114,10 +136,6 @@ importers:
       aws4fetch:
         specifier: ^1.0.20
         version: 1.0.20
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20260131.0
-        version: 4.20260203.0
 
   packages/infra-thumbnail:
     dependencies:
@@ -2298,6 +2316,10 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  hono@4.11.8:
+    resolution: {integrity: sha512-eVkB/CYCCei7K2WElZW9yYQFWssG0DhaDhVvr7wy5jJ22K+ck8fWW0EsLpB0sITUTvPnc97+rrbQqIr5iqiy9Q==}
+    engines: {node: '>=16.9.0'}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -5713,6 +5735,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  hono@4.11.8: {}
 
   html-escaper@2.0.2: {}
 
