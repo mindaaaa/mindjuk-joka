@@ -5,13 +5,13 @@ import { Thumbnail } from '../../src/domain/Thumbnail';
 jest.mock('@joka/core/src/model/Url', () => ({
   Url: {
     from: jest.fn((value: string) => ({
-      path: value,
+      fullPath: value,
     })),
     Schema: z.string(),
   },
 }));
 
-jest.mock('../../src/domain/MimeType', () => ({
+jest.mock('../../../lib-mime/src/domain/MimeType', () => ({
   MimeType: {
     from: jest.fn((value: string) => ({
       value,
@@ -37,7 +37,7 @@ describe('Thumbnail', () => {
 
       // then
       expect(thumbnail).toBeInstanceOf(Thumbnail);
-      expect(thumbnail.url.path).toBe(params.url);
+      expect(thumbnail.url.fullPath).toBe(params.url);
       expect(thumbnail.size).toBe(params.size);
       expect(thumbnail.eTag).toBe(params.eTag);
       expect(thumbnail.mimeType.value).toBe(params.mimeType);

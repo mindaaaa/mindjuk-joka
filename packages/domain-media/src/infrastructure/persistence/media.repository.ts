@@ -263,7 +263,7 @@ export class MediaRepository {
         .insert(contents)
         .values({
           mediaId: target.id,
-          url: target.content!.url.path,
+          url: target.content!.url.fullPath,
           size: target.content!.size,
           eTag: target.content!.eTag,
           mimeType: target.content!.mimeType!.value,
@@ -271,7 +271,7 @@ export class MediaRepository {
         .onConflictDoUpdate({
           target: contents.mediaId,
           set: {
-            url: target.content!.url.path,
+            url: target.content!.url.fullPath,
             size: target.content!.size,
             eTag: target.content!.eTag,
             mimeType: target.content!.mimeType!.value,
@@ -290,7 +290,7 @@ export class MediaRepository {
           .insert(thumbnails)
           .values({
             contentId: upsertedContent.id,
-            url: target.content!.thumbnail!.url.path,
+            url: target.content!.thumbnail!.url.fullPath,
             size: target.content!.thumbnail!.size,
             eTag: target.content!.thumbnail!.eTag,
             mimeType: target.content!.thumbnail!.mimeType!.value,
@@ -299,7 +299,7 @@ export class MediaRepository {
           .onConflictDoUpdate({
             target: thumbnails.contentId,
             set: {
-              url: target.content!.thumbnail!.url.path,
+              url: target.content!.thumbnail!.url.fullPath,
               size: target.content!.thumbnail!.size,
               eTag: target.content!.thumbnail!.eTag,
               mimeType: target.content!.thumbnail!.mimeType!.value,

@@ -9,7 +9,7 @@ describe('Url', () => {
 
       // then
       expect(url).toBeInstanceOf(Url);
-      expect(url.path).toBe('http://example.com/');
+      expect(url.fullPath).toBe('http://example.com/');
     });
 
     it('유효한 https URL로 Url 객체를 생성한다', () => {
@@ -19,7 +19,7 @@ describe('Url', () => {
 
       // then
       expect(url).toBeInstanceOf(Url);
-      expect(url.path).toBe('https://example.com/');
+      expect(url.fullPath).toBe('https://example.com/');
     });
 
     it('다양한 유효한 URL 형식을 처리한다', () => {
@@ -35,7 +35,7 @@ describe('Url', () => {
       // then
       validUrls.forEach((urlStr) => {
         const url = Url.from(urlStr);
-        expect(url.path).toBeTruthy();
+        expect(url.fullPath).toBeTruthy();
       });
     });
 
@@ -73,14 +73,52 @@ describe('Url', () => {
     });
   });
 
-  describe('path', () => {
+  describe('fullPath', () => {
     it('URL의 전체 경로를 반환한다', () => {
       // given
-      // when
       const url = Url.from('https://example.com/path?query=value');
 
+      // when
       // then
-      expect(url.path).toBe('https://example.com/path?query=value');
+      expect(url.fullPath).toBe('https://example.com/path?query=value');
+    });
+  });
+
+  describe('getPath', () => {
+    it('URL의 path를 반환한다', () => {
+      // given
+      const url = Url.from('https://example.com/path?query=value');
+
+      // when
+      // then
+      expect(url.getPath()).toBe('/path');
+    });
+
+    it('options가 누락되어도 path를 반환한다', () => {
+      // given
+      const url = Url.from('https://example.com/path?query=value');
+
+      // when
+      // then
+      expect(url.getPath()).toBe('/path');
+    });
+
+    it('withoutBeginningSlash가 true인 경우 /로 시작하지 않는 path를 반환한다', () => {
+      // given
+      const url = Url.from('https://example.com/path?query=value');
+
+      // when
+      // then
+      expect(url.getPath({ withoutBeginningSlash: true })).toBe('path');
+    });
+
+    it('withoutBeginningSlash가 false인 경우 /로 시작하는 path를 반환한다', () => {
+      // given
+      const url = Url.from('https://example.com/path?query=value');
+
+      // when
+      // then
+      expect(url.getPath({ withoutBeginningSlash: false })).toBe('/path');
     });
   });
 });

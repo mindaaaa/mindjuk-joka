@@ -10,6 +10,9 @@ coverage/
 # Turbo files
 .turbo/
 
+# Cloudflare files
+.wrangler/
+
 # JetBrains IDE
 .idea/
 

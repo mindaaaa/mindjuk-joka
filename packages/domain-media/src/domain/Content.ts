@@ -1,8 +1,8 @@
 import { Url } from '@joka/core/src/model/Url';
 import { Nullable } from '@joka/core/src/type';
+import { MimeType } from '@joka/lib-mime/src/domain/MimeType';
 import { z } from 'zod';
 
-import { MimeType } from './MimeType';
 import { Thumbnail } from './Thumbnail';
 
 interface ConstructorParameters {
@@ -43,7 +43,7 @@ export class Content {
   ) {}
 
   get data() {
-    const url = this.url.path;
+    const url = this.url.fullPath;
     const mimeType = this.mimeType.value;
     const thumbnail = this.thumbnail ? this.thumbnail.data : null;
 

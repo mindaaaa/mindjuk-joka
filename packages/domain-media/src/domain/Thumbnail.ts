@@ -1,7 +1,6 @@
 import { Url } from '@joka/core/src/model/Url';
+import { MimeType } from '@joka/lib-mime/src/domain/MimeType';
 import { z } from 'zod';
-
-import { MimeType } from './MimeType';
 
 interface ConstructorParameters {
   url: string;
@@ -43,7 +42,7 @@ export class Thumbnail {
   get data() {
     const mimeType = {
       ...this,
-      url: this.url.path,
+      url: this.url.fullPath,
       mimeType: this.mimeType.value,
     };
 
