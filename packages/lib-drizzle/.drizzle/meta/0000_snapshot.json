@@ -1,5 +1,5 @@
 {
-  "id": "ecf38cb2-4c91-4c8a-b542-032b5dd7ca3b",
+  "id": "77f62a5e-56e3-4975-90e5-99a4238777cd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -135,6 +135,13 @@
           "columns": [
             "cid"
           ]
+        },
+        "contents_media_id_unique": {
+          "name": "contents_media_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "media_id"
+          ]
         }
       },
       "policies": {},
@@ -157,6 +164,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "album_id": {
+          "name": "album_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "description": {
           "name": "description",
           "type": "varchar(255)",
@@ -169,6 +182,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'DRAFT'"
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
         },
         "created_at": {
           "name": "created_at",
@@ -198,7 +218,50 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "media_album_id_fk": {
+          "name": "media_album_id_fk",
+          "tableFrom": "media",
+          "tableTo": "albums",
+          "schemaTo": "joka",
+          "columnsFrom": [
+            "album_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "media_created_by_fk": {
+          "name": "media_created_by_fk",
+          "tableFrom": "media",
+          "tableTo": "users",
+          "schemaTo": "joka",
+          "columnsFrom": [
+            "created_by_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "media_updated_by_fk": {
+          "name": "media_updated_by_fk",
+          "tableFrom": "media",
+          "tableTo": "users",
+          "schemaTo": "joka",
+          "columnsFrom": [
+            "updated_by_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "media_cid_unique": {
@@ -290,6 +353,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "cid"
+          ]
+        },
+        "thumbnails_content_id_unique": {
+          "name": "thumbnails_content_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "content_id"
           ]
         }
       },
