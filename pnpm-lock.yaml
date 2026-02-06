@@ -81,6 +81,9 @@ importers:
       '@joka/infra-object-storage':
         specifier: workspace:*
         version: link:../../packages/infra-object-storage
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../../packages/lib-drizzle
       '@joka/lib-mime':
         specifier: workspace:*
         version: link:../../packages/lib-mime

@@ -13,6 +13,7 @@
     "@joka/domain-media": "workspace:*",
     "@joka/infra-object-storage": "workspace:*",
     "@joka/lib-mime": "workspace:*",
+    "@joka/lib-drizzle": "workspace:*",
     "hono": "^4.11.8"
   },
   "devDependencies": {

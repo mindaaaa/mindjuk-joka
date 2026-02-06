@@ -1,6 +1,7 @@
 # Workers 관련
 name = "joka-api-v1"
 main = "src/index.ts"
+compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2024-01-01"
 
 # R2 버킷 바인딩
