@@ -102,6 +102,9 @@ importers:
       '@joka/core':
         specifier: workspace:*
         version: link:../core
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../lib-drizzle
       '@joka/lib-mime':
         specifier: workspace:*
         version: link:../lib-mime
@@ -114,10 +117,6 @@ importers:
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
-    devDependencies:
-      drizzle-kit:
-        specifier: ^0.31.8
-        version: 0.31.8
 
   packages/infra-object-storage:
     dependencies:
@@ -139,6 +138,22 @@ importers:
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
+
+  packages/lib-drizzle:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
+      postgres:
+        specifier: ^3.4.8
+        version: 3.4.8
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      drizzle-kit:
+        specifier: ^0.31.8
+        version: 0.31.8
 
   packages/lib-mime:
     dependencies:
