@@ -4,6 +4,7 @@ import {
   UncaughtException,
 } from '@joka/core/src/exception';
 import { Actioned } from '@joka/core/src/model/Actioned';
+import * as Schema from '@joka/lib-drizzle/src/schema';
 import {
   eq,
   and,
@@ -17,7 +18,6 @@ import {
 } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
-import * as Schema from './media.schema';
 import { Content } from '../../domain/Content';
 import { ListMediaCondition } from '../../domain/ListMediaCondition';
 import { Media, DraftMedia } from '../../domain/Media';
