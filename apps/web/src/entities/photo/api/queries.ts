@@ -1,0 +1,2 @@
+// usePhotosInfinite(), usePhotoDetail()
+export {};
