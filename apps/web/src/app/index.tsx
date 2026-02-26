@@ -1,6 +1,9 @@
-// 앱 엔트리(Provider 조립)
 import { createRoot } from 'react-dom/client';
+
+import { initSentry } from '@/app/providers/sentry';
 import './styles/globals.css';
+
+initSentry();
 
 function App() {
   return <div id="app-root">Joka</div>;
