@@ -1,14 +1,12 @@
-import { Album } from '@joka/core/src/model/Album';
-import { User } from '@joka/core/src/model/User';
 import { Media } from '@joka/domain-media/src/domain/Media';
 
 import { UseCase } from './UseCase';
+import { Actor } from '../model/Actor';
 
 const UseCaseName = 'GetMedia' as const;
 
 export interface Request {
-  album: Album;
-  user: User;
+  actor: Actor;
   mediaCid: string;
 }
 

@@ -9,7 +9,8 @@ export class CreateMediaImpl extends CreateMedia {
   private readonly mediaService = Config.mediaService;
 
   override async invoke(request: Request): Promise<Response> {
-    const { album, user, description } = request;
+    const { actor, description } = request;
+    const { album, user } = actor;
 
     return this.mediaService.create({ album, user }, { description });
   }

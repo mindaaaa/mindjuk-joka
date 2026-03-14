@@ -5,7 +5,8 @@ export class GetMediaImpl extends GetMedia {
   private readonly mediaService = Config.mediaService;
 
   override async invoke(request: Request): Promise<Response> {
-    const { album, user, mediaCid } = request;
+    const { actor, mediaCid } = request;
+    const { album, user } = actor;
 
     return this.mediaService.get({ album, user }, { cid: mediaCid });
   }

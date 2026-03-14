@@ -9,7 +9,8 @@ export class ListMediaImpl extends ListMedia {
   private readonly mediaService = Config.mediaService;
 
   override async invoke(request: Request): Promise<Response> {
-    const { album, user, size, order, cursor, states } = request;
+    const { actor, size, order, cursor, states } = request;
+    const { album, user } = actor;
 
     const listRequest: {
       limit?: number;

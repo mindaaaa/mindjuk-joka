@@ -15,8 +15,7 @@ media.post('/', async (c) => {
   const actor = c.get('actor');
 
   const result = await CreateMedia.invoke({
-    album: actor.album,
-    user: actor.user,
+    actor,
     description,
   });
 
@@ -48,8 +47,7 @@ media.get('/', async (c) => {
   const actor = c.get('actor');
 
   const result = await ListMedia.invoke({
-    album: actor.album,
-    user: actor.user,
+    actor,
     ...invokeRequest,
   });
 
@@ -68,8 +66,7 @@ media.get('/:cid', async (c) => {
   const actor = c.get('actor');
 
   const result = await GetMedia.invoke({
-    album: actor.album,
-    user: actor.user,
+    actor,
     mediaCid,
   });
 
