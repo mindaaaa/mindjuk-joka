@@ -404,6 +404,26 @@ describe('Media', () => {
     });
   });
 
+  describe('isOwnedBy', () => {
+    it('생성자와 같은 사용자이면 true를 반환한다', () => {
+      // given
+      const media = Media.from(createMediaParams());
+      const user = createMockUser(1);
+
+      // when & then
+      expect(media.isOwnedBy(user as any)).toBe(true);
+    });
+
+    it('생성자와 다른 사용자이면 false를 반환한다', () => {
+      // given
+      const media = Media.from(createMediaParams());
+      const otherUser = createMockUser(2);
+
+      // when & then
+      expect(media.isOwnedBy(otherUser as any)).toBe(false);
+    });
+  });
+
   describe('isReadyToComplete', () => {
     it('state가 DRAFT이고 content가 있으면 true를 반환한다', () => {
       // given
