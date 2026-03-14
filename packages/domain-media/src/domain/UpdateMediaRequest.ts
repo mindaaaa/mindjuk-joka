@@ -20,6 +20,7 @@ export class UpdateMediaRequest {
     const content = params.content === undefined ? undefined : params.content;
 
     UpdateMediaRequest.Schema.parse({
+      isForced,
       cid,
       description,
       state,

@@ -60,6 +60,7 @@ describe('UpdateMediaRequest', () => {
               thumbnail: z.any().nullable(),
             })
             .nullish(),
+          isForced: z.boolean(),
         })
         .strict(),
     );

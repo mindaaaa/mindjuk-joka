@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import type { CloudflareEnv } from '../../../application/model';
 import {
   CreateMedia,
+  UpdateMedia,
   GetMedia,
   ListMedia,
 } from '../../../application/use-case';
@@ -59,6 +60,22 @@ media.get('/', async (c) => {
     200,
     { 'Content-Type': 'application/json' },
   );
+});
+
+media.patch('/:cid', async (c) => {
+  const mediaCid = c.req.param('cid');
+  const body = await c.req.json();
+  const actor = c.get('actor');
+
+  const result = await UpdateMedia.invoke({
+    actor,
+    mediaCid,
+    description: body.description,
+  });
+
+  return c.json(result.data, 200, {
+    'Content-Type': 'application/json',
+  });
 });
 
 media.get('/:cid', async (c) => {
