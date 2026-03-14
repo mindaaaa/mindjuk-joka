@@ -1,0 +1,2 @@
+// Photo, PhotoId, PhotoMeta
+export {};
