@@ -5,4 +5,7 @@ module.exports = {
   displayName: 'joka-api',
   rootDir: '.',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapper: {
+    '^uuid$': '<rootDir>/test/__mocks__/uuid.ts',
+  },
 };
