@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import type { CloudflareEnv } from '../../../application/model';
 import {
   CreateMedia,
+  DeleteMedia,
   UpdateMedia,
   GetMedia,
   ListMedia,
@@ -62,6 +63,20 @@ media.get('/', async (c) => {
   );
 });
 
+media.get('/:cid', async (c) => {
+  const mediaCid = c.req.param('cid');
+  const actor = c.get('actor');
+
+  const result = await GetMedia.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.json(result.data, 200, {
+    'Content-Type': 'application/json',
+  });
+});
+
 media.patch('/:cid', async (c) => {
   const mediaCid = c.req.param('cid');
   const body = await c.req.json();
@@ -78,18 +93,16 @@ media.patch('/:cid', async (c) => {
   });
 });
 
-media.get('/:cid', async (c) => {
+media.delete('/:cid', async (c) => {
   const mediaCid = c.req.param('cid');
   const actor = c.get('actor');
 
-  const result = await GetMedia.invoke({
+  await DeleteMedia.invoke({
     actor,
     mediaCid,
   });
 
-  return c.json(result.data, 200, {
-    'Content-Type': 'application/json',
-  });
+  return c.body(null, 204);
 });
 
 export default media;
