@@ -65,6 +65,36 @@ describe('ListMediaCondition', () => {
       expect(condition.sortOrder).toBe('desc');
     });
 
+    it('허용되지 않는 state가 포함되면 예외를 던진다', () => {
+      // given
+      const params = {
+        filter: { albumId: 1, states: ['INVALID'] },
+      };
+
+      // when & then
+      expect(() => ListMediaCondition.from(params)).toThrow();
+    });
+
+    it('소문자로 작성된 state는 허용하지 않는다', () => {
+      // given
+      const params = {
+        filter: { albumId: 1, states: ['complete'] },
+      };
+
+      // when & then
+      expect(() => ListMediaCondition.from(params)).toThrow();
+    });
+
+    it('유효한 state와 유효하지 않은 state가 섞여 있으면 예외를 던진다', () => {
+      // given
+      const params = {
+        filter: { albumId: 1, states: ['DRAFT', 'invalid'] },
+      };
+
+      // when & then
+      expect(() => ListMediaCondition.from(params)).toThrow();
+    });
+
     it('유효하지 않은 limit은 기본값으로 대체된다', () => {
       // given
       const params = {
