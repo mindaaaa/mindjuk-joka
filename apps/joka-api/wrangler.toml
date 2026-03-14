@@ -16,6 +16,12 @@ binding = "MEDIA_CACHE"
 id = "joka-media-cache-prod"
 preview_id = "joka-media-cache-dev"
 
+# Hyperdrive 바인딩
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "<hyperdrive-config-id>"
+localConnectionString = "postgres://admin:my-very-secure-pw@localhost:5432/mindjuk"
+
 # 로컬 개발 환경 관련 설정
 [dev]
 port = 54861
