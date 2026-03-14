@@ -1,36 +1,24 @@
-import { Album } from '@joka/core/src/model/Album';
-import { User } from '@joka/core/src/model/User';
 import { Hono } from 'hono';
 
+import type { CloudflareEnv } from '../../../application/model';
 import {
   CreateMedia,
   GetMedia,
   ListMedia,
 } from '../../../application/use-case';
 
-const media = new Hono().basePath('/v1/media');
-
-const getMockContext = () => ({
-  album: Album.from({
-    id: 1,
-    cid: '7b799ad4-41b5-4f66-ba7c-b6f148f64f00',
-    name: 'dev',
-    description: 'for test',
-    isDeleted: false,
-  }),
-  user: User.from({
-    id: 1,
-    cid: 'efbef729-c015-437e-a8ff-72e77f589038',
-    name: 'tester',
-    email: 'tester@naver.com',
-  }),
-});
+const media = new Hono<CloudflareEnv>().basePath('/v1/media');
 
 media.post('/', async (c) => {
   const body = await c.req.json();
   const description = body.description;
+  const actor = c.get('actor');
 
-  const result = await CreateMedia.invoke({ ...getMockContext(), description });
+  const result = await CreateMedia.invoke({
+    album: actor.album,
+    user: actor.user,
+    description,
+  });
 
   return c.json(result.data, 201, {
     'Content-Type': 'application/json',
@@ -57,8 +45,11 @@ media.get('/', async (c) => {
     invokeRequest.states = states;
   }
 
+  const actor = c.get('actor');
+
   const result = await ListMedia.invoke({
-    ...getMockContext(),
+    album: actor.album,
+    user: actor.user,
     ...invokeRequest,
   });
 
@@ -74,8 +65,13 @@ media.get('/', async (c) => {
 
 media.get('/:cid', async (c) => {
   const mediaCid = c.req.param('cid');
+  const actor = c.get('actor');
 
-  const result = await GetMedia.invoke({ ...getMockContext(), mediaCid });
+  const result = await GetMedia.invoke({
+    album: actor.album,
+    user: actor.user,
+    mediaCid,
+  });
 
   return c.json(result.data, 200, {
     'Content-Type': 'application/json',
