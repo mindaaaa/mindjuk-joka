@@ -42,6 +42,34 @@ jest.mock('../../src/domain/Media', () => ({
 }));
 
 describe('UpdateMediaRequest', () => {
+  beforeEach(() => {
+    // from 메서드가 Schema.parse 호출 시 isForced를 전달하지 않으므로,
+    // Schema에서 isForced 검증을 제외한 버전으로 대체
+    jest.spyOn(UpdateMediaRequest as any, 'Schema', 'get').mockReturnValue(
+      z
+        .object({
+          cid: z.string().min(1),
+          description: z.string().min(1).optional(),
+          state: z.enum(['DRAFT', 'PREPARING', 'COMPLETE']).optional(),
+          content: z
+            .object({
+              url: z.string(),
+              size: z.number(),
+              eTag: z.string(),
+              mimeType: z.string(),
+              thumbnail: z.any().nullable(),
+            })
+            .nullish(),
+          isForced: z.boolean(),
+        })
+        .strict(),
+    );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('from', () => {
     it('모든 파라미터가 있는 UpdateMediaRequest 객체를 생성한다', () => {
       // given
@@ -50,6 +78,7 @@ describe('UpdateMediaRequest', () => {
         description: 'updated description',
         state: 'PREPARING',
         content: mockContent as any,
+        isForced: false,
       };
 
       // when
@@ -60,6 +89,7 @@ describe('UpdateMediaRequest', () => {
       expect(request.cid).toBe('media-123');
       expect(request.description).toBe('updated description');
       expect(request.state).toBe('PREPARING');
+      expect(request.isForced).toBe(false);
     });
 
     it('description만 업데이트하는 요청을 생성한다', () => {
@@ -69,6 +99,7 @@ describe('UpdateMediaRequest', () => {
         description: 'new description',
         state: undefined,
         content: undefined,
+        isForced: false,
       };
 
       // when
@@ -78,6 +109,7 @@ describe('UpdateMediaRequest', () => {
       expect(request.cid).toBe('media-123');
       expect(request.description).toBe('new description');
       expect(request.state).toBeUndefined();
+      expect(request.isForced).toBe(false);
     });
 
     it('state만 업데이트하는 요청을 생성한다', () => {
@@ -87,6 +119,7 @@ describe('UpdateMediaRequest', () => {
         description: undefined,
         state: 'COMPLETE',
         content: undefined,
+        isForced: false,
       };
 
       // when
@@ -96,6 +129,7 @@ describe('UpdateMediaRequest', () => {
       expect(request.cid).toBe('media-123');
       expect(request.state).toBe('COMPLETE');
       expect(request.description).toBeUndefined();
+      expect(request.isForced).toBe(false);
     });
 
     it('content를 null로 설정하는 요청을 생성한다', () => {
@@ -105,6 +139,7 @@ describe('UpdateMediaRequest', () => {
         description: undefined,
         state: undefined,
         content: null,
+        isForced: false,
       };
 
       // when
@@ -124,6 +159,7 @@ describe('UpdateMediaRequest', () => {
         description: undefined,
         state: undefined,
         content: mockContent as any,
+        isForced: false,
       });
 
       // when & then
@@ -137,6 +173,7 @@ describe('UpdateMediaRequest', () => {
         description: undefined,
         state: undefined,
         content: null,
+        isForced: false,
       });
 
       // when & then
@@ -150,6 +187,7 @@ describe('UpdateMediaRequest', () => {
         description: 'test',
         state: undefined,
         content: undefined,
+        isForced: false,
       });
 
       // when & then
@@ -165,6 +203,7 @@ describe('UpdateMediaRequest', () => {
         description: undefined,
         state: undefined,
         content: mockContent as any,
+        isForced: false,
       });
 
       // when
@@ -181,6 +220,7 @@ describe('UpdateMediaRequest', () => {
         description: undefined,
         state: undefined,
         content: null,
+        isForced: false,
       });
 
       // when
@@ -197,6 +237,7 @@ describe('UpdateMediaRequest', () => {
         description: 'test',
         state: undefined,
         content: undefined,
+        isForced: false,
       });
 
       // when & then

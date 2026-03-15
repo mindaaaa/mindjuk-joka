@@ -1,6 +1,8 @@
 import { Nullable, Nullish } from '@joka/core/src/type';
 import { z } from 'zod';
 
+import { Media } from './Media';
+
 interface ConstructorParameters {
   limit?: unknown;
   filter: Filter;
@@ -32,7 +34,6 @@ export class ListMediaCondition {
     return SortOrder;
   }
 
-  // TODO: 잘못된 요청이 들어왔으면 InvalidArgumentException 던지도록 개선
   static from(params: ConstructorParameters): ListMediaCondition {
     const limit = Number(params.limit) || ListMediaCondition.DefaultLimit;
     const filter = params.filter;
@@ -56,7 +57,7 @@ export class ListMediaCondition {
       limit: z.int().positive(),
       filter: z.object({
         albumId: z.number().positive(),
-        states: z.array(z.string().min(1)).min(0),
+        states: z.array(z.enum(Object.values(Media.State))).min(0),
       }),
       cursor: z
         .object({

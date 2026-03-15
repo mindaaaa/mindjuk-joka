@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@joka/core/src/exception';
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
 import { Nullable } from '@joka/core/src/type';
@@ -29,6 +30,7 @@ interface GetRequest {
 }
 interface DeleteRequest {
   cid: string;
+  isForced: boolean;
 }
 
 export class MediaService {
@@ -79,15 +81,25 @@ export class MediaService {
 
   async update(context: Context, request: UpdateMediaRequest): Promise<Media> {
     const found = await this.repository.findOne(context.album.id, request.cid);
+    if (found.isOwnedBy(context.user) || request.isForced) {
+      return this.repository.update(found.updateBy(request));
+    }
 
-    const desired = found.updateBy(request);
-
-    return this.repository.update(desired);
+    throw new ForbiddenException(`OWNER_MISMATCHED`, [
+      `Media(${request.cid})를 수정할 수 없습니다.`,
+      `Media는 소유자만 수정할 수 있습니다.`,
+    ]);
   }
 
   async delete(context: Context, request: DeleteRequest): Promise<null> {
     const target = await this.repository.findOne(context.album.id, request.cid);
+    if (target.isOwnedBy(context.user) || request.isForced) {
+      return this.repository.deleteOne(target);
+    }
 
-    return this.repository.deleteOne(target);
+    throw new ForbiddenException(`OWNER_MISMATCHED`, [
+      `Media(${request.cid})를 삭제할 수 없습니다.`,
+      `Media는 소유자만 삭제할 수 있습니다.`,
+    ]);
   }
 }

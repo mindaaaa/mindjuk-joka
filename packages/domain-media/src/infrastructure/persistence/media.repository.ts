@@ -4,6 +4,8 @@ import {
   UncaughtException,
 } from '@joka/core/src/exception';
 import { Actioned } from '@joka/core/src/model/Actioned';
+import ClientFactory from '@joka/lib-drizzle/src/client';
+import * as Schema from '@joka/lib-drizzle/src/schema';
 import {
   eq,
   and,
@@ -15,9 +17,7 @@ import {
   gte,
   SQL,
 } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
-import * as Schema from './media.schema';
 import { Content } from '../../domain/Content';
 import { ListMediaCondition } from '../../domain/ListMediaCondition';
 import { Media, DraftMedia } from '../../domain/Media';
@@ -26,10 +26,10 @@ import { Thumbnail } from '../../domain/Thumbnail';
 const { media, contents, thumbnails, users } = Schema;
 
 export class MediaRepository {
-  constructor(private db: PostgresJsDatabase<typeof Schema>) {}
+  constructor() {}
 
   async insert(draft: DraftMedia): Promise<Media> {
-    const [persisted] = await this.db
+    const [persisted] = await this.connection
       .insert(media)
       .values({
         albumId: draft.albumId,
@@ -54,6 +54,10 @@ export class MediaRepository {
       created: draft.created.data,
       updated: draft.updated.data,
     });
+  }
+
+  private get connection() {
+    return ClientFactory.createInstance();
   }
 
   async findMany(condition: ListMediaCondition): Promise<{
@@ -99,7 +103,7 @@ export class MediaRepository {
     const u1 = aliasedTable(users, 'u1');
     const u2 = aliasedTable(users, 'u2');
 
-    return this.db
+    return this.connection
       .select({
         id: media.id,
         cid: media.cid,
@@ -205,7 +209,7 @@ export class MediaRepository {
   }
 
   async update(target: Media): Promise<Media> {
-    return this.db.transaction(async (trx) => {
+    return this.connection.transaction(async (trx) => {
       // 1. update media
       const [updated] = await trx
         .update(media)
@@ -318,7 +322,7 @@ export class MediaRepository {
   }
 
   async deleteOne(target: Media): Promise<null> {
-    return this.db.transaction(async (trx) => {
+    return this.connection.transaction(async (trx) => {
       const [contentRow] = await trx
         .select({
           contentId: contents.id,

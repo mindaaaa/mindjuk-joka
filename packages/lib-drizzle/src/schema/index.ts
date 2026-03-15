@@ -12,8 +12,6 @@ import {
 } from 'drizzle-orm/pg-core';
 import { v7 as uuidv7 } from 'uuid';
 
-import { Media } from '../../domain/Media';
-
 export const jokaSchema = pgSchema('joka');
 
 export const users = jokaSchema.table('users', {
@@ -78,9 +76,7 @@ export const media = jokaSchema.table(
       .notNull(),
     albumId: integer('album_id').notNull(),
     description: varchar('description', { length: 255 }).notNull(),
-    state: varchar('state', { length: 20 })
-      .default(Media.State.DRAFT)
-      .notNull(),
+    state: varchar('state', { length: 20 }).default('DRAFT').notNull(),
     version: integer('version').default(1).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     createdById: integer('created_by_id').notNull(),

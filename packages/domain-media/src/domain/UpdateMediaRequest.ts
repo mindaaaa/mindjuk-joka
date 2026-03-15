@@ -10,22 +10,24 @@ interface ConstructorParameters {
   description: Nullish<string>;
   state: Nullish<string>;
   content: Nullish<Content>;
+  isForced: boolean;
 }
 
 export class UpdateMediaRequest {
   static from(params: ConstructorParameters): UpdateMediaRequest {
-    const { cid, description } = params;
+    const { cid, description, isForced } = params;
     const state = params.state as keyof typeof Media.State;
     const content = params.content === undefined ? undefined : params.content;
 
     UpdateMediaRequest.Schema.parse({
+      isForced,
       cid,
       description,
       state,
       content: content?.data || null,
     });
 
-    return new UpdateMediaRequest(cid, description, state, content);
+    return new UpdateMediaRequest(cid, description, state, content, isForced);
   }
 
   static get Schema() {
@@ -35,6 +37,7 @@ export class UpdateMediaRequest {
         description: z.string().min(1).optional(),
         state: z.enum(Object.values(Media.State)).optional(),
         content: Content.Schema.nullish(),
+        isForced: z.boolean(),
       })
       .strict();
   }
@@ -44,6 +47,7 @@ export class UpdateMediaRequest {
     public readonly description: Nullish<string>,
     public readonly state: Nullish<keyof typeof Media.State>,
     public readonly requestedContent: Nullish<Content>,
+    public readonly isForced: boolean,
   ) {}
 
   get shouldUpdateContent(): boolean {

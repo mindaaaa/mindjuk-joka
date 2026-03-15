@@ -1,3 +1,5 @@
+import { ForbiddenException } from '@joka/core/src/exception';
+
 import { MediaRepository } from '../../src/infrastructure/persistence/media.repository';
 import { MediaService } from '../../src/service/media.service';
 
@@ -27,6 +29,7 @@ const createMockMedia = (overrides: Record<string, any> = {}) => ({
   isFavorite: false,
   created: { at: new Date(), by: createMockUser() },
   updated: { at: new Date(), by: createMockUser() },
+  isOwnedBy: jest.fn().mockReturnValue(true),
   updateBy: jest.fn().mockReturnThis(),
   data: {},
   ...overrides,
@@ -180,7 +183,7 @@ describe('MediaService', () => {
   });
 
   describe('update', () => {
-    it('미디어를 조회하고 업데이트한 후 저장한다', async () => {
+    it('소유자가 미디어를 업데이트한다', async () => {
       // given
       const context = createMockContext();
       const foundMedia = createMockMedia();
@@ -193,6 +196,7 @@ describe('MediaService', () => {
       const request = {
         cid: 'media-123',
         description: '수정됨',
+        isForced: false,
       };
 
       // when
@@ -204,13 +208,60 @@ describe('MediaService', () => {
       expect(mockRepository.update).toHaveBeenCalledWith(updatedMedia);
       expect(result).toBe(updatedMedia);
     });
+
+    it('소유자가 아니어도 isForced가 true이면 업데이트한다', async () => {
+      // given
+      const context = createMockContext();
+      const foundMedia = createMockMedia({
+        isOwnedBy: jest.fn().mockReturnValue(false),
+      });
+      const updatedMedia = createMockMedia({ description: '수정됨' });
+      foundMedia.updateBy.mockReturnValue(updatedMedia);
+
+      mockRepository.findOne.mockResolvedValue(foundMedia as any);
+      mockRepository.update.mockResolvedValue(updatedMedia as any);
+
+      const request = {
+        cid: 'media-123',
+        description: '수정됨',
+        isForced: true,
+      };
+
+      // when
+      const result = await service.update(context as any, request as any);
+
+      // then
+      expect(mockRepository.update).toHaveBeenCalledWith(updatedMedia);
+      expect(result).toBe(updatedMedia);
+    });
+
+    it('소유자가 아니고 isForced가 false이면 ForbiddenException을 던진다', async () => {
+      // given
+      const context = createMockContext();
+      const foundMedia = createMockMedia({
+        isOwnedBy: jest.fn().mockReturnValue(false),
+      });
+
+      mockRepository.findOne.mockResolvedValue(foundMedia as any);
+
+      const request = {
+        cid: 'media-123',
+        description: '수정됨',
+        isForced: false,
+      };
+
+      // when & then
+      await expect(
+        service.update(context as any, request as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
   });
 
   describe('delete', () => {
-    it('미디어를 조회하고 삭제한다', async () => {
+    it('소유자가 미디어를 삭제한다', async () => {
       // given
       const context = createMockContext();
-      const request = { cid: 'media-123' };
+      const request = { cid: 'media-123', isForced: false };
       const targetMedia = createMockMedia();
       mockRepository.findOne.mockResolvedValue(targetMedia as any);
       mockRepository.deleteOne.mockResolvedValue(null);
@@ -222,6 +273,39 @@ describe('MediaService', () => {
       expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
       expect(mockRepository.deleteOne).toHaveBeenCalledWith(targetMedia);
       expect(result).toBeNull();
+    });
+
+    it('소유자가 아니어도 isForced가 true이면 삭제한다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { cid: 'media-123', isForced: true };
+      const targetMedia = createMockMedia({
+        isOwnedBy: jest.fn().mockReturnValue(false),
+      });
+      mockRepository.findOne.mockResolvedValue(targetMedia as any);
+      mockRepository.deleteOne.mockResolvedValue(null);
+
+      // when
+      const result = await service.delete(context as any, request);
+
+      // then
+      expect(mockRepository.deleteOne).toHaveBeenCalledWith(targetMedia);
+      expect(result).toBeNull();
+    });
+
+    it('소유자가 아니고 isForced가 false이면 ForbiddenException을 던진다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { cid: 'media-123', isForced: false };
+      const targetMedia = createMockMedia({
+        isOwnedBy: jest.fn().mockReturnValue(false),
+      });
+      mockRepository.findOne.mockResolvedValue(targetMedia as any);
+
+      // when & then
+      await expect(
+        service.delete(context as any, request),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

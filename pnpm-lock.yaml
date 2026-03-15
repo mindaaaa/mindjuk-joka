@@ -70,6 +70,29 @@ importers:
         specifier: ^8.53.0
         version: 8.53.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  apps/joka-api:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@joka/domain-media':
+        specifier: workspace:*
+        version: link:../../packages/domain-media
+      '@joka/infra-object-storage':
+        specifier: workspace:*
+        version: link:../../packages/infra-object-storage
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../../packages/lib-drizzle
+      '@joka/lib-mime':
+        specifier: workspace:*
+        version: link:../../packages/lib-mime
+      hono:
+        specifier: ^4.11.8
+        version: 4.11.8
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
   apps/web:
     dependencies:
       react:
@@ -111,9 +134,45 @@ importers:
       '@joka/core':
         specifier: workspace:*
         version: link:../core
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../lib-drizzle
       '@joka/lib-mime':
         specifier: workspace:*
         version: link:../lib-mime
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
+      postgres:
+        specifier: ^3.4.8
+        version: 3.4.8
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+
+  packages/infra-object-storage:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      '@joka/lib-mime':
+        specifier: workspace:*
+        version: link:../lib-mime
+      aws4fetch:
+        specifier: ^1.0.20
+        version: 1.0.20
+
+  packages/infra-thumbnail:
+    dependencies:
+      blurhash:
+        specifier: ^2.0.5
+        version: 2.0.5
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
+
+  packages/lib-drizzle:
+    dependencies:
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
@@ -127,31 +186,6 @@ importers:
       drizzle-kit:
         specifier: ^0.31.8
         version: 0.31.8
-
-  packages/infra-object-storage:
-    dependencies:
-      '@joka/core':
-        specifier: workspace:*
-        version: link:../core
-      '@joka/lib-mime':
-        specifier: workspace:*
-        version: link:../lib-mime
-      aws4fetch:
-        specifier: ^1.0.20
-        version: 1.0.20
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20260131.0
-        version: 4.20260203.0
-
-  packages/infra-thumbnail:
-    dependencies:
-      blurhash:
-        specifier: ^2.0.5
-        version: 2.0.5
-      sharp:
-        specifier: ^0.34.5
-        version: 0.34.5
 
   packages/lib-mime:
     dependencies:
@@ -2480,6 +2514,10 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  hono@4.11.8:
+    resolution: {integrity: sha512-eVkB/CYCCei7K2WElZW9yYQFWssG0DhaDhVvr7wy5jJ22K+ck8fWW0EsLpB0sITUTvPnc97+rrbQqIr5iqiy9Q==}
+    engines: {node: '>=16.9.0'}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -6078,6 +6116,8 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  hono@4.11.8: {}
 
   html-escaper@2.0.2: {}
 

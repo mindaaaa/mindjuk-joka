@@ -5,18 +5,14 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "drizzle:generate": "npx drizzle-kit generate",
-    "drizzle:push": "npx drizzle-kit push"
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@joka/core": "workspace:*",
     "@joka/lib-mime": "workspace:*",
+    "@joka/lib-drizzle": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.8",
     "uuid": "^13.0.0"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^0.31.8"
   }
 }
