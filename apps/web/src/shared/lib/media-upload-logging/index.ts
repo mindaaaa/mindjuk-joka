@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/react';
 import { CONFIRM_GRACE_MS } from './constants.ts';
 
 import { log } from '@/shared/lib/logger';
+import { isInCooldown, setCooldown } from '@/shared/lib/monitoring/cooldown';
 import type { MediaState } from '@/shared/types/monitoring';
 
 /** 업로드 시작 시 breadcrumb만 기록 (Sentry 전송 아님) */
@@ -14,13 +15,19 @@ export function recordUploadStarted(mediaId: string): void {
   });
 }
 
-/** confirm 4xx/5xx 시 operational 로그 전송 */
+/** confirm 4xx/5xx 시 operational 로그 전송 (동일 mediaId당 5분 1회) */
 export function recordConfirmFailed(mediaId: string): void {
+  const fingerprint = `confirmMedia-${mediaId}`;
+  if (isInCooldown(fingerprint)) {
+    return;
+  }
+
   log.operational('OP|upload|confirm_failed', {
     mediaState: 'PREPARING',
     operationId: 'confirmMedia',
     mediaId,
   });
+  setCooldown(fingerprint);
 }
 
 /** COMPLETE 상태에서 upload-urls 재호출 시 bug 로그 전송 */
