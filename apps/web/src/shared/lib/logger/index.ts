@@ -53,19 +53,29 @@ function sendToSentry(
   context?: LogContext,
 ) {
   const payload = buildPayload(layer, context);
+  const operationId = context?.operationId;
+  const mediaState = context?.mediaState;
+  const userRole = context?.userRole;
 
   Sentry.withScope((scope) => {
     scope.setLevel(level);
     scope.setTag('layer', layer);
-
-    if (context) {
-      if (context.operationId !== null) {
-        scope.setTag('operationId', String(context.operationId));
-      }
-      if (context.mediaState !== null) {
-        scope.setTag('mediaState', context.mediaState);
-      }
-    }
+    scope.setTag(
+      'operationId',
+      operationId !== undefined &&
+        operationId !== null &&
+        String(operationId) !== ''
+        ? String(operationId)
+        : 'unknown',
+    );
+    scope.setTag(
+      'mediaState',
+      mediaState !== undefined && mediaState !== null ? mediaState : 'unknown',
+    );
+    scope.setTag(
+      'userRole',
+      userRole !== undefined && userRole !== null ? userRole : 'unknown',
+    );
 
     scope.setContext('payload', payload);
 

@@ -7,6 +7,7 @@ export interface LogContext {
   operationId?: string;
   mediaState?: MediaState;
   userRole?: UserRole;
+  standardMessage?: string;
   [key: string]: unknown;
 }
 

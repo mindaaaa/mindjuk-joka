@@ -39,6 +39,7 @@ export function recordUploadUrlsStateViolation(
     operationId: 'createUploadUrls',
     mediaState: currentState,
     mediaId,
+    standardMessage: 'BUG|state_violation|confirm_on_complete',
   });
 }
 

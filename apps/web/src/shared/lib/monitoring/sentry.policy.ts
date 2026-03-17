@@ -1,4 +1,8 @@
 import {
+  attachJokaStandardContext,
+  normalizeMonitoringTags,
+} from './joka-standard-event.ts';
+import {
   BUSINESS_SAMPLE_RATE,
   OPERATIONAL_ALLOWLIST,
 } from './sentry.constants.ts';
@@ -43,6 +47,9 @@ export function applyBeforeSendFilter<T extends SentryEventLike>(
   if (fingerprints.length > 0) {
     event.fingerprint = fingerprints;
   }
+
+  normalizeMonitoringTags(event);
+  attachJokaStandardContext(event);
 
   return event;
 }
