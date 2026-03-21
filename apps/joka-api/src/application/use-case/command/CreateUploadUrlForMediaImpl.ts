@@ -1,4 +1,7 @@
-import { ForbiddenException } from '@joka/core/src/exception';
+import {
+  ConflictException,
+  ForbiddenException,
+} from '@joka/core/src/exception';
 import { S3Client } from '@joka/infra-object-storage/src/infrastructure/impl/S3Client';
 
 import {
@@ -9,7 +12,6 @@ import {
 import Config from '../../config';
 
 export class CreateUploadUrlForMediaImpl extends CreateUploadUrlForMedia {
-  private readonly mediaBucketName = Config.mediaBucketName;
   private readonly mediaService = Config.mediaService;
 
   override async invoke(request: Request): Promise<Response> {
@@ -26,12 +28,18 @@ export class CreateUploadUrlForMediaImpl extends CreateUploadUrlForMedia {
       { album, user },
       { cid: mediaCid },
     );
+    if (media.hasContent) {
+      throw new ConflictException('ALREADY_UPLOADED', [
+        `Media(${mediaCid})의 업로드 URL을 생성할 수 없습니다.`,
+        `Media에 이미 Content가 업로드되어 있습니다.`,
+      ]);
+    }
 
     if (actor.isAdmin() || media.isOwnedBy(user)) {
       const key = `media/${mediaCid}/original`;
       const presignedUrl =
         await S3Client.getInstance().getPresignedUrlForUpload(
-          this.mediaBucketName,
+          Config.mediaBucketName,
           key,
         );
 

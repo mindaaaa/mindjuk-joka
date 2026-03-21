@@ -277,6 +277,10 @@ export class Media {
     return !this.content;
   }
 
+  get hasContent(): boolean {
+    return !this.hasNoContent;
+  }
+
   get hasNoThumbnail(): boolean {
     return !this.content?.thumbnail;
   }

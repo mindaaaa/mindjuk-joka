@@ -1,4 +1,5 @@
 import { zCreateMedia, zUpdateMedia } from '@joka/lib-openapi';
+import { CreateUploadUrlForMediaResponses } from '@joka/lib-openapi/src/generated/type/types.gen';
 import { Hono } from 'hono';
 
 import { toMediaResponse, toPaginationResponse } from './media.mapper';
@@ -99,7 +100,7 @@ media.post('/:mediaId/upload-urls', async (c) => {
     mediaCid,
   });
 
-  return c.json(result, 201);
+  return c.json(result as CreateUploadUrlForMediaResponses[201], 201);
 });
 
 media.delete('/:mediaId', async (c) => {
