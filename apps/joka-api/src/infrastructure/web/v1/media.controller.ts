@@ -1,5 +1,7 @@
+import { zCreateMedia, zUpdateMedia } from '@joka/lib-openapi';
 import { Hono } from 'hono';
 
+import { toMediaResponse, toPaginationResponse } from './media.mapper';
 import type { CloudflareEnv } from '../../../application/model';
 import {
   CreateMedia,
@@ -12,18 +14,15 @@ import {
 const media = new Hono<CloudflareEnv>().basePath('/v1/media');
 
 media.post('/', async (c) => {
-  const body = await c.req.json();
-  const description = body.description;
+  const body = zCreateMedia.parse(await c.req.json());
   const actor = c.get('actor');
 
   const result = await CreateMedia.invoke({
     actor,
-    description,
+    description: body.description,
   });
 
-  return c.json(result.data, 201, {
-    'Content-Type': 'application/json',
-  });
+  return c.json(toMediaResponse(result), 201);
 });
 
 media.get('/', async (c) => {
@@ -55,16 +54,15 @@ media.get('/', async (c) => {
 
   return c.json(
     {
-      items: result.items.map((item) => item.data),
-      pagination: result.pagination,
+      items: result.items.map(toMediaResponse),
+      pagination: toPaginationResponse(result.pagination),
     },
     200,
-    { 'Content-Type': 'application/json' },
   );
 });
 
-media.get('/:cid', async (c) => {
-  const mediaCid = c.req.param('cid');
+media.get('/:mediaId', async (c) => {
+  const mediaCid = c.req.param('mediaId');
   const actor = c.get('actor');
 
   const result = await GetMedia.invoke({
@@ -72,29 +70,27 @@ media.get('/:cid', async (c) => {
     mediaCid,
   });
 
-  return c.json(result.data, 200, {
-    'Content-Type': 'application/json',
-  });
+  return c.json(toMediaResponse(result), 200);
 });
 
-media.patch('/:cid', async (c) => {
-  const mediaCid = c.req.param('cid');
-  const body = await c.req.json();
+media.patch('/:mediaId', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const body = zUpdateMedia.parse(await c.req.json());
   const actor = c.get('actor');
+
+  const request = body.description ? { description: body.description } : {};
 
   const result = await UpdateMedia.invoke({
     actor,
     mediaCid,
-    description: body.description,
+    ...request,
   });
 
-  return c.json(result.data, 200, {
-    'Content-Type': 'application/json',
-  });
+  return c.json(toMediaResponse(result), 200);
 });
 
-media.delete('/:cid', async (c) => {
-  const mediaCid = c.req.param('cid');
+media.delete('/:mediaId', async (c) => {
+  const mediaCid = c.req.param('mediaId');
   const actor = c.get('actor');
 
   await DeleteMedia.invoke({
