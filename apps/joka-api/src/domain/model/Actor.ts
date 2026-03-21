@@ -52,6 +52,10 @@ export class Actor {
     return this.roleLevel >= ROLE_HIERARCHY.indexOf(Role.EDITOR);
   }
 
+  cannotEdit(): boolean {
+    return !this.canEdit();
+  }
+
   canRead(): boolean {
     return this.roleLevel >= ROLE_HIERARCHY.indexOf(Role.VIEWER);
   }

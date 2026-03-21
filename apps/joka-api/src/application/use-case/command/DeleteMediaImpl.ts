@@ -13,7 +13,7 @@ export class DeleteMediaImpl extends DeleteMedia {
   override async invoke(request: Request): Promise<Response> {
     const { actor, mediaCid } = request;
 
-    if (!actor.canEdit()) {
+    if (actor.cannotEdit()) {
       throw new ForbiddenException('CANNOT_EDIT_MEDIA', [
         `Media를 삭제할 권한이 없습니다.`,
       ]);

@@ -17,7 +17,7 @@ export class UpdateMediaImpl extends UpdateMedia {
   override async invoke(request: Request): Promise<Response> {
     const { actor, mediaCid, description } = request;
 
-    if (!actor.canEdit()) {
+    if (actor.cannotEdit()) {
       throw new ForbiddenException('CANNOT_EDIT_MEDIA', [
         `Media를 수정할 권한이 없습니다.`,
       ]);
