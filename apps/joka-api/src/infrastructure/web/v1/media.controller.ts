@@ -40,7 +40,7 @@ media.post('/', async (c) => {
   });
 
   c.header('Location', `/api/v1/media/${result.cid}`);
-  return c.json(toMediaResponse(result), 201);
+  return c.json(await toMediaResponse(result), 201);
 });
 
 media.get('/', async (c) => {
@@ -72,7 +72,7 @@ media.get('/', async (c) => {
 
   return c.json(
     {
-      items: result.items.map(toMediaResponse),
+      items: await Promise.all(result.items.map(toMediaResponse)),
       pagination: toPaginationResponse(result.pagination),
     },
     200,
@@ -88,7 +88,7 @@ media.get('/:mediaId', async (c) => {
     mediaCid,
   });
 
-  return c.json(toMediaResponse(result), 200);
+  return c.json(await toMediaResponse(result), 200);
 });
 
 media.patch('/:mediaId', async (c) => {
@@ -104,7 +104,7 @@ media.patch('/:mediaId', async (c) => {
     ...request,
   });
 
-  return c.json(toMediaResponse(result), 200);
+  return c.json(await toMediaResponse(result), 200);
 });
 
 media.post('/:mediaId/upload-urls', async (c) => {
@@ -132,7 +132,7 @@ media.post('/:mediaId/contents', async (c) => {
 
   c.header('Location', `/api/v1/media/${mediaCid}`);
   return c.json(
-    toContentResponse(result.data) as CreateContentResponses[201],
+    (await toContentResponse(result.data)) as CreateContentResponses[201],
     201,
   );
 });
@@ -147,7 +147,10 @@ media.post('/:mediaId/confirm', async (c) => {
     mediaCid,
   });
 
-  return c.json(toMediaResponse(result) as ConfirmMediaResponses[200], 200);
+  return c.json(
+    (await toMediaResponse(result)) as ConfirmMediaResponses[200],
+    200,
+  );
 });
 
 media.delete('/:mediaId', async (c) => {
