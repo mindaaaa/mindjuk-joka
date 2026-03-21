@@ -13,6 +13,7 @@ coverage/
 
 # Cloudflare files
 .wrangler/
+.dev.vars
 
 # JetBrains IDE
 .idea/
