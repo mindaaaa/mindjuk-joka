@@ -285,6 +285,10 @@ export class Media {
     return this.state === Media.State.PREPARING && !!this.content;
   }
 
+  get isNotReadyToComplete(): boolean {
+    return !this.isReadyToComplete;
+  }
+
   get hasNoContent(): boolean {
     return !this.content;
   }
