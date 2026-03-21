@@ -1,9 +1,11 @@
 import { ForbiddenException } from '@joka/core/src/exception';
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
-import { Nullable } from '@joka/core/src/type';
 
-import { ListMediaCondition } from '../domain/ListMediaCondition';
+import {
+  ListMediaCondition,
+  ListMediaPagination,
+} from '../domain/ListMediaCondition';
 import { Media, DraftMedia } from '../domain/Media';
 import { UpdateMediaRequest } from '../domain/UpdateMediaRequest';
 import { MediaRepository } from '../infrastructure/persistence/media.repository';
@@ -21,9 +23,9 @@ interface ListRequest {
   cursor?: string;
   sortOrder?: string;
 }
-interface ListResponse<E, P> {
+interface ListResponse<E> {
   items: E[];
-  pagination: { size: number } & P;
+  pagination: ListMediaPagination;
 }
 interface GetRequest {
   cid: string;
@@ -49,12 +51,7 @@ export class MediaService {
   async list(
     context: Context,
     request: ListRequest,
-  ): Promise<
-    ListResponse<
-      Media,
-      { order: string; nextCursor: Nullable<string>; hasNext: boolean }
-    >
-  > {
+  ): Promise<ListResponse<Media>> {
     const condition = ListMediaCondition.from({
       limit: request.limit,
       filter: { albumId: context.album.id, states: request.states || [] },
