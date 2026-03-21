@@ -425,11 +425,11 @@ describe('Media', () => {
   });
 
   describe('isReadyToComplete', () => {
-    it('state가 DRAFT이고 content가 있으면 true를 반환한다', () => {
+    it('state가 PREPARING이고 content가 있으면 true를 반환한다', () => {
       // given
       const media = Media.from(
         createMediaParams({
-          state: 'DRAFT',
+          state: 'PREPARING',
           content: {
             url: 'http://example.com/content.mp4',
             size: 10240,
@@ -444,11 +444,11 @@ describe('Media', () => {
       expect(media.isReadyToComplete).toBe(true);
     });
 
-    it('state가 DRAFT가 아니면 false를 반환한다', () => {
+    it('state가 PREPARING이 아니면 false를 반환한다', () => {
       // given
       const media = Media.from(
         createMediaParams({
-          state: 'PREPARING',
+          state: 'DRAFT',
           content: {
             url: 'http://example.com/content.mp4',
             size: 10240,

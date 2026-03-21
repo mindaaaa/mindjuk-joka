@@ -5,6 +5,7 @@ import {
 } from '@joka/core/src/exception';
 import { Url } from '@joka/core/src/model/Url';
 import { Content } from '@joka/domain-media/src/domain/Content';
+import { Media } from '@joka/domain-media/src/domain/Media';
 import { UpdateMediaRequest } from '@joka/domain-media/src/domain/UpdateMediaRequest';
 import { S3Client } from '@joka/infra-object-storage/src/infrastructure/impl/S3Client';
 
@@ -40,11 +41,17 @@ export class CreateContentImpl extends CreateContent {
       ]);
     }
 
-    if (media.hasContent) {
-      throw new ConflictException('ALREADY_HAS_CONTENT', [
-        `Media(${mediaCid})에 Content를 생성할 수 없습니다.`,
-        `Media에 이미 Content가 존재합니다.`,
-      ]);
+    if (media.isNotReadyToPrepare) {
+      throw new ConflictException(
+        'MEDIA_IS_ALREADY_PREPARED',
+        [
+          `Media(${mediaCid})에 Content를 생성할 수 없습니다.`,
+          media.state !== Media.State.DRAFT
+            ? `${Media.State.DRAFT} 상태가 아닙니다.`
+            : ``,
+          media.hasContent ? `Media에 이미 Content가 존재합니다.` : ``,
+        ].filter((it) => it),
+      );
     }
 
     const bucketObject = await S3Client.getInstance().headOrThrow(
