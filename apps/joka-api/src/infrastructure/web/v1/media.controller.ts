@@ -1,5 +1,11 @@
-import { zCreateMedia, zCreateContent, zUpdateMedia } from '@joka/lib-openapi';
 import {
+  zCreateMedia,
+  zCreateContent,
+  zConfirmMedia,
+  zUpdateMedia,
+} from '@joka/lib-openapi';
+import {
+  ConfirmMediaResponses,
   CreateContentResponses,
   CreateUploadUrlForMediaResponses,
 } from '@joka/lib-openapi/src/generated/type/types.gen';
@@ -12,6 +18,7 @@ import {
 } from './media.mapper';
 import type { CloudflareEnv } from '../../../application/model';
 import {
+  ConfirmMedia,
   CreateContent,
   CreateMedia,
   CreateUploadUrlForMedia,
@@ -128,6 +135,19 @@ media.post('/:mediaId/contents', async (c) => {
     toContentResponse(result.data) as CreateContentResponses[201],
     201,
   );
+});
+
+media.post('/:mediaId/confirm', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  zConfirmMedia.parse(await c.req.json().catch(() => ({})));
+  const actor = c.get('actor');
+
+  const result = await ConfirmMedia.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.json(toMediaResponse(result) as ConfirmMediaResponses[200], 200);
 });
 
 media.delete('/:mediaId', async (c) => {
