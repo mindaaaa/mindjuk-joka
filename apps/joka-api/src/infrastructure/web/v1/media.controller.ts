@@ -5,6 +5,7 @@ import { toMediaResponse, toPaginationResponse } from './media.mapper';
 import type { CloudflareEnv } from '../../../application/model';
 import {
   CreateMedia,
+  CreateUploadUrlForMedia,
   DeleteMedia,
   UpdateMedia,
   GetMedia,
@@ -87,6 +88,18 @@ media.patch('/:mediaId', async (c) => {
   });
 
   return c.json(toMediaResponse(result), 200);
+});
+
+media.post('/:mediaId/upload-urls', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const actor = c.get('actor');
+
+  const result = await CreateUploadUrlForMedia.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.json(result, 201);
 });
 
 media.delete('/:mediaId', async (c) => {
