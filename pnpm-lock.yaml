@@ -87,6 +87,9 @@ importers:
       '@joka/lib-mime':
         specifier: workspace:*
         version: link:../../packages/lib-mime
+      '@joka/lib-openapi':
+        specifier: workspace:*
+        version: link:../../packages/lib-openapi
       hono:
         specifier: ^4.11.8
         version: 4.11.8
