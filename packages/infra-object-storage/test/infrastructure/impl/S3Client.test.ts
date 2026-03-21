@@ -139,7 +139,7 @@ describe('S3Client', () => {
       expect(result?.bucket).toBe('test-bucket');
       expect(result?.key).toBe('path/to/file.png');
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:9000/test-bucket/path/to/file.png',
+        'http://example.com/path/to/file.png',
         { method: 'HEAD' },
       );
     });

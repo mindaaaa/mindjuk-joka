@@ -1,10 +1,18 @@
-import { zCreateMedia, zUpdateMedia } from '@joka/lib-openapi';
-import { CreateUploadUrlForMediaResponses } from '@joka/lib-openapi/src/generated/type/types.gen';
+import { zCreateMedia, zCreateContent, zUpdateMedia } from '@joka/lib-openapi';
+import {
+  CreateContentResponses,
+  CreateUploadUrlForMediaResponses,
+} from '@joka/lib-openapi/src/generated/type/types.gen';
 import { Hono } from 'hono';
 
-import { toMediaResponse, toPaginationResponse } from './media.mapper';
+import {
+  toContentResponse,
+  toMediaResponse,
+  toPaginationResponse,
+} from './media.mapper';
 import type { CloudflareEnv } from '../../../application/model';
 import {
+  CreateContent,
   CreateMedia,
   CreateUploadUrlForMedia,
   DeleteMedia,
@@ -24,6 +32,7 @@ media.post('/', async (c) => {
     description: body.description,
   });
 
+  c.header('Location', `/api/v1/media/${result.cid}`);
   return c.json(toMediaResponse(result), 201);
 });
 
@@ -101,6 +110,24 @@ media.post('/:mediaId/upload-urls', async (c) => {
   });
 
   return c.json(result as CreateUploadUrlForMediaResponses[201], 201);
+});
+
+media.post('/:mediaId/contents', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const body = zCreateContent.parse(await c.req.json());
+  const actor = c.get('actor');
+
+  const result = await CreateContent.invoke({
+    actor,
+    mediaCid,
+    url: body.url,
+  });
+
+  c.header('Location', `/api/v1/media/${mediaCid}`);
+  return c.json(
+    toContentResponse(result.data) as CreateContentResponses[201],
+    201,
+  );
 });
 
 media.delete('/:mediaId', async (c) => {

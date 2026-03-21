@@ -34,7 +34,7 @@ const toActionedResponse = (actioned: {
 // TODO: accessUrl 구현하기
 const toLocation = (url: string): ApiLocation => ({ url, accessUrl: url });
 
-const toContentResponse = (
+export const toContentResponse = (
   content: Nullable<ContentType>,
 ): Nullable<ApiContent> => {
   if (!content) {

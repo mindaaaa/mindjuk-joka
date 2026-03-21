@@ -64,12 +64,9 @@ export class S3Client implements ObjectStorageClient {
 
   async head(url: Url): Promise<BucketObject | null> {
     const objectKey = url.getPath({ withoutBeginningSlash: true });
-    const response = await this.client.fetch(
-      `${this.endpoint}/${this.bucket}/${objectKey}`,
-      {
-        method: 'HEAD',
-      },
-    );
+    const response = await this.client.fetch(url.fullPath, {
+      method: 'HEAD',
+    });
 
     if (response.status === 404) {
       return null;
