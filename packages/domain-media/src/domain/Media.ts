@@ -269,6 +269,10 @@ export class Media {
     return this.created.by.id === user.id;
   }
 
+  isNotOwnedBy(user: User): boolean {
+    return !this.isOwnedBy(user);
+  }
+
   get isReadyToComplete(): boolean {
     return this.state === Media.State.DRAFT && !!this.content;
   }
