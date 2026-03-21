@@ -1,16 +1,24 @@
+import { UncaughtException } from '@joka/core/src/exception';
 import { MediaRepository } from '@joka/domain-media/src/infrastructure/persistence/media.repository';
 import { MediaService } from '@joka/domain-media/src/service/media.service';
 
-const mediaRepository = new MediaRepository();
-const mediaService = new MediaService(mediaRepository);
-
 class Config {
-  get mediaRepository() {
-    return mediaRepository;
-  }
+  private bucketName: string | null = null;
 
   get mediaService() {
-    return mediaService;
+    const mediaRepository = new MediaRepository();
+    return new MediaService(mediaRepository);
+  }
+
+  get mediaBucketName(): string {
+    if (!this.bucketName) {
+      throw new UncaughtException('S3 bucket is not configured');
+    }
+    return this.bucketName;
+  }
+
+  set mediaBucketName(value: string) {
+    this.bucketName = value;
   }
 }
 
