@@ -5,6 +5,18 @@ import prettierPlugin from "eslint-plugin-prettier";
 import importPlugin from "eslint-plugin-import";
 
 export default tseslint.config(
+  {
+    ignores: [
+      "**/dist/**",
+      "**/coverage/**",
+      "**/generated/**",
+      "**/jest.config.*",
+      "**/jest.setup.*",
+      "**/openapi-ts.config.*",
+      "**/vite.config.*",
+      "**/test/**",
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

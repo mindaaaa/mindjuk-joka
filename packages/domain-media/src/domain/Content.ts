@@ -62,4 +62,4 @@ export class Content {
   // TODO: Content가 Thumbnail을 만들 수 있도록 하기
 }
 
-export type ContentCreateInput = z.infer<typeof Content.Schema>;
+export type ContentType = z.infer<typeof Content.Schema>;

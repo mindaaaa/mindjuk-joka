@@ -269,12 +269,32 @@ export class Media {
     return this.created.by.id === user.id;
   }
 
+  isNotOwnedBy(user: User): boolean {
+    return !this.isOwnedBy(user);
+  }
+
+  get isReadyToPrepare(): boolean {
+    return this.state === Media.State.DRAFT && !this.content;
+  }
+
+  get isNotReadyToPrepare(): boolean {
+    return !this.isReadyToPrepare;
+  }
+
   get isReadyToComplete(): boolean {
-    return this.state === Media.State.DRAFT && !!this.content;
+    return this.state === Media.State.PREPARING && !!this.content;
+  }
+
+  get isNotReadyToComplete(): boolean {
+    return !this.isReadyToComplete;
   }
 
   get hasNoContent(): boolean {
     return !this.content;
+  }
+
+  get hasContent(): boolean {
+    return !this.hasNoContent;
   }
 
   get hasNoThumbnail(): boolean {

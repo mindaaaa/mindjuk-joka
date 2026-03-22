@@ -1,8 +1,27 @@
+import {
+  zCreateMedia,
+  zCreateContent,
+  zConfirmMedia,
+  zUpdateMedia,
+} from '@joka/lib-openapi';
+import {
+  ConfirmMediaResponses,
+  CreateContentResponses,
+  CreateUploadUrlForMediaResponses,
+} from '@joka/lib-openapi/src/generated/type/types.gen';
 import { Hono } from 'hono';
 
+import {
+  toContentResponse,
+  toMediaResponse,
+  toPaginationResponse,
+} from './media.mapper';
 import type { CloudflareEnv } from '../../../application/model';
 import {
+  ConfirmMedia,
+  CreateContent,
   CreateMedia,
+  CreateUploadUrlForMedia,
   DeleteMedia,
   UpdateMedia,
   GetMedia,
@@ -12,18 +31,16 @@ import {
 const media = new Hono<CloudflareEnv>().basePath('/v1/media');
 
 media.post('/', async (c) => {
-  const body = await c.req.json();
-  const description = body.description;
+  const body = zCreateMedia.parse(await c.req.json());
   const actor = c.get('actor');
 
   const result = await CreateMedia.invoke({
     actor,
-    description,
+    description: body.description,
   });
 
-  return c.json(result.data, 201, {
-    'Content-Type': 'application/json',
-  });
+  c.header('Location', `/api/v1/media/${result.cid}`);
+  return c.json(await toMediaResponse(result), 201);
 });
 
 media.get('/', async (c) => {
@@ -55,16 +72,15 @@ media.get('/', async (c) => {
 
   return c.json(
     {
-      items: result.items.map((item) => item.data),
-      pagination: result.pagination,
+      items: await Promise.all(result.items.map(toMediaResponse)),
+      pagination: toPaginationResponse(result.pagination),
     },
     200,
-    { 'Content-Type': 'application/json' },
   );
 });
 
-media.get('/:cid', async (c) => {
-  const mediaCid = c.req.param('cid');
+media.get('/:mediaId', async (c) => {
+  const mediaCid = c.req.param('mediaId');
   const actor = c.get('actor');
 
   const result = await GetMedia.invoke({
@@ -72,29 +88,73 @@ media.get('/:cid', async (c) => {
     mediaCid,
   });
 
-  return c.json(result.data, 200, {
-    'Content-Type': 'application/json',
-  });
+  return c.json(await toMediaResponse(result), 200);
 });
 
-media.patch('/:cid', async (c) => {
-  const mediaCid = c.req.param('cid');
-  const body = await c.req.json();
+media.patch('/:mediaId', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const body = zUpdateMedia.parse(await c.req.json());
   const actor = c.get('actor');
+
+  const request = body.description ? { description: body.description } : {};
 
   const result = await UpdateMedia.invoke({
     actor,
     mediaCid,
-    description: body.description,
+    ...request,
   });
 
-  return c.json(result.data, 200, {
-    'Content-Type': 'application/json',
-  });
+  return c.json(await toMediaResponse(result), 200);
 });
 
-media.delete('/:cid', async (c) => {
-  const mediaCid = c.req.param('cid');
+media.post('/:mediaId/upload-urls', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const actor = c.get('actor');
+
+  const result = await CreateUploadUrlForMedia.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.json(result as CreateUploadUrlForMediaResponses[201], 201);
+});
+
+media.post('/:mediaId/contents', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const body = zCreateContent.parse(await c.req.json());
+  const actor = c.get('actor');
+
+  const result = await CreateContent.invoke({
+    actor,
+    mediaCid,
+    url: body.url,
+  });
+
+  c.header('Location', `/api/v1/media/${mediaCid}`);
+  return c.json(
+    (await toContentResponse(result.data)) as CreateContentResponses[201],
+    201,
+  );
+});
+
+media.post('/:mediaId/confirm', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  zConfirmMedia.parse(await c.req.json().catch(() => ({})));
+  const actor = c.get('actor');
+
+  const result = await ConfirmMedia.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.json(
+    (await toMediaResponse(result)) as ConfirmMediaResponses[200],
+    200,
+  );
+});
+
+media.delete('/:mediaId', async (c) => {
+  const mediaCid = c.req.param('mediaId');
   const actor = c.get('actor');
 
   await DeleteMedia.invoke({

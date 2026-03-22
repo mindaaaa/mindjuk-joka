@@ -1,4 +1,7 @@
 import { ForbiddenException } from '@joka/core/src/exception';
+import { Url } from '@joka/core/src/model/Url';
+import { Nullish } from '@joka/core/src/type';
+import { S3Client } from '@joka/infra-object-storage/src/infrastructure/impl/S3Client';
 
 import {
   DeleteMedia,
@@ -13,7 +16,7 @@ export class DeleteMediaImpl extends DeleteMedia {
   override async invoke(request: Request): Promise<Response> {
     const { actor, mediaCid } = request;
 
-    if (!actor.canEdit()) {
+    if (actor.cannotEdit()) {
       throw new ForbiddenException('CANNOT_EDIT_MEDIA', [
         `Media를 삭제할 권한이 없습니다.`,
       ]);
@@ -22,10 +25,35 @@ export class DeleteMediaImpl extends DeleteMedia {
     const { album, user } = actor;
     const isForced = actor.isAdmin();
 
-    return this.mediaService.delete(
+    const media = await this.mediaService.get(
+      { album, user },
+      { cid: mediaCid },
+    );
+
+    const result = await this.mediaService.delete(
       { album, user },
       { cid: mediaCid, isForced },
     );
+
+    const keys: string[] = [
+      this.tryToGetPath(media.content?.url),
+      this.tryToGetPath(media.content?.thumbnail?.url),
+    ].filter((it) => typeof it === 'string');
+
+    if (keys.length) {
+      await S3Client.getInstance().deleteMany(keys);
+    }
+
+    return result;
+  }
+
+  private tryToGetPath(url: Nullish<Url>): string | null {
+    if (!url) {
+      return null;
+    }
+
+    const path = url.getPath({ withoutBeginningSlash: true });
+    return path.substring(path.indexOf('/') + 1);
   }
 }
 

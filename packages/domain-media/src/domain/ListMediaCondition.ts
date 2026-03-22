@@ -88,3 +88,10 @@ export class ListMediaCondition {
     return { ...this };
   }
 }
+
+export interface ListMediaPagination {
+  size: number;
+  order: string;
+  nextCursor: Nullable<string>;
+  hasNext: boolean;
+}

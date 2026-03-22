@@ -52,4 +52,4 @@ export class Thumbnail {
   }
 }
 
-export type ThumbnailCreateInput = z.infer<typeof Thumbnail.Schema>;
+export type ThumbnailType = z.infer<typeof Thumbnail.Schema>;
