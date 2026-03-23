@@ -131,6 +131,21 @@ importers:
 
   packages/core: {}
 
+  packages/domain-actor:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../lib-drizzle
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
+      postgres:
+        specifier: ^3.4.8
+        version: 3.4.8
+
   packages/domain-media:
     dependencies:
       '@joka/core':
