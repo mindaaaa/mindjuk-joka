@@ -11,6 +11,7 @@
   "dependencies": {
     "@joka/core": "workspace:*",
     "@joka/domain-media": "workspace:*",
+    "@joka/domain-actor": "workspace:*",
     "@joka/infra-object-storage": "workspace:*",
     "@joka/lib-mime": "workspace:*",
     "@joka/lib-drizzle": "workspace:*",
