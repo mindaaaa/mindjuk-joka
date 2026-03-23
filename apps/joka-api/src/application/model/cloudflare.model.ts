@@ -1,4 +1,4 @@
-import type { Actor } from '../../domain/model/Actor';
+import { Actor } from '@joka/domain-actor/src/domain/Actor';
 
 export interface CloudflareEnv {
   Bindings: {

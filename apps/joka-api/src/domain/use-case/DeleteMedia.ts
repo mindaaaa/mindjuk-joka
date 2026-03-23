@@ -1,5 +1,6 @@
+import { Actor } from '@joka/domain-actor/src/domain/Actor';
+
 import { UseCase } from './UseCase';
-import { Actor } from '../model/Actor';
 
 const UseCaseName = 'DeleteMedia' as const;
 

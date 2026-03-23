@@ -1,8 +1,8 @@
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
+import { Actor } from '@joka/domain-actor/src/domain/Actor';
 import { createMiddleware } from 'hono/factory';
 
-import { Actor } from '../../domain/model/Actor';
 import type { CloudflareEnv } from '../model';
 
 const loginMiddleware = createMiddleware<CloudflareEnv>(async (c, next) => {

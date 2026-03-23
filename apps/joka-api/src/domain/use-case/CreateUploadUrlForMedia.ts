@@ -1,5 +1,6 @@
+import { Actor } from '@joka/domain-actor/src/domain/Actor';
+
 import { UseCase } from './UseCase';
-import { Actor } from '../model/Actor';
 
 const UseCaseName = 'CreateUploadUrlForMedia' as const;
 
@@ -10,9 +11,10 @@ export interface Request {
 
 export type Response = { url: string };
 
-export abstract class CreateUploadUrlForMedia
-  implements UseCase<Request, Response>
-{
+export abstract class CreateUploadUrlForMedia implements UseCase<
+  Request,
+  Response
+> {
   get name(): string {
     return UseCaseName;
   }
