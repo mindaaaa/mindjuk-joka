@@ -1,7 +1,7 @@
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
 
-import { Actor } from '../../../src/domain/model/Actor';
+import { Actor } from '../../src/domain/Actor';
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

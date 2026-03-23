@@ -1,5 +1,6 @@
 import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
+import { v7 as uuidv7 } from 'uuid';
 import { z } from 'zod';
 
 const Role = {
@@ -18,7 +19,9 @@ interface ConstructorParameters {
 
 export class Actor {
   static from(params: ConstructorParameters): Actor {
-    const actor = new Actor(params.album, params.user, params.role);
+    const traceId = uuidv7();
+
+    const actor = new Actor(traceId, params.album, params.user, params.role);
 
     Actor.Schema.parse(actor.data);
 
@@ -27,6 +30,7 @@ export class Actor {
 
   static get Schema() {
     return z.object({
+      traceId: z.string().uuid(),
       album: Album.Schema,
       user: User.Schema,
       role: z.enum(Object.keys(Role)),
@@ -34,6 +38,7 @@ export class Actor {
   }
 
   private constructor(
+    public readonly traceId: string,
     public readonly album: Album,
     public readonly user: User,
     public readonly role: keyof typeof Role,
@@ -65,6 +70,7 @@ export class Actor {
 
   get data() {
     return {
+      traceId: this.traceId,
       album: this.album.data,
       user: this.user.data,
       role: this.role,
