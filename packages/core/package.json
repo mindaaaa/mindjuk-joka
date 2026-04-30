@@ -1,0 +1,10 @@
+{
+  "name": "@joka/core",
+  "version": "0.0.1",
+  "description": "core package",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@joka/infra-object-storage",
+  "version": "0.0.1",
+  "description": "infra-object-storage package",
+  "scripts": {
+    "test": "jest --testPathPatterns='\\.test\\.ts$' --passWithNoTests",
+    "test:integration": "jest --testPathPatterns='\\.integration\\.spec\\.ts$'",
+    "test:all": "jest",
+    "test:watch": "jest --watch --testPathPatterns='\\.test\\.ts$'",
+    "test:coverage": "jest --coverage --testPathPatterns='\\.test\\.ts$' --passWithNoTests"
+  },
+  "dependencies": {
+    "@joka/core": "workspace:*",
+    "@joka/lib-mime": "workspace:*",
+    "aws4fetch": "^1.0.20"
+  }
+}

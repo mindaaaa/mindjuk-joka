@@ -1,0 +1,27 @@
+{
+  "name": "@joka/lib-openapi",
+  "version": "0.0.1",
+  "description": "lib-openapi package",
+  "scripts": {
+    "generate": "pnpm run generate:types && pnpm run generate:schemas",
+    "generate:types": "openapi-typescript docs/api-v1.yml -o ./src/generated/api-v1.d.ts",
+    "generate:schemas": "openapi-ts",
+    "build": "pnpm run generate",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.14.0"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.86.0",
+    "openapi-typescript": "^7.8.0"
+  }
+}

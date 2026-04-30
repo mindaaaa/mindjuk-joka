@@ -1,0 +1,25 @@
+{
+  "name": "@joka/joka-api",
+  "version": "0.0.1",
+  "description": "joka-api",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "wrangler:local": "wrangler dev"
+  },
+  "dependencies": {
+    "@joka/core": "workspace:*",
+    "@joka/domain-media": "workspace:*",
+    "@joka/infra-object-storage": "workspace:*",
+    "@joka/lib-mime": "workspace:*",
+    "@joka/lib-drizzle": "workspace:*",
+    "@joka/lib-openapi": "workspace:*",
+    "hono": "^4.11.8",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.61.1",
+    "@cloudflare/workers-types": "^4.20260131.0"
+  }
+}

@@ -1,0 +1,28 @@
+# Workers 관련
+name = "joka-api-v1"
+main = "src/index.ts"
+compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2024-09-23"
+
+# R2 버킷 바인딩
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "joka-media-contents-prod"
+preview_bucket_name = "joka-media-contents-dev"
+
+# KV 네임스페이스 바인딩
+[[kv_namespaces]]
+binding = "MEDIA_CACHE"
+id = "joka-media-cache-prod"
+preview_id = "joka-media-cache-dev"
+
+# Hyperdrive 바인딩
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "<hyperdrive-config-id>"
+localConnectionString = "postgres://admin:my-very-secure-pw@localhost:5432/mindjuk"
+
+# 로컬 개발 환경 관련 설정
+[dev]
+port = 54861
+local_protocol = "http"
