@@ -1,0 +1,74 @@
+name: Chromatic
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/src/**'
+      - 'apps/web/.storybook/**'
+      - 'apps/web/package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/chromatic.yml'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/src/**'
+      - 'apps/web/.storybook/**'
+      - 'apps/web/package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/chromatic.yml'
+  workflow_dispatch:
+
+jobs:
+  chromatic:
+    name: Run Chromatic
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Chromatic
+        id: chromatic
+        uses: chromaui/action@v11
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/web
+          onlyChanged: true
+          exitZeroOnChanges: true
+
+      - name: Comment Storybook preview URL on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: chromatic-preview
+          message: |
+            ### 📚 Storybook Preview
+
+            | 용도 | 링크 |
+            |------|------|
+            | 🔍 Storybook 미리보기 | ${{ steps.chromatic.outputs.storybookUrl }} |
+            | 🎨 Visual diff 검토 | ${{ steps.chromatic.outputs.buildUrl }} |
+
+            - **Preview**: 배포된 Storybook을 바로 확인할 수 있어요. (모두)
+            - **Visual diff**: 이전 빌드 대비 UI 변경사항을 픽셀 단위로 검토합니다. (프론트엔드 리뷰어용)
