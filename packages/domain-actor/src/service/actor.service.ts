@@ -1,4 +1,3 @@
-import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
 
 import { Actor } from '../domain/Actor';
@@ -10,7 +9,7 @@ import { ActorRepository } from '../infrastructure/persistence/actor.repository'
 
 // TODO: 중복 제거
 interface Context {
-  album: Album;
+  albumCid: string;
   user: User;
 }
 interface ListRequest {
@@ -26,13 +25,14 @@ interface ListResponse<E> {
 export class ActorService {
   constructor(private repository: ActorRepository) {}
 
-  async list(
-    context: Context,
-    request: ListRequest,
-  ): Promise<ListResponse<Actor>> {
+  async findOneOrNull(context: Context): Promise<Actor | null> {
+    return this.repository.findOneOrNull(context.user.cid, context.albumCid);
+  }
+
+  async list(user: User, request: ListRequest): Promise<ListResponse<Actor>> {
     const condition = ListActorsCondition.from({
       limit: request.limit,
-      filter: { userId: context.user.id },
+      filter: { userId: user.id },
       cursor: request.cursor ? { cid: request.cursor } : null,
       sortOrder: request.sortOrder,
     });

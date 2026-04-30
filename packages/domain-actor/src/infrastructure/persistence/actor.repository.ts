@@ -12,6 +12,40 @@ const { albums, userRoles, users } = Schema;
 export class ActorRepository {
   constructor() {}
 
+  async findOneOrNull(
+    userCid: string,
+    albumCid: string,
+  ): Promise<Actor | null> {
+    const [found] = await this.connection
+      .select({
+        id: albums.id,
+        cid: albums.cid,
+        name: albums.name,
+        description: albums.description,
+        isDeleted: albums.isDeleted,
+
+        userId: users.id,
+        userCid: users.cid,
+        userName: users.name,
+        userEmail: users.email,
+
+        role: userRoles.role,
+      })
+      .from(albums)
+      .innerJoin(userRoles, eq(userRoles.albumId, albums.id))
+      .innerJoin(users, eq(users.id, userRoles.userId))
+      .where(
+        and(
+          eq(users.cid, userCid),
+          eq(albums.cid, albumCid),
+          eq(albums.isDeleted, false),
+        ),
+      )
+      .limit(1);
+
+    return found ? this.refine(found) : null;
+  }
+
   async findMany(condition: ListActorsCondition): Promise<{
     items: Actor[];
     nextCursor: { cid: string } | null;
