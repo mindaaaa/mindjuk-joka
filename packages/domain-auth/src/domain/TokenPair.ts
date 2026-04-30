@@ -27,9 +27,13 @@ export class TokenPair {
   ) {}
 
   get data() {
-    return {
+    const pair = {
       accessToken: this.accessToken,
       refreshToken: this.refreshToken,
     };
+
+    TokenPair.Schema.parse(pair);
+
+    return pair;
   }
 }
