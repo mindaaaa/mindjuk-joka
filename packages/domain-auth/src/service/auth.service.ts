@@ -1,4 +1,7 @@
-import { UnauthorizedException } from '@joka/core/src/exception';
+import {
+  ForbiddenException,
+  UnauthorizedException,
+} from '@joka/core/src/exception';
 import { Email } from '@joka/core/src/model/Email';
 import { DraftUser, User } from '@joka/core/src/model/User';
 
@@ -7,6 +10,7 @@ import { JwtProvider } from '../domain/helper/jwt.provider';
 import { TokenPair } from '../domain/TokenPair';
 import { KakaoAuthClient } from '../infrastructure/client/kakao-auth.client';
 import { UserRepository } from '../infrastructure/persistence/user.repository';
+import { WhitelistRepository } from '../infrastructure/persistence/whitelist.repository';
 
 export interface AuthConfig {
   kakaoClientId: string;
@@ -19,11 +23,13 @@ export interface AuthConfig {
 export class AuthService {
   private kakaoClient: KakaoAuthClient;
   private userRepository: UserRepository;
+  private whitelistRepository: WhitelistRepository;
   private jwtProvider: JwtProvider;
 
   constructor() {
     this.kakaoClient = new KakaoAuthClient();
     this.userRepository = new UserRepository();
+    this.whitelistRepository = new WhitelistRepository();
     this.jwtProvider = new JwtProvider();
   }
 
@@ -56,6 +62,8 @@ export class AuthService {
 
   private async getUserOrSignIn(kakaoToken: string): Promise<User> {
     const kakaoUser = await this.kakaoClient.getUserInfo(kakaoToken);
+    await this.assertWhitelisted(kakaoUser.email.value);
+
     const user = await this.userRepository.findByEmailAndProvider(
       kakaoUser.email,
       'KAKAO',
@@ -74,6 +82,15 @@ export class AuthService {
     );
   }
 
+  private async assertWhitelisted(email: string): Promise<void> {
+    const isAllowed = await this.whitelistRepository.isAllowed(email);
+    if (!isAllowed) {
+      throw new ForbiddenException('NOT_WHITELISTED', [
+        '허용되지 않은 이메일입니다.',
+      ]);
+    }
+  }
+
   async refresh(
     refreshToken: string,
     config: AuthConfig,
@@ -83,6 +100,8 @@ export class AuthService {
       config.jwtSecret,
       'REFRESH',
     );
+
+    await this.assertWhitelisted(payload.email);
 
     const user = await this.userRepository.findByEmailAndProvider(
       Email.from(payload.email),
