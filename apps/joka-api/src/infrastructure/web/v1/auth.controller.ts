@@ -74,7 +74,7 @@ auth.get('/callback', async (c) => {
     maxAge: 15 * 60, // 15분
   });
 
-  return c.redirect('/api');
+  return c.redirect(c.env.AUTH_SUCCESS_REDIRECT ?? '/api');
 });
 
 auth.post('/refresh', async (c) => {
