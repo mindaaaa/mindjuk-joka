@@ -111,28 +111,41 @@ export const loginPageHtml = `<!DOCTYPE html>
       return null;
     }
 
+    async function tryRefresh() {
+      const refreshRes = await fetch('/api/v1/auth/refresh', { method: 'POST' });
+      if (!refreshRes.ok) return null;
+      const { accessToken } = await refreshRes.json();
+      document.cookie = 'accessToken=' + accessToken + '; path=/; max-age=900; SameSite=Strict';
+      return accessToken;
+    }
+
     async function checkAuth() {
-      const accessToken = getCookie('accessToken');
+      // 로그인 상태의 source of truth는 httpOnly refreshToken이므로,
+      // JS가 볼 수 있는 accessToken이 없더라도 곧장 로그인 화면으로 보내지 않고 refresh를 먼저 시도한다.
+      let accessToken = getCookie('accessToken') || (await tryRefresh());
       if (!accessToken) {
         showLogin();
         return;
       }
 
       try {
-        const meRes = await fetch('/api/v1/me', {
+        let meRes = await fetch('/api/v1/me', {
           headers: { 'Authorization': 'Bearer ' + accessToken }
         });
 
         if (!meRes.ok) {
-          // accessToken 만료 시 refresh 시도
-          const refreshRes = await fetch('/api/v1/auth/refresh', { method: 'POST' });
-          if (!refreshRes.ok) {
+          accessToken = await tryRefresh();
+          if (!accessToken) {
             showLogin();
             return;
           }
-          const { accessToken: newToken } = await refreshRes.json();
-          document.cookie = 'accessToken=' + newToken + '; path=/; max-age=900; SameSite=Strict';
-          return checkAuth();
+          meRes = await fetch('/api/v1/me', {
+            headers: { 'Authorization': 'Bearer ' + accessToken }
+          });
+          if (!meRes.ok) {
+            showLogin();
+            return;
+          }
         }
 
         const me = await meRes.json();

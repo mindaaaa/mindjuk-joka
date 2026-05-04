@@ -9,7 +9,7 @@ me.get('/', (c) => {
   const actor = c.get('actor');
 
   return c.json({
-    id: payload.cid,
+    id: payload.sub,
     name: payload.name,
     email: payload.email,
     role: actor?.role ?? null,

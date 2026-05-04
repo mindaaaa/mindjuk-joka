@@ -30,17 +30,17 @@ auth.get('/kakao', (c) => {
 });
 
 auth.get('/callback', async (c) => {
-  const code = c.req.query('code');
-  if (!code) {
-    throw new InvalidArgumentException('INVALID_ARGUMENT', [
-      '인증 코드가 필요합니다.',
-    ]);
-  }
-
   const error = c.req.query('error');
   if (error) {
     throw new UnauthorizedException('KAKAO_AUTH_DENIED', [
       '카카오 인증이 거부되었습니다.',
+    ]);
+  }
+
+  const code = c.req.query('code');
+  if (!code) {
+    throw new InvalidArgumentException('INVALID_ARGUMENT', [
+      '인증 코드가 필요합니다.',
     ]);
   }
 
@@ -53,23 +53,28 @@ auth.get('/callback', async (c) => {
     c.env.AUTH_TOKENS,
   );
 
+  // OAuth redirect 체인은 외부 사이트 → 로컬 도메인으로 진입하므로
+  // SameSite=Strict이면 Set-Cookie가 cross-site initiated context에서 누락될 수 있다.
+  // 또한 Secure는 HTTPS에서만 의미가 있어 로컬 HTTP에선 일부 브라우저가 거절한다.
+  const isHttps = new URL(c.req.url).protocol === 'https:';
+
   setCookie(c, 'refreshToken', tokenPair.refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: 'Strict',
+    secure: isHttps,
+    sameSite: 'Lax',
     path: '/api/v1/auth',
     maxAge: REFRESH_TOKEN_MAX_AGE,
   });
 
   setCookie(c, 'accessToken', tokenPair.accessToken, {
     httpOnly: false,
-    secure: true,
-    sameSite: 'Strict',
+    secure: isHttps,
+    sameSite: 'Lax',
     path: '/',
     maxAge: 15 * 60, // 15분
   });
 
-  return c.redirect('/api/');
+  return c.redirect('/api');
 });
 
 auth.post('/refresh', async (c) => {
@@ -102,10 +107,11 @@ auth.post('/refresh', async (c) => {
     c.env.AUTH_TOKENS,
   );
 
+  const isHttps = new URL(c.req.url).protocol === 'https:';
   setCookie(c, 'refreshToken', tokenPair.refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: 'Strict',
+    secure: isHttps,
+    sameSite: 'Lax',
     path: '/api/v1/auth',
     maxAge: REFRESH_TOKEN_MAX_AGE,
   });

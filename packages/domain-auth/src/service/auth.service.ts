@@ -81,6 +81,7 @@ export class AuthService {
     const payload = await this.jwtProvider.verifyToken(
       refreshToken,
       config.jwtSecret,
+      'REFRESH',
     );
 
     const user = await this.userRepository.findByEmailAndProvider(

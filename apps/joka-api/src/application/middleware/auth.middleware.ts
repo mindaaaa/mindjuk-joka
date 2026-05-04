@@ -10,6 +10,7 @@ const PUBLIC_ROUTES: { method: string; path: RegExp }[] = [
   { method: 'GET', path: /^\/api\/v1\/auth\/kakao$/ },
   { method: 'GET', path: /^\/api\/v1\/auth\/callback$/ },
   { method: 'POST', path: /^\/api\/v1\/auth\/refresh$/ },
+  { method: 'POST', path: /^\/api\/v1\/auth\/logout$/ },
   { method: 'GET', path: /^\/api\/?$/ },
 ];
 
@@ -33,7 +34,11 @@ const authMiddleware = createMiddleware<CloudflareEnv>(async (c, next) => {
   }
 
   const token = authHeader.substring(7);
-  const payload = await jwtProvider.verifyToken(token, c.env.JWT_SECRET);
+  const payload = await jwtProvider.verifyToken(
+    token,
+    c.env.JWT_SECRET,
+    'ACCESS',
+  );
 
   c.set('jwtPayload', payload);
   await next();
