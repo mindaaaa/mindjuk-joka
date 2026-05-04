@@ -17,11 +17,15 @@ export interface AuthConfig {
 
 // REMIND: 초기 버전에서는 카카오 로그인만 지원
 export class AuthService {
-  constructor(
-    private kakaoClient: KakaoAuthClient,
-    private userRepository: UserRepository,
-    private jwtProvider: JwtProvider,
-  ) {}
+  private kakaoClient: KakaoAuthClient;
+  private userRepository: UserRepository;
+  private jwtProvider: JwtProvider;
+
+  constructor() {
+    this.kakaoClient = new KakaoAuthClient();
+    this.userRepository = new UserRepository();
+    this.jwtProvider = new JwtProvider();
+  }
 
   async login(code: string, config: AuthConfig): Promise<AdmissionTicket> {
     const kakaoToken = await this.kakaoClient.exchangeCode(code, {
