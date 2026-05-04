@@ -6,7 +6,6 @@ import auth from './application/middleware/auth.middleware';
 import hyperdrive from './application/middleware/hyperdrive.middleware';
 import objectStorage from './application/middleware/object-storage.middleware';
 import type { CloudflareEnv } from './application/model';
-import { loginPageHtml } from './infrastructure/web/login-page';
 import albums from './infrastructure/web/v1/albums.controller';
 import authController from './infrastructure/web/v1/auth.controller';
 import me from './infrastructure/web/v1/me.controller';
@@ -15,11 +14,6 @@ import media from './infrastructure/web/v1/media.controller';
 const app = new Hono<CloudflareEnv>().basePath('/api');
 
 app.onError(errorHandler);
-
-// 로그인 테스트 페이지
-app.get('/', (c) => {
-  return c.html(loginPageHtml);
-});
 
 app.use('*', hyperdrive);
 app.use('*', objectStorage);
