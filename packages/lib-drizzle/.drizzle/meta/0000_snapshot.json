@@ -1,5 +1,5 @@
 {
-  "id": "77f62a5e-56e3-4975-90e5-99a4238777cd",
+  "id": "13ebb96c-7ea9-413f-a535-5048c8671cc7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -446,6 +446,25 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "joka.user_whitelists": {
+      "name": "user_whitelists",
+      "schema": "joka",
+      "columns": {
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

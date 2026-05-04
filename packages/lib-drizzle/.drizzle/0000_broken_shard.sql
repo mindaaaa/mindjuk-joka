@@ -58,6 +58,10 @@ CREATE TABLE "joka"."user_roles" (
 	CONSTRAINT "user_roles_uq_1" UNIQUE("user_id","album_id")
 );
 --> statement-breakpoint
+CREATE TABLE "joka"."user_whitelists" (
+	"email" varchar(255) PRIMARY KEY NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "joka"."users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"cid" uuid NOT NULL,
