@@ -16,6 +16,12 @@ binding = "MEDIA_CACHE"
 id = "joka-media-cache-prod"
 preview_id = "joka-media-cache-dev"
 
+# Auth KV 네임스페이스 바인딩
+[[kv_namespaces]]
+binding = "AUTH_TOKENS"
+id = "joka-auth-tokens-prod"
+preview_id = "joka-auth-tokens-dev"
+
 # Hyperdrive 바인딩
 [[hyperdrive]]
 binding = "HYPERDRIVE"

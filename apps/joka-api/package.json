@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@joka/core": "workspace:*",
+    "@joka/domain-auth": "workspace:*",
     "@joka/domain-media": "workspace:*",
     "@joka/domain-actor": "workspace:*",
     "@joka/infra-object-storage": "workspace:*",
