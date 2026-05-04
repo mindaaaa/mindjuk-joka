@@ -27,6 +27,10 @@ export class AuthService {
     this.jwtProvider = new JwtProvider();
   }
 
+  async findUserOrNull(cid: string): Promise<User | null> {
+    return this.userRepository.findByCid(cid);
+  }
+
   async login(code: string, config: AuthConfig): Promise<AdmissionTicket> {
     const kakaoToken = await this.kakaoClient.exchangeCode(code, {
       clientId: config.kakaoClientId,

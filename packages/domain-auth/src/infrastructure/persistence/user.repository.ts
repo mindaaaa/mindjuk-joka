@@ -26,6 +26,21 @@ export class UserRepository {
     return ClientFactory.createInstance();
   }
 
+  async findByCid(cid: string): Promise<User | null> {
+    const [found] = await this.connection
+      .select({
+        id: users.id,
+        cid: users.cid,
+        name: users.name,
+        email: users.email,
+      })
+      .from(users)
+      .where(and(eq(users.cid, cid)))
+      .limit(1);
+
+    return found ? User.from(found) : null;
+  }
+
   async findByEmailAndProvider(
     email: Email,
     provider: string,
