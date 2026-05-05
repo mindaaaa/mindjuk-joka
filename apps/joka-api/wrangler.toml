@@ -16,11 +16,21 @@ binding = "MEDIA_CACHE"
 id = "joka-media-cache-prod"
 preview_id = "joka-media-cache-dev"
 
+# Auth KV 네임스페이스 바인딩
+[[kv_namespaces]]
+binding = "AUTH_TOKENS"
+id = "joka-auth-tokens-prod"
+preview_id = "joka-auth-tokens-dev"
+
 # Hyperdrive 바인딩
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "<hyperdrive-config-id>"
 localConnectionString = "postgres://admin:my-very-secure-pw@localhost:5432/mindjuk"
+
+# 일반 환경 변수 (시크릿이 아님)
+[vars]
+AUTH_SUCCESS_REDIRECT = "/"
 
 # 로컬 개발 환경 관련 설정
 [dev]

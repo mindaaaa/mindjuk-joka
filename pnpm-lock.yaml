@@ -75,6 +75,12 @@ importers:
       '@joka/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@joka/domain-actor':
+        specifier: workspace:*
+        version: link:../../packages/domain-actor
+      '@joka/domain-auth':
+        specifier: workspace:*
+        version: link:../../packages/domain-auth
       '@joka/domain-media':
         specifier: workspace:*
         version: link:../../packages/domain-media
@@ -163,6 +169,45 @@ importers:
         version: 2.1.9(@types/node@25.0.9)(jsdom@25.0.1)
 
   packages/core: {}
+
+  packages/domain-actor:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../lib-drizzle
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
+      postgres:
+        specifier: ^3.4.8
+        version: 3.4.8
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+
+  packages/domain-auth:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../lib-drizzle
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
+      hono:
+        specifier: ^4.11.8
+        version: 4.11.8
+      postgres:
+        specifier: ^3.4.8
+        version: 3.4.8
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
 
   packages/domain-media:
     dependencies:

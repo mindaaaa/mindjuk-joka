@@ -1,7 +1,7 @@
+import { Actor } from '@joka/domain-actor/src/domain/Actor';
 import { Content } from '@joka/domain-media/src/domain/Content';
 
 import { UseCase } from './UseCase';
-import { Actor } from '../model/Actor';
 
 const UseCaseName = 'CreateContent' as const;
 

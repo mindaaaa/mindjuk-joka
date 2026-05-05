@@ -5,7 +5,15 @@ import type { CloudflareEnv } from '../../../application/model';
 const me = new Hono<CloudflareEnv>().basePath('/v1/me');
 
 me.get('/', (c) => {
-  return c.text('Get Me');
+  const payload = c.get('jwtPayload');
+  const actor = c.get('actor');
+
+  return c.json({
+    id: payload.sub,
+    name: payload.name,
+    email: payload.email,
+    role: actor?.role ?? null,
+  });
 });
 
 export default me;

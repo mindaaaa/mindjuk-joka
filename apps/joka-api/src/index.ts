@@ -1,10 +1,13 @@
 import { Hono } from 'hono';
 
+import actorResolver from './application/middleware/actor-resolver.middleware';
 import errorHandler from './application/middleware/advice.middleware';
+import auth from './application/middleware/auth.middleware';
 import hyperdrive from './application/middleware/hyperdrive.middleware';
-import login from './application/middleware/login.middleware';
 import objectStorage from './application/middleware/object-storage.middleware';
 import type { CloudflareEnv } from './application/model';
+import albums from './infrastructure/web/v1/albums.controller';
+import authController from './infrastructure/web/v1/auth.controller';
 import me from './infrastructure/web/v1/me.controller';
 import media from './infrastructure/web/v1/media.controller';
 
@@ -14,9 +17,12 @@ app.onError(errorHandler);
 
 app.use('*', hyperdrive);
 app.use('*', objectStorage);
-app.use('*', login);
+app.use('*', auth);
+app.use('*', actorResolver);
 
+app.route('/', authController);
 app.route('/', me);
+app.route('/', albums);
 app.route('/', media);
 
 export default {

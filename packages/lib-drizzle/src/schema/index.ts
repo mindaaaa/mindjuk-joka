@@ -28,6 +28,10 @@ export const users = jokaSchema.table('users', {
   lastAccessedAt: timestamp('last_accessed_at').defaultNow().notNull(),
 });
 
+export const userWhitelists = jokaSchema.table('user_whitelists', {
+  email: varchar('email', { length: 255 }).primaryKey(),
+});
+
 export const albums = jokaSchema.table('albums', {
   id: serial('id').primaryKey(),
   cid: uuid('cid')

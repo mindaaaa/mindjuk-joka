@@ -1,8 +1,8 @@
 import { Nullable } from '@joka/core/src/type';
+import { Actor } from '@joka/domain-actor/src/domain/Actor';
 import { Media } from '@joka/domain-media/src/domain/Media';
 
 import { UseCase } from './UseCase';
-import { Actor } from '../model/Actor';
 
 const UseCaseName = 'ListMedia' as const;
 
