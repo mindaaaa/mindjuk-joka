@@ -1,1 +1,1 @@
-export {};
+export { Skeleton } from './skeleton';
