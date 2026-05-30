@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlbumStore } from '@/entities/album';
 import { http } from '@/shared/api';
 
-import { authKeys } from './queries';
+import { authKeys } from './keys';
 
 export function useLogoutMutation() {
   const queryClient = useQueryClient();
