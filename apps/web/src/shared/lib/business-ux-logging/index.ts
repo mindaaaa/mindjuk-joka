@@ -12,7 +12,6 @@
 import { MEDIA_LIST_SLOW_THRESHOLD_MS } from './constants';
 
 import { log } from '@/shared/lib/logger';
-import type { UserRole } from '@/shared/types/monitoring';
 
 /** GET /media 응답이 2초 초과했을 때 호출 */
 export function recordMediaListSlow(
@@ -29,7 +28,7 @@ export function recordMediaListSlow(
 
 /** 403 발생 시 호출 (VIEWER가 수정 시도 등) */
 export function recordForbidden(context: {
-  userRole: UserRole;
+  userRole: string;
   operationId?: string;
 }): void {
   log.business('UX|forbidden|viewer_edit_attempt', {
