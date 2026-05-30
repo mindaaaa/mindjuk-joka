@@ -129,16 +129,12 @@ export async function toApiError(response: Response): Promise<ApiError> {
   });
 }
 
-async function readErrorPayload(response: Response): Promise<unknown> {
-  try {
-    return await response.clone().json();
-  } catch {}
-
-  try {
-    return await response.clone().text();
-  } catch {}
-
-  return undefined;
+function readErrorPayload(response: Response): Promise<unknown> {
+  return response
+    .clone()
+    .json()
+    .catch(() => response.clone().text())
+    .catch(() => undefined);
 }
 
 function extractMessage(payload: unknown, status: number): string {
