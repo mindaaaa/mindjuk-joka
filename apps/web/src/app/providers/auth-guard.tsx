@@ -48,25 +48,24 @@ export function AuthGuard() {
   const isPublic = PUBLIC_PATHS.has(location.pathname);
 
   const isCheckingSession = status === 'idle' && meQuery.isPending;
-  const isBlockedFromPrivate = status === 'unauthenticated' && !isPublic;
-  const isAlreadyLoggedIn = status === 'authenticated' && isPublic;
-  const lacksUploadPermission =
-    status === 'authenticated' &&
-    isEditorOnly(location.pathname) &&
-    !canUpload(user?.role);
-
   if (isCheckingSession) {
     return <GuardFallback />;
   }
 
+  const isBlockedFromPrivate = status === 'unauthenticated' && !isPublic;
   if (isBlockedFromPrivate) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
+  const isAlreadyLoggedIn = status === 'authenticated' && isPublic;
   if (isAlreadyLoggedIn) {
     return <Navigate to="/photos" replace />;
   }
 
+  const lacksUploadPermission =
+    status === 'authenticated' &&
+    isEditorOnly(location.pathname) &&
+    !canUpload(user?.role);
   if (lacksUploadPermission) {
     return <Navigate to="/photos" replace />;
   }
