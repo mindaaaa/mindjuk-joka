@@ -1,6 +1,8 @@
 import { authTokenStore } from './auth-token';
 import { createHttpClient } from './client';
 
+export { buildQuery } from './query-string';
+
 export const http = createHttpClient({
   onUnauthorized: () => {
     authTokenStore.clear();
