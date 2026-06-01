@@ -1,2 +1,13 @@
-// (선택) 정렬 옵션을 전역으로 유지할지 결정
-export {};
+import { create } from 'zustand';
+
+export type SortOrder = 'asc' | 'desc';
+
+interface PhotoSortState {
+  order: SortOrder;
+  setOrder: (order: SortOrder) => void;
+}
+
+export const usePhotoSortStore = create<PhotoSortState>((set) => ({
+  order: 'desc',
+  setOrder: (order) => set({ order }),
+}));
