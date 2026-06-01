@@ -1,12 +1,12 @@
-import type { LogLayer, MediaState, UserRole } from '@/shared/types/monitoring';
+import type { LogLayer, MediaState } from '@/shared/types/monitoring';
 
-export type { LogLayer, MediaState, UserRole };
+export type { LogLayer, MediaState };
 
 /** 모든 로그에 공통으로 포함되는 컨텍스트 */
 export interface LogContext {
   operationId?: string;
   mediaState?: MediaState;
-  userRole?: UserRole;
+  userRole?: string;
   standardMessage?: string;
   [key: string]: unknown;
 }
@@ -16,5 +16,5 @@ export interface CommonFields {
   layer: LogLayer;
   operationId?: string;
   mediaState?: MediaState;
-  userRole?: UserRole;
+  userRole?: string;
 }

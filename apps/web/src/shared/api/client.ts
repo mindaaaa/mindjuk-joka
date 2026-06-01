@@ -36,14 +36,18 @@ function isRawBody(body: unknown): body is BodyInit {
 }
 
 function normalize(init: HttpInit): RequestInit {
-  const { body, ...rest } = init;
+  const { body, credentials, ...rest } = init;
+  const withCredentials: RequestInit = {
+    ...rest,
+    credentials: credentials ?? 'include',
+  };
 
   if (body === undefined || body === null) {
-    return { ...rest };
+    return withCredentials;
   }
 
   if (isRawBody(body)) {
-    return { ...rest, body };
+    return { ...withCredentials, body };
   }
 
   const mergedHeaders = new Headers(rest.headers);
@@ -51,7 +55,11 @@ function normalize(init: HttpInit): RequestInit {
     mergedHeaders.set('Content-Type', 'application/json');
   }
 
-  return { ...rest, headers: mergedHeaders, body: JSON.stringify(body) };
+  return {
+    ...withCredentials,
+    headers: mergedHeaders,
+    body: JSON.stringify(body),
+  };
 }
 
 async function parseResponse(response: Response): Promise<unknown> {
