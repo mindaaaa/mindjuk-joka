@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { canDelete, canEditMeta, canUpload } from './access';
+import { canUpload, canWriteMeta } from './access';
 
 describe('access policy', () => {
   describe('canUpload', () => {
@@ -13,27 +13,23 @@ describe('access policy', () => {
     });
   });
 
-  describe('canEditMeta / canDelete', () => {
-    test('ADMIN은 모든 사진 편집/삭제 가능', () => {
-      expect(canEditMeta('ADMIN', 'uploader-1', 'me')).toBe(true);
-      expect(canDelete('ADMIN', 'uploader-1', 'me')).toBe(true);
+  describe('canWriteMeta (수정·삭제 통합)', () => {
+    test('ADMIN은 모든 사진 쓰기 가능', () => {
+      expect(canWriteMeta('ADMIN', 'uploader-1', 'me')).toBe(true);
     });
 
-    test('EDITOR는 본인 업로드만 편집/삭제 가능', () => {
-      expect(canEditMeta('EDITOR', 'me', 'me')).toBe(true);
-      expect(canEditMeta('EDITOR', 'other', 'me')).toBe(false);
-      expect(canDelete('EDITOR', 'me', 'me')).toBe(true);
-      expect(canDelete('EDITOR', 'other', 'me')).toBe(false);
+    test('EDITOR는 본인 업로드만 쓰기 가능', () => {
+      expect(canWriteMeta('EDITOR', 'me', 'me')).toBe(true);
+      expect(canWriteMeta('EDITOR', 'other', 'me')).toBe(false);
     });
 
-    test('VIEWER는 편집/삭제 불가', () => {
-      expect(canEditMeta('VIEWER', 'me', 'me')).toBe(false);
-      expect(canDelete('VIEWER', 'me', 'me')).toBe(false);
+    test('VIEWER는 쓰기 불가', () => {
+      expect(canWriteMeta('VIEWER', 'me', 'me')).toBe(false);
     });
 
     test('uploaderId 또는 userId가 없으면 EDITOR도 거부 (소유권 불명)', () => {
-      expect(canEditMeta('EDITOR', undefined, 'me')).toBe(false);
-      expect(canEditMeta('EDITOR', 'me', undefined)).toBe(false);
+      expect(canWriteMeta('EDITOR', undefined, 'me')).toBe(false);
+      expect(canWriteMeta('EDITOR', 'me', undefined)).toBe(false);
     });
   });
 });

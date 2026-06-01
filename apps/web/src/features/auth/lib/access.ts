@@ -6,7 +6,8 @@ export function canUpload(role: NullableRole): boolean {
   return role === 'ADMIN' || role === 'EDITOR';
 }
 
-export function canEditMeta(
+// 쓰기 권한은 수정과 삭제를 함께 포함한다(제품 정책: 쓰기 = 수정 + 삭제).
+export function canWriteMeta(
   role: NullableRole,
   uploaderId: string | undefined,
   userId: string | undefined,
@@ -17,12 +18,4 @@ export function canEditMeta(
   const isOwner = !!uploaderId && uploaderId === userId;
 
   return isEditor && isOwner;
-}
-
-export function canDelete(
-  role: NullableRole,
-  uploaderId: string | undefined,
-  userId: string | undefined,
-): boolean {
-  return canEditMeta(role, uploaderId, userId);
 }
