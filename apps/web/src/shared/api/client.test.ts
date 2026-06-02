@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { authTokenStore } from './auth-token';
+import { albumIdStore } from './album-id';
 import { createHttpClient } from './client';
 
 const BASE = 'http://api.test';
@@ -31,6 +32,7 @@ function headerOf(init: RequestInit | undefined, name: string): string | null {
 describe('createHttpClient', () => {
   beforeEach(() => {
     authTokenStore.clear();
+    albumIdStore.clear();
   });
 
   afterEach(() => {
@@ -58,6 +60,42 @@ describe('createHttpClient', () => {
 
       const [, init] = fetchSpy.mock.calls[0];
       expect(headerOf(init, 'Authorization')).toBeNull();
+    });
+  });
+
+  describe('X-Album-Id 헤더', () => {
+    test('albumIdStore에 값이 있으면 X-Album-Id를 주입한다', async () => {
+      albumIdStore.set('album-1');
+      const fetchSpy = stubFetch(async () => jsonResponse({ ok: true }));
+
+      const http = createHttpClient({ baseURL: BASE });
+      await http.get('/v1/media');
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(headerOf(init, 'X-Album-Id')).toBe('album-1');
+    });
+
+    test('albumIdStore가 비어 있으면 헤더를 주입하지 않는다', async () => {
+      const fetchSpy = stubFetch(async () => jsonResponse({ ok: true }));
+
+      const http = createHttpClient({ baseURL: BASE });
+      await http.get('/v1/albums');
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(headerOf(init, 'X-Album-Id')).toBeNull();
+    });
+
+    test('Authorization와 X-Album-Id 모두 동시에 주입된다', async () => {
+      authTokenStore.set('access-1');
+      albumIdStore.set('album-1');
+      const fetchSpy = stubFetch(async () => jsonResponse({ ok: true }));
+
+      const http = createHttpClient({ baseURL: BASE });
+      await http.get('/v1/media');
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(headerOf(init, 'Authorization')).toBe('Bearer access-1');
+      expect(headerOf(init, 'X-Album-Id')).toBe('album-1');
     });
   });
 

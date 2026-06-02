@@ -1,4 +1,5 @@
-export { useMe, authKeys } from './api/queries';
+export { authKeys } from './api/keys';
+export { useMe } from './api/queries';
 export { useLogoutMutation } from './api/mutations';
 
 export { canUpload, canWriteMeta } from './lib/access';

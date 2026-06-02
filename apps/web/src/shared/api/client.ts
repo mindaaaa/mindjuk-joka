@@ -2,7 +2,11 @@ import { env } from '@/shared/config/env';
 import { ApiError, reportApiError, toApiError } from './error';
 import { createRefresher } from './refresh';
 import { authTokenStore } from './auth-token';
-import { type ApiRequest, attachAuthHeader } from './interceptors';
+import {
+  type ApiRequest,
+  attachAuthHeader,
+  attachAlbumHeader,
+} from './interceptors';
 
 const DEFAULT_BASE_URL = env.VITE_API_BASE_URL;
 const DEFAULT_REFRESH_PATH = env.VITE_AUTH_REFRESH_PATH;
@@ -116,10 +120,12 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
     options.onUnauthorized ?? (() => authTokenStore.clear());
 
   function buildRequest(path: string, init: HttpInit): ApiRequest {
-    return attachAuthHeader({
-      url: `${baseURL}${path}`,
-      options: normalize(init),
-    });
+    return attachAlbumHeader(
+      attachAuthHeader({
+        url: `${baseURL}${path}`,
+        options: normalize(init),
+      }),
+    );
   }
 
   async function handleUnauthorized<T>(

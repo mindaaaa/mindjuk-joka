@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
+import { useAlbums, useAlbumStore } from '@/entities/album';
 import { useAuthStore, useMe, canUpload } from '@/features/auth';
 import { authTokenStore } from '@/shared/api/auth-token';
 import { readCookie } from '@/shared/api/cookie';
@@ -31,6 +32,10 @@ export function AuthGuard() {
   const status = useAuthStore((s) => s.status);
   const user = useAuthStore((s) => s.user);
 
+  const setAlbum = useAlbumStore((s) => s.setCurrent);
+  const clearAlbum = useAlbumStore((s) => s.clear);
+  const currentAlbum = useAlbumStore((s) => s.current);
+
   useEffect(() => {
     bootstrapAccessToken();
   }, []);
@@ -42,8 +47,22 @@ export function AuthGuard() {
       setUser(meQuery.data);
     } else if (meQuery.isError) {
       setUser(null);
+      clearAlbum();
     }
-  }, [meQuery.isSuccess, meQuery.isError, meQuery.data, setUser]);
+  }, [meQuery.isSuccess, meQuery.isError, meQuery.data, setUser, clearAlbum]);
+
+  const albumsQuery = useAlbums({ enabled: meQuery.isSuccess });
+
+  useEffect(() => {
+    if (!albumsQuery.isSuccess) return;
+
+    const first = albumsQuery.data[0] ?? null;
+    const shouldUpdate = first !== null && first.id !== currentAlbum?.id;
+
+    if (shouldUpdate) {
+      setAlbum(first);
+    }
+  }, [albumsQuery.isSuccess, albumsQuery.data, currentAlbum?.id, setAlbum]);
 
   const isPublic = PUBLIC_PATHS.has(location.pathname);
 
