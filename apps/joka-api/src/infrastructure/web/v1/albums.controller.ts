@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@joka/core/src/exception';
+import { ForbiddenException } from '@joka/core/src/exception';
 import { Hono } from 'hono';
 
 import Config from '../../../application/config';
@@ -11,9 +11,7 @@ albums.get('/', async (c) => {
 
   const user = await Config.authService.findUserOrNull(jwtPayload.sub);
   if (!user) {
-    throw new UnauthorizedException('INVALID_TOKEN', [
-      '유효하지 않은 인증 토큰입니다.',
-    ]);
+    throw new ForbiddenException('FORBIDDEN', ['존재하지 않는 사용자입니다.']);
   }
 
   const sizeParam = c.req.query('size');
@@ -38,6 +36,7 @@ albums.get('/', async (c) => {
       items: result.items.map((actor) => ({
         id: actor.album.cid,
         name: actor.album.name,
+        role: actor.role,
       })),
       pagination: result.pagination,
     },

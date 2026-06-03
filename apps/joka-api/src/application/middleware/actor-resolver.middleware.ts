@@ -8,26 +8,13 @@ import { createMiddleware } from 'hono/factory';
 import Config from '../config';
 import type { CloudflareEnv } from '../model';
 
-type ActorResolverOptions = {
-  required: boolean;
-};
-
-const tryToThrowByOptions = (shouldThrow: boolean) => {
-  if (shouldThrow) {
-    throw new InvalidArgumentException('REQUIRED_HEADER_OMITTED', [
-      'X-Album-Id 헤더가 누락되었습니다.',
-    ]);
-  }
-};
-
-const actorResolverMiddleware = (options: ActorResolverOptions) =>
-  createMiddleware<CloudflareEnv>(async (c, next) => {
+const actorResolverMiddleware = createMiddleware<CloudflareEnv>(
+  async (c, next) => {
     const albumCid = c.req.header('X-Album-Id');
     if (!albumCid) {
-      tryToThrowByOptions(options.required);
-
-      await next();
-      return;
+      throw new InvalidArgumentException('REQUIRED_HEADER_OMITTED', [
+        'X-Album-Id 헤더가 누락되었습니다.',
+      ]);
     }
 
     const jwtPayload = c.get('jwtPayload');
@@ -56,6 +43,7 @@ const actorResolverMiddleware = (options: ActorResolverOptions) =>
     c.set('actor', actor);
 
     await next();
-  });
+  },
+);
 
 export default actorResolverMiddleware;
