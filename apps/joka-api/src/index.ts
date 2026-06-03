@@ -18,7 +18,8 @@ app.onError(errorHandler);
 app.use('*', hyperdrive);
 app.use('*', objectStorage);
 app.use('*', auth);
-app.use('*', actorResolver);
+app.use('/v1/media/*', actorResolver({ required: true }));
+app.use('/v1/me/*', actorResolver({ required: false }));
 
 app.route('/', authController);
 app.route('/', me);
