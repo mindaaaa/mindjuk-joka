@@ -354,6 +354,7 @@ export interface components {
       id: string;
       /** @description 이름 */
       name: string;
+      role: components['schemas']['Role'];
     };
   };
   responses: {
@@ -484,7 +485,6 @@ export interface components {
            * @description 이메일 주소
            */
           email: string;
-          role: components['schemas']['Role'];
         };
       };
     };

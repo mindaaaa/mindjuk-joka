@@ -109,6 +109,7 @@ export const zError = z.object({
 export const zAlbum = z.object({
   id: z.string(),
   name: z.string(),
+  role: zRole,
 });
 
 /**
@@ -384,5 +385,4 @@ export const zGetMyInfoResponse = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   email: z.email().min(1),
-  role: zRole,
 });
