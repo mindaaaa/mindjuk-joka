@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "build-storybook": "VITE_API_BASE_URL=http://localhost storybook build",
     "chromatic": "chromatic"
   },
   "dependencies": {
