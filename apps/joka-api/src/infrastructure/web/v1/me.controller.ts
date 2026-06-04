@@ -6,13 +6,11 @@ const me = new Hono<CloudflareEnv>().basePath('/v1/me');
 
 me.get('/', (c) => {
   const payload = c.get('jwtPayload');
-  const actor = c.get('actor');
 
   return c.json({
     id: payload.sub,
     name: payload.name,
     email: payload.email,
-    role: actor?.role ?? null,
   });
 });
 

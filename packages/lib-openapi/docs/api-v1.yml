@@ -601,13 +601,10 @@ components:
                 description: 이메일 주소
                 format: email
                 minLength: 1
-              role:
-                $ref: '#/components/schemas/Role'
             required:
               - id
               - name
               - email
-              - role
     Error:
       description: 요청 처리 실패 응답
       content:
@@ -859,6 +856,9 @@ components:
         name:
           type: string
           description: 이름
+        role:
+          $ref: '#/components/schemas/Role'
       required:
         - id
         - name
+        - role

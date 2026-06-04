@@ -197,6 +197,7 @@ export type Album = {
    * 이름
    */
   name: string;
+  role: Role;
 };
 
 /**
@@ -917,7 +918,6 @@ export type GetMyInfoResponses = {
      * 이메일 주소
      */
     email: string;
-    role: Role;
   };
 };
 

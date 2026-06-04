@@ -39,7 +39,7 @@ app.use(
 app.use('*', hyperdrive);
 app.use('*', objectStorage);
 app.use('*', auth);
-app.use('*', actorResolver);
+app.use('/v1/media/*', actorResolver);
 
 app.route('/', authController);
 app.route('/', me);
