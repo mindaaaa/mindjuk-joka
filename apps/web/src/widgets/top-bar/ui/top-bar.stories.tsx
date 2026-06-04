@@ -16,7 +16,9 @@ const meta = {
     // 스토리별 parameters.route로 현재 경로를 지정 → "선택"의 경로 게이팅 검증
     (Story, ctx) => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={[(ctx.parameters.route as string) ?? '/']}>
+        <MemoryRouter
+          initialEntries={[(ctx.parameters.route as string) ?? '/']}
+        >
           <Story />
         </MemoryRouter>
       </QueryClientProvider>
