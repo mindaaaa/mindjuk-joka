@@ -1,0 +1,5 @@
+{
+  // 에디터 TS를 워크스페이스 버전으로 고정 (버전 불일치 경고 방지)
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true
+}
