@@ -26,22 +26,31 @@ export function formatBytes(size: number | undefined): string {
 }
 
 /**
- * ISO 8601 문자열을 한국어(ko-KR) 날짜·시각 표기로 변환한다.
+ * ISO 8601 문자열을 날짜·시각 표기로 변환한다.
  *
- * - 날짜는 medium(예: `2026. 1. 1.`), 시각은 short(예: `오후 3:00`) 스타일을 쓴다.
+ * - 표기 언어·형식은 `locale`을 따른다. 생략하면 실행 환경(브라우저)의 기본 로케일을 쓴다.
+ * - 타임존은 지정하지 않으므로 실행 환경(브라우저)의 타임존을 따른다.
+ *   (서버가 UTC로 내려준 시각이 보는 사람의 현지 시각으로 표시된다)
+ * - 날짜는 medium, 시각은 short 스타일을 쓴다.
  * - 파싱할 수 없는 입력이면 원본 문자열을 그대로 반환한다.
  *
  * @example
- * formatDateTime('2026-01-01T15:00:00.000Z'); // '2026. 1. 1. 오후 3:00' (KST 기준)
- * formatDateTime('not-a-date');               // 'not-a-date'
+ * // 브라우저가 ko-KR / Asia/Seoul 인 경우 (06:00Z == 15:00 KST)
+ * formatDateTime('2026-01-01T06:00:00.000Z');          // '2026. 1. 1. 오후 3:00'
+ * // 로케일을 명시하면 그 언어로 (타임존은 여전히 브라우저 기준)
+ * formatDateTime('2026-01-01T06:00:00.000Z', 'en-US'); // 'Jan 1, 2026, 3:00 PM'
+ * formatDateTime('not-a-date');                        // 'not-a-date'
  */
-export function formatDateTime(iso: string): string {
+export function formatDateTime(
+  iso: string,
+  locale?: string, // 생략 시 브라우저 기본 로케일
+): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) {
     return iso;
   }
 
-  return new Intl.DateTimeFormat('ko-KR', {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
