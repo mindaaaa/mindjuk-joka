@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { useAlbumStore } from '@/entities/album';
@@ -9,7 +9,7 @@ import {
   usePhotosInfinite,
   type Photo,
 } from '@/entities/photo';
-import { useAuthRole } from '@/features/auth';
+import { canUpload, useAuthErrorRedirect, useAuthRole } from '@/features/auth';
 import {
   DownloadButton,
   downloadFilename,
@@ -26,9 +26,9 @@ import { SortSheet, usePhotoSortStore } from '@/features/photo-sort';
 
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
+import { errorFallbackMessage } from '@/shared/lib/error-fallback';
 import { cn } from '@/shared/lib/utils/cn';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
-import { Button } from '@/shared/ui/button';
+import { ErrorState } from '@/shared/ui/error-state';
 import { toast } from '@/shared/ui/toast';
 
 import { PhotoGrid } from '@/widgets/photo-grid';
@@ -127,13 +127,23 @@ export function PhotoListPage() {
         <SortSheet />
       </div>
 
-      <ErrorBoundary fallback={<GridErrorFallback />}>
+      <ErrorBoundary fallback={(error) => <GridErrorFallback error={error} />}>
         <PhotoGrid
           photos={photos}
           isLoading={!albumId || query.isLoading}
           isFetchingNextPage={query.isFetchingNextPage}
           hasNextPage={!!query.hasNextPage}
           onLoadMore={() => query.fetchNextPage()}
+          emptyAction={
+            canUpload(role) ? (
+              <Link
+                to="/upload"
+                className="text-[14px] text-foreground opacity-30 transition-opacity hover:opacity-100"
+              >
+                사진 올리기
+              </Link>
+            ) : undefined
+          }
           renderCard={(photo) => (
             <GridCard
               key={photo.id}
@@ -186,17 +196,17 @@ function FilterTabs() {
   );
 }
 
-function GridErrorFallback() {
+// 401/403이면 로그인으로 리다이렉트, 그 외엔 에러 풀백 표시
+function GridErrorFallback({ error }: { error: unknown }) {
+  const redirecting = useAuthErrorRedirect(error);
+  if (redirecting) return null;
+
   return (
-    <Alert variant="destructive" className="mx-auto max-w-md text-center">
-      <AlertTitle>이 영역을 불러오지 못했어요</AlertTitle>
-      <AlertDescription className="space-y-3">
-        <p>사진 목록을 표시하는 중 문제가 발생했어요.</p>
-        <Button size="sm" onClick={() => window.location.reload()}>
-          다시 시도
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <ErrorState
+      title="사진을 불러오지 못했어요"
+      description={errorFallbackMessage(error)}
+      retry={{ label: '다시 시도', onClick: () => window.location.reload() }}
+    />
   );
 }
 

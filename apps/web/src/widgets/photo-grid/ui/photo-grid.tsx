@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
+import { ImageIcon } from 'lucide-react';
 
 import type { Photo } from '@/entities/photo';
 import { useIntersection } from '@/shared/lib/hooks/use-intersection';
 import { cn } from '@/shared/lib/utils/cn';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 interface PhotoGridProps {
@@ -13,6 +13,7 @@ interface PhotoGridProps {
   hasNextPage: boolean;
   onLoadMore: () => void;
   renderCard: (photo: Photo) => ReactNode;
+  emptyAction?: ReactNode;
 }
 
 // CSS 멀티컬럼 메이슨리: 2열, 카드 높이는 사진 비율대로 제각각.
@@ -39,12 +40,19 @@ function GridSkeleton({ count = 12 }: { count?: number }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ action }: { action?: ReactNode }) {
   return (
-    <Alert className="mx-auto max-w-md text-center">
-      <AlertTitle>아직 사진이 없어요</AlertTitle>
-      <AlertDescription>사진을 업로드하면 이곳에 표시됩니다.</AlertDescription>
-    </Alert>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
+      <ImageIcon
+        className="size-16 text-foreground opacity-10"
+        strokeWidth={1.5}
+        aria-hidden
+      />
+      <p className="text-[15px] text-foreground opacity-40">
+        아직 올라온 사진이 없어요
+      </p>
+      {action}
+    </div>
   );
 }
 
@@ -55,13 +63,14 @@ export function PhotoGrid({
   hasNextPage,
   onLoadMore,
   renderCard,
+  emptyAction,
 }: PhotoGridProps) {
   const sentinelRef = useIntersection(onLoadMore, {
     enabled: hasNextPage && !isFetchingNextPage,
   });
 
   if (isLoading) return <GridSkeleton />;
-  if (photos.length === 0) return <EmptyState />;
+  if (photos.length === 0) return <EmptyState action={emptyAction} />;
 
   return (
     <div className="space-y-3">

@@ -1,26 +1,29 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
+import { errorFallbackMessage } from '@/shared/lib/error-fallback';
 import { log } from '@/shared/lib/logger';
+import { ErrorState } from '@/shared/ui/error-state';
 
 interface Props {
   children: ReactNode;
-  fallback?: ReactNode;
+  /** 정적 노드 또는 잡은 에러를 받아 렌더하는 함수형 풀백. */
+  fallback?: ReactNode | ((error: Error) => ReactNode);
 }
 
 interface State {
   hasError: boolean;
+  error: Error | null;
 }
 
 /**
- * 전역 ErrorBoundary.
- * 비동기 처리되지 않은 에러(Promise)도 추적하고 싶다면 추가
- * 렌더링 예외를 포착해 bug 계층으로 전송한다.
+ * 전역 ErrorBoundary
+ * - 렌더링 예외를 포착해 bug 계층으로 전송한다.
  */
 export class ErrorBoundary extends Component<Props, State> {
-  override state: State = { hasError: false };
+  override state: State = { hasError: false, error: null };
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
@@ -48,14 +51,22 @@ export class ErrorBoundary extends Component<Props, State> {
 
   override render(): ReactNode {
     if (this.state.hasError) {
+      const { fallback } = this.props;
+      const error = this.state.error ?? new Error('알 수 없는 렌더링 에러');
+
+      if (typeof fallback === 'function') return fallback(error);
+      if (fallback !== undefined) return fallback;
+
       return (
-        this.props.fallback ?? (
-          <div role="alert" style={{ padding: '20px', textAlign: 'center' }}>
-            <h2>오류가 발생했습니다.</h2>
-            <p>새로고침 후 다시 시도해 주세요.</p>
-            <button onClick={() => window.location.reload()}>새로고침</button>
-          </div>
-        )
+        <ErrorState
+          fill="screen"
+          title="페이지를 불러오지 못했어요"
+          description={errorFallbackMessage(error)}
+          retry={{
+            label: '다시 시도',
+            onClick: () => window.location.reload(),
+          }}
+        />
       );
     }
 
