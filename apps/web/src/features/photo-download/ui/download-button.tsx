@@ -56,8 +56,10 @@ export function DownloadButton({
       disabled={busy || !photo.downloadUrl}
       onClick={handleClick}
       aria-label="다운로드"
+      aria-busy={busy}
+      className={size === 'icon' ? 'rounded-full' : undefined}
     >
-      <Download className="size-4" />
+      <Download />
     </Button>
   );
 }

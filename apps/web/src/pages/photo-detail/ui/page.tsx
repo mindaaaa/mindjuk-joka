@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -13,24 +13,29 @@ import {
   type Photo,
 } from '@/entities/photo';
 
-import { canWriteMeta, useAuthRole, useAuthUser } from '@/features/auth';
+import {
+  canWriteMeta,
+  useAuthErrorRedirect,
+  useAuthRole,
+  useAuthUser,
+} from '@/features/auth';
 import { DownloadButton } from '@/features/photo-download';
 import { EditMetaForm } from '@/features/photo-edit-meta';
 import { usePhotoSortStore } from '@/features/photo-sort';
 
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
+import { errorFallbackMessage } from '@/shared/lib/error-fallback';
+import { cn } from '@/shared/lib/utils/cn';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui/dialog';
+import { ErrorState } from '@/shared/ui/error-state';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { toast } from '@/shared/ui/toast';
 
@@ -65,12 +70,11 @@ function usePrevNext(currentId: string) {
 
 export function PhotoDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const albumId = useAlbumStore((s) => s.current?.id);
   const user = useAuthUser();
 
-  const query = usePhotoDetail(id, { enabled: !!albumId });
+  const query = usePhotoDetail(id, { enabled: !!albumId && !!id });
   const photo = query.data;
   const { prevId, nextId } = usePrevNext(id);
 
@@ -81,56 +85,101 @@ export function PhotoDetailPage() {
   const canWrite = canWriteMeta(user?.role, photo.createdBy.id, user?.id);
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6 p-6">
-      <div className="flex items-center justify-between gap-2">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/photos')}>
-          <ArrowLeft className="size-4" />
-          목록
-        </Button>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!prevId}
-            onClick={() => prevId && navigate(`/photos/${prevId}`)}
-          >
-            <ChevronLeft className="size-4" />
-            이전
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!nextId}
-            onClick={() => nextId && navigate(`/photos/${nextId}`)}
-          >
-            다음
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+    <section className="mx-auto max-w-2xl space-y-6 p-6">
+      <DetailHeader photo={photo} canWrite={canWrite} />
 
-      <div className="flex justify-center overflow-hidden rounded-lg bg-muted">
+      {/* 이미지 뷰어 스테이지: 다크 배경 + object-contain + 좌우 네비 화살표 */}
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-black">
         {photo.imageUrl && (
           <img
             src={photo.imageUrl}
             alt={photo.description}
-            className="max-h-[70vh] w-auto object-contain"
+            className="size-full object-contain"
           />
         )}
+
+        <NavArrow direction="prev" targetId={prevId} />
+        <NavArrow direction="next" targetId={nextId} />
       </div>
 
-      <ErrorBoundary fallback={<MetaErrorFallback />}>
+      <ErrorBoundary fallback={(error) => <MetaErrorFallback error={error} />}>
         <div className="space-y-4">
           <EditMetaForm photo={photo} canEdit={canWrite} />
           <PhotoMeta photo={photo} />
         </div>
       </ErrorBoundary>
+    </section>
+  );
+}
 
-      <div className="flex items-center justify-between">
-        <DownloadButton photo={photo} variant="secondary" />
+function DetailHeader({
+  photo,
+  canWrite,
+}: {
+  photo: Photo;
+  canWrite: boolean;
+}) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="flex items-center justify-between px-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        aria-label="닫기"
+        onClick={() => navigate('/photos')}
+      >
+        <X className="size-6" />
+      </Button>
+      <div className="flex items-center gap-1">
+        {/* TODO: 즐겨찾기 토글 API + 뮤테이션 연결 (현재 시각 스텁) */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          aria-label="즐겨찾기"
+          aria-pressed={photo.isFavorite}
+        >
+          <Heart
+            className={photo.isFavorite ? 'fill-primary text-primary' : ''}
+          />
+        </Button>
+        <DownloadButton photo={photo} variant="ghost" size="icon" />
         {canWrite && <DeletePhotoButton photo={photo} />}
       </div>
-    </section>
+    </div>
+  );
+}
+
+function NavArrow({
+  direction,
+  targetId,
+}: {
+  direction: 'prev' | 'next';
+  targetId: string | undefined;
+}) {
+  const navigate = useNavigate();
+  const isPrev = direction === 'prev';
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label={isPrev ? '이전' : '다음'}
+      disabled={!targetId}
+      onClick={() => targetId && navigate(`/photos/${targetId}`)}
+      className={cn(
+        'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/40 text-white hover:bg-black/60 hover:text-white',
+        isPrev ? 'left-2' : 'right-2',
+      )}
+    >
+      {isPrev ? (
+        <ChevronLeft className="size-6" />
+      ) : (
+        <ChevronRight className="size-6" />
+      )}
+    </Button>
   );
 }
 
@@ -164,19 +213,30 @@ function DeletePhotoButton({ photo }: { photo: Photo }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          <Trash2 className="size-4" />
-          삭제
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full text-destructive hover:text-destructive"
+          aria-label="삭제"
+        >
+          <Trash2 />
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>사진을 삭제할까요?</DialogTitle>
-          <DialogDescription>삭제한 사진은 되돌릴 수 없어요.</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
+      <DialogContent
+        showClose={false}
+        overlayClassName="bg-black/40"
+        className="max-w-70 gap-6 rounded-2xl p-6 sm:rounded-2xl"
+      >
+        <DialogTitle className="text-center text-base font-medium">
+          사진을 삭제할까요?
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          삭제한 사진은 되돌릴 수 없어요.
+        </DialogDescription>
+        <div className="flex gap-2">
           <Button
-            variant="ghost"
+            variant="secondary"
+            className="h-11 flex-1 rounded-[10px]"
             onClick={() => setOpen(false)}
             disabled={mutation.isPending}
           >
@@ -184,12 +244,13 @@ function DeletePhotoButton({ photo }: { photo: Photo }) {
           </Button>
           <Button
             variant="destructive"
+            className="h-11 flex-1 rounded-[10px]"
             onClick={handleDelete}
             disabled={mutation.isPending}
           >
             {mutation.isPending ? '삭제 중…' : '삭제'}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -197,24 +258,28 @@ function DeletePhotoButton({ photo }: { photo: Photo }) {
 
 function DetailSkeleton() {
   return (
-    <section className="mx-auto max-w-4xl space-y-6 p-6">
+    <section className="mx-auto max-w-2xl space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-20" />
-        <Skeleton className="h-8 w-40" />
+        <Skeleton className="size-9 rounded-full" />
+        <Skeleton className="h-9 w-28" />
       </div>
-      <Skeleton className="aspect-video w-full" />
+      <Skeleton className="aspect-square w-full rounded-2xl" />
       <Skeleton className="h-24 w-full" />
     </section>
   );
 }
 
-function MetaErrorFallback() {
+function MetaErrorFallback({ error }: { error: unknown }) {
+  const redirecting = useAuthErrorRedirect(error);
+  if (redirecting) {
+    return null;
+  }
+
   return (
-    <Alert variant="destructive">
-      <AlertTitle>이 영역을 불러오지 못했어요</AlertTitle>
-      <AlertDescription>
-        사진 정보를 표시하는 중 문제가 발생했어요.
-      </AlertDescription>
-    </Alert>
+    <ErrorState
+      title="사진 정보를 불러오지 못했어요"
+      description={errorFallbackMessage(error)}
+      retry={{ label: '다시 시도', onClick: () => window.location.reload() }}
+    />
   );
 }
