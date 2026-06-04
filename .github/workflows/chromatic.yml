@@ -5,18 +5,18 @@ on:
     branches:
       - main
     paths:
-      - 'apps/web/src/**'
+      - 'apps/web/src/**/ui/**'
+      - 'apps/web/src/**/*.stories.*'
+      - 'apps/web/src/app/styles/**'
       - 'apps/web/.storybook/**'
-      - 'apps/web/package.json'
-      - 'pnpm-lock.yaml'
       - '.github/workflows/chromatic.yml'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'apps/web/src/**'
+      - 'apps/web/src/**/ui/**'
+      - 'apps/web/src/**/*.stories.*'
+      - 'apps/web/src/app/styles/**'
       - 'apps/web/.storybook/**'
-      - 'apps/web/package.json'
-      - 'pnpm-lock.yaml'
       - '.github/workflows/chromatic.yml'
   workflow_dispatch:
 
