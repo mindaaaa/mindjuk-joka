@@ -1,7 +1,9 @@
+import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, test } from 'vitest';
 
 import type { MediaDto, MediaListResponse } from '../model/types';
-import { nextCursorOf, selectPhotos } from './queries';
+import { photoKeys } from './keys';
+import { findPhotoInListCache, nextCursorOf, selectPhotos } from './queries';
 
 function page(
   items: MediaDto[],
@@ -83,5 +85,53 @@ describe('selectPhotos', () => {
 
   test('data가 undefined면 빈 배열', () => {
     expect(selectPhotos(undefined)).toEqual([]);
+  });
+});
+
+describe('findPhotoInListCache', () => {
+  test('로드된 목록 캐시에서 id에 해당하는 Photo를 찾는다', () => {
+    const qc = new QueryClient();
+    qc.setQueryData(photoKeys.list({ order: 'desc' }), {
+      pages: [page([dto('a'), dto('b')])],
+    });
+
+    expect(findPhotoInListCache(qc, 'b')?.id).toBe('b');
+  });
+
+  test('정렬이 다른 여러 list 캐시를 순회해 찾는다', () => {
+    const qc = new QueryClient();
+    qc.setQueryData(photoKeys.list({ order: 'desc' }), {
+      pages: [page([dto('a')])],
+    });
+    qc.setQueryData(photoKeys.list({ order: 'asc' }), {
+      pages: [page([dto('b')])],
+    });
+
+    expect(findPhotoInListCache(qc, 'b')?.id).toBe('b');
+  });
+
+  test('data가 비어있는 캐시 항목이 섞여 있어도 안전하게 넘어간다', () => {
+    const qc = new QueryClient();
+    qc.setQueryData(photoKeys.list({ order: 'desc' }), undefined);
+    qc.setQueryData(photoKeys.list({ order: 'asc' }), {
+      pages: [page([dto('b')])],
+    });
+
+    expect(findPhotoInListCache(qc, 'b')?.id).toBe('b');
+  });
+
+  test('캐시에 id가 없으면 undefined(직접 진입 → normal fetch)', () => {
+    const qc = new QueryClient();
+    qc.setQueryData(photoKeys.list({ order: 'desc' }), {
+      pages: [page([dto('a')])],
+    });
+
+    expect(findPhotoInListCache(qc, 'zzz')).toBeUndefined();
+  });
+
+  test('list 캐시가 하나도 없으면 undefined(루프를 돌지 않음)', () => {
+    const qc = new QueryClient();
+
+    expect(findPhotoInListCache(qc, 'a')).toBeUndefined();
   });
 });
