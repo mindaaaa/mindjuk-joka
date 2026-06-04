@@ -11,21 +11,17 @@ export function buildQuery(params: Record<string, QueryValue>): string {
   const searchParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
-    if (value === undefined) continue;
+    if (value === undefined || value === '') continue;
 
     if (Array.isArray(value)) {
-      for (const item of value) {
-        if (item === '') continue;
-        searchParams.append(key, String(item));
-      }
-
-      continue;
+      value
+        .filter((item) => item !== '')
+        .forEach((item) => searchParams.append(key, String(item)));
+    } else {
+      searchParams.append(key, String(value));
     }
-
-    if (value === '') continue;
-    searchParams.set(key, String(value));
   }
 
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
 }
