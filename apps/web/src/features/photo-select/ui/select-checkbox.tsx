@@ -24,10 +24,10 @@ export function SelectCheckbox({ id }: SelectCheckboxProps) {
         toggle(id);
       }}
       className={cn(
-        'flex size-6 items-center justify-center rounded-md border-2 bg-background/80 shadow-sm transition',
+        'flex size-6 items-center justify-center rounded-full border shadow-sm transition',
         selected
           ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-muted-foreground/50',
+          : 'border-white/40 bg-white/60',
       )}
     >
       {selected && <Check className="size-4" />}

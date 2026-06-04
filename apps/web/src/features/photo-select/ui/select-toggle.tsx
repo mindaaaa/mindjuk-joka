@@ -1,6 +1,4 @@
-import { CheckSquare, X } from 'lucide-react';
-
-import { Button } from '@/shared/ui/button';
+import { cn } from '@/shared/lib/utils/cn';
 
 import { useSelectEnabled } from '../model/selectors';
 import { usePhotoSelectStore } from '../model/store';
@@ -10,21 +8,17 @@ export function SelectToggle() {
   const toggleMode = usePhotoSelectStore((s) => s.toggleMode);
 
   return (
-    <Button
+    <button
       type="button"
-      size="sm"
-      variant={enabled ? 'secondary' : 'outline'}
       onClick={toggleMode}
-    >
-      {enabled ? (
-        <>
-          <X className="mr-1 size-4" /> 선택 해제
-        </>
-      ) : (
-        <>
-          <CheckSquare className="mr-1 size-4" /> 선택
-        </>
+      className={cn(
+        'text-[13px] transition-colors',
+        enabled
+          ? 'font-medium text-primary'
+          : 'text-muted-foreground hover:text-foreground',
       )}
-    </Button>
+    >
+      {enabled ? '해제' : '선택'}
+    </button>
   );
 }

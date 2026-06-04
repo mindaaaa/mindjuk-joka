@@ -17,7 +17,6 @@ import {
 } from '@/features/photo-download';
 import {
   SelectCheckbox,
-  SelectToggle,
   useIsSelected,
   usePhotoSelectStore,
   useSelectEnabled,
@@ -27,6 +26,7 @@ import { SortSheet, usePhotoSortStore } from '@/features/photo-sort';
 
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
+import { cn } from '@/shared/lib/utils/cn';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/toast';
@@ -120,14 +120,11 @@ export function PhotoListPage() {
 
   return (
     <section
-      className={`mx-auto max-w-5xl space-y-4 p-6 ${enabled ? 'pb-24' : ''}`}
+      className={`mx-auto max-w-5xl space-y-4 px-4 pt-4 ${enabled ? 'pb-24' : ''}`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">사진 목록</h2>
-        <div className="flex items-center gap-2">
-          <SortSheet />
-          <SelectToggle />
-        </div>
+      <div className="flex items-center justify-between gap-3 px-2">
+        <FilterTabs />
+        <SortSheet />
       </div>
 
       <ErrorBoundary fallback={<GridErrorFallback />}>
@@ -152,6 +149,40 @@ export function PhotoListPage() {
         isDownloading={downloading}
       />
     </section>
+  );
+}
+
+const TABS = [
+  { key: 'all', label: '전체', enabled: true },
+  { key: 'recent', label: '최근', enabled: false },
+  { key: 'favorite', label: '즐겨찾기', enabled: false },
+] as const;
+
+// TODO: 최근/즐겨찾기 필터 API 연결 (연결되면 active를 상태로 변경)
+function FilterTabs() {
+  const active = 'all';
+
+  return (
+    <nav className="flex items-center gap-8" aria-label="사진 필터">
+      {TABS.map((tab) => {
+        const isActive = tab.key === active;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            disabled={!tab.enabled}
+            aria-current={isActive ? 'page' : undefined}
+            className={cn(
+              'text-[22px] tracking-tight',
+              isActive ? 'text-primary' : 'text-foreground',
+              !tab.enabled && 'opacity-25',
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 

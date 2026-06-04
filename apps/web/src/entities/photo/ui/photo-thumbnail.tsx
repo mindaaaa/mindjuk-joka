@@ -14,7 +14,9 @@ export function PhotoThumbnail({ src, alt, className }: PhotoThumbnailProps) {
   return (
     <div
       className={cn(
-        'relative aspect-square overflow-hidden rounded-md bg-muted',
+        'relative overflow-hidden rounded-2xl bg-black/5 dark:bg-white/5',
+        // 비율 알기 전 정사각형으로 자리 확보 → 로드 시 실제 비율로 (레이아웃 출렁임 방지, 메이슨리)
+        !loaded && 'aspect-square',
         className,
       )}
     >
@@ -26,7 +28,7 @@ export function PhotoThumbnail({ src, alt, className }: PhotoThumbnailProps) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           className={cn(
-            'h-full w-full object-cover transition-opacity duration-300',
+            'block h-auto w-full transition-opacity duration-300',
             loaded ? 'opacity-100' : 'opacity-0',
           )}
         />
