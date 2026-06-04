@@ -18,12 +18,10 @@ export function nextCursorOf(page: MediaListResponse): string | undefined {
 export function selectPhotos(
   data: { pages: MediaListResponse[] } | undefined,
 ): Photo[] {
-  return (
-    data?.pages
-      .flatMap((page) => page.items)
-      .filter((dto) => dto.content != null)
-      .map(toPhoto) ?? []
-  );
+  return (data?.pages ?? [])
+    .flatMap((page) => page.items)
+    .filter((dto) => dto.content != null)
+    .map(toPhoto);
 }
 
 async function fetchPhotoPage(
