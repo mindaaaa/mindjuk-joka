@@ -34,10 +34,10 @@ export const TogglesMode: Story = {
     await userEvent.click(canvas.getByRole('button', { name: '선택' }));
     await expect(usePhotoSelectStore.getState().enabled).toBe(true);
     await expect(
-      canvas.getByRole('button', { name: '완료' }),
+      canvas.getByRole('button', { name: '해제' }),
     ).toBeInTheDocument();
 
-    await userEvent.click(canvas.getByRole('button', { name: '완료' }));
+    await userEvent.click(canvas.getByRole('button', { name: '해제' }));
     await expect(usePhotoSelectStore.getState().enabled).toBe(false);
   },
 };
