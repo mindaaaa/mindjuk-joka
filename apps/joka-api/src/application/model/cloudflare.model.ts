@@ -16,6 +16,7 @@ export interface CloudflareEnv {
     KAKAO_REDIRECT_URI: string;
     JWT_SECRET: string;
     AUTH_SUCCESS_REDIRECT?: string;
+    ALLOWED_ORIGINS?: string;
   };
   Variables: {
     actor: Actor;

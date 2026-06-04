@@ -16,7 +16,7 @@ export class DraftUser {
     const email = Email.from(params.email);
     const draft = new DraftUser(params.name, email, params.provider);
 
-    DraftUser.Schema.parse(draft);
+    DraftUser.Schema.parse(draft.data);
 
     return draft;
   }
