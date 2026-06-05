@@ -1,4 +1,9 @@
-export type UploadStatus = 'pending' | 'uploading' | 'success' | 'error';
+export type UploadStatus =
+  | 'pending'
+  | 'uploading'
+  | 'success'
+  | 'error'
+  | 'canceled';
 export type UploadStep = 'create' | 'urls' | 'put' | 'contents' | 'confirm';
 
 export interface UploadQueueItem {

@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
 
 import {
   UploadDropzone,
@@ -11,18 +8,30 @@ import {
   useUploadQueueStore,
   useUploadRunner,
 } from '@/features/photo-upload';
-
 import { PhotoListPage } from '@/pages/photo-list'; // TODO: 목록 콘텐츠 widget 추출/라우터 오버레이
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 export function UploadPage() {
   const items = useUploadQueueStore((s) => s.items);
   const reset = useUploadQueueStore((s) => s.reset);
   const updateDescription = useUploadQueueStore((s) => s.updateDescription);
 
-  const { cancel } = useUploadRunner();
+  const { cancel, cancelAll } = useUploadRunner();
 
   const navigate = useNavigate();
   const hadItemsRef = useRef(false);
+
+  // 딤·ESC 닫기 (업로드 중엔 무시, 중단은 "취소" 버튼으로)
+  const close = useCallback(() => {
+    const flying = useUploadQueueStore
+      .getState()
+      .items.some((i) => i.status === 'pending' || i.status === 'uploading');
+    if (flying) return;
+
+    reset();
+    navigate('/photos');
+  }, [reset, navigate]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedItem = items.find((i) => i.id === selectedId) ?? items[0];
@@ -36,6 +45,8 @@ export function UploadPage() {
     );
     if (inFlight) return;
 
+    if (items.some((item) => item.status === 'canceled')) return;
+
     const successCount = items.filter(
       (item) => item.status === 'success',
     ).length;
@@ -47,6 +58,14 @@ export function UploadPage() {
     navigate('/photos');
   }, [items, navigate, reset]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [close]);
+
   const hasItems = items.length > 0;
 
   return (
@@ -55,8 +74,13 @@ export function UploadPage() {
       <div aria-hidden className="pointer-events-none">
         <PhotoListPage />
       </div>
-      {/* 딤 */}
-      <div aria-hidden className="fixed inset-0 z-20 bg-black/20" />
+      {/* 딤 (클릭 시 닫기) */}
+      <button
+        type="button"
+        aria-label="닫기"
+        className="fixed inset-0 z-20 bg-black/20"
+        onClick={close}
+      />
 
       {/* 바텀시트 */}
       <section className="fixed inset-x-0 bottom-0 z-30">
@@ -114,7 +138,7 @@ export function UploadPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={reset}
+                  onClick={cancelAll}
                   className="h-12 w-full rounded-[14px] text-base font-medium"
                 >
                   취소

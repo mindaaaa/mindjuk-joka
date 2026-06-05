@@ -122,5 +122,17 @@ export function useUploadRunner() {
     useUploadQueueStore.getState().remove(id);
   }, []);
 
-  return { cancel };
+  const cancelAll = useCallback(() => {
+    abortersRef.current.forEach((controller) => controller.abort());
+    abortersRef.current.clear();
+
+    const store = useUploadQueueStore.getState();
+    store.items.forEach((item) => {
+      if (item.status === 'pending' || item.status === 'uploading') {
+        store.setStatus(item.id, { status: 'canceled', step: undefined });
+      }
+    });
+  }, []);
+
+  return { cancel, cancelAll };
 }
