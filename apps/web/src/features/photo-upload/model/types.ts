@@ -16,4 +16,5 @@ export interface UploadQueueItem {
   mediaId?: string | undefined;
   errorMessage?: string | undefined;
   retryCount: number;
+  syncedDescription?: string | undefined;
 }

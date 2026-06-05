@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
+import { useUpdatePhotoMetaMutation } from '@/entities/photo';
 import {
   UploadDropzone,
   UploadItem,
@@ -16,11 +17,12 @@ export function UploadPage() {
   const items = useUploadQueueStore((s) => s.items);
   const reset = useUploadQueueStore((s) => s.reset);
   const updateDescription = useUploadQueueStore((s) => s.updateDescription);
+  const setStatus = useUploadQueueStore((s) => s.setStatus);
 
   const { cancel, cancelAll } = useUploadRunner();
+  const updateMeta = useUpdatePhotoMetaMutation();
 
   const navigate = useNavigate();
-  const hadItemsRef = useRef(false);
 
   // 딤·ESC 닫기 (업로드 중엔 무시, 중단은 "취소" 버튼으로)
   const close = useCallback(() => {
@@ -36,27 +38,31 @@ export function UploadPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedItem = items.find((i) => i.id === selectedId) ?? items[0];
 
-  useEffect(() => {
-    if (items.length === 0) return;
-    hadItemsRef.current = true;
+  const inFlight = items.some(
+    (i) => i.status === 'pending' || i.status === 'uploading',
+  );
 
-    const inFlight = items.some(
-      (item) => item.status === 'pending' || item.status === 'uploading',
+  const canEditDesc = selectedItem?.status === 'success';
+
+  const selectedDesc = (selectedItem?.description ?? '').trim();
+  const selectedSynced = (selectedItem?.syncedDescription ?? '').trim();
+  const canSaveDesc =
+    !!selectedItem?.mediaId &&
+    selectedDesc.length > 0 &&
+    selectedDesc !== selectedSynced;
+  const descSaved =
+    !!selectedItem?.mediaId &&
+    selectedDesc.length > 0 &&
+    selectedDesc === selectedSynced;
+
+  const handleSaveDescription = () => {
+    if (!selectedItem?.mediaId || !canSaveDesc) return;
+    const id = selectedItem.id;
+    updateMeta.mutate(
+      { id: selectedItem.mediaId, description: selectedDesc },
+      { onSuccess: () => setStatus(id, { syncedDescription: selectedDesc }) },
     );
-    if (inFlight) return;
-
-    if (items.some((item) => item.status === 'canceled')) return;
-
-    const successCount = items.filter(
-      (item) => item.status === 'success',
-    ).length;
-    if (!hadItemsRef.current || successCount === 0) return;
-
-    toast.success(`${successCount}개 업로드 완료`);
-    hadItemsRef.current = false;
-    reset();
-    navigate('/photos');
-  }, [items, navigate, reset]);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -115,33 +121,53 @@ export function UploadPage() {
                 ))}
               </div>
 
-              {/* 설명 */}
-              <div className="px-6">
+              {/* 설명 + 저장 (선택사항) */}
+              <div className="flex items-center gap-2 px-6">
                 <Input
                   value={selectedItem?.description ?? ''}
                   onChange={(e) =>
                     selectedItem &&
                     updateDescription(selectedItem.id, e.target.value)
                   }
+                  disabled={!canEditDesc}
                   placeholder={
-                    selectedItem
-                      ? `${selectedItem.file.name}에 남기실 말이 있으신가요?`
-                      : ''
+                    !selectedItem
+                      ? ''
+                      : canEditDesc
+                        ? `${selectedItem.file.name}에 남기실 말이 있으신가요?`
+                        : '업로드되면 설명을 남길 수 있어요'
                   }
                   maxLength={120}
-                  className="h-[45px] rounded-[14px] border-transparent bg-muted text-muted-foreground placeholder:text-muted-foreground/60"
+                  className="h-[45px] flex-1 rounded-[14px] border-transparent bg-muted text-muted-foreground placeholder:text-muted-foreground/60"
                 />
+                <Button
+                  type="button"
+                  onClick={handleSaveDescription}
+                  disabled={!canSaveDesc || updateMeta.isPending}
+                  className="h-[45px] shrink-0 gap-1 rounded-[14px] px-4"
+                >
+                  {descSaved ? (
+                    <>
+                      <Check className="size-4" />
+                      저장됨
+                    </>
+                  ) : updateMeta.isPending ? (
+                    '저장 중…'
+                  ) : (
+                    '저장'
+                  )}
+                </Button>
               </div>
 
-              {/* 액션 */}
+              {/* 액션: 업로드 중이면 취소(중단), 끝나면 완료(닫기) */}
               <div className="px-6 pb-6 pt-6">
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={cancelAll}
+                  onClick={inFlight ? cancelAll : close}
                   className="h-12 w-full rounded-[14px] text-base font-medium"
                 >
-                  취소
+                  {inFlight ? '취소' : '완료'}
                 </Button>
               </div>
             </>

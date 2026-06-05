@@ -21,10 +21,14 @@ function describeError(err: unknown): string {
   return '업로드에 실패했어요.';
 }
 
-function handleSuccess(id: string, mediaId: string): void {
+function handleSuccess(
+  id: string,
+  mediaId: string,
+  syncedDescription: string,
+): void {
   const store = useUploadQueueStore.getState();
 
-  store.setStatus(id, { status: 'success', mediaId });
+  store.setStatus(id, { status: 'success', mediaId, syncedDescription });
   store.setProgress(id, 100);
 }
 
@@ -59,6 +63,8 @@ export function useUploadRunner() {
       const controller = new AbortController();
       abortersRef.current.set(item.id, controller);
 
+      const sentDescription = item.description.trim() || item.file.name;
+
       try {
         const mediaId = await uploadSinglePhoto(item, {
           signal: controller.signal,
@@ -68,7 +74,7 @@ export function useUploadRunner() {
             useUploadQueueStore.getState().setProgress(item.id, pct),
         });
 
-        handleSuccess(item.id, mediaId);
+        handleSuccess(item.id, mediaId, sentDescription);
         return true;
       } catch (err) {
         handleFailure(item.id, err);

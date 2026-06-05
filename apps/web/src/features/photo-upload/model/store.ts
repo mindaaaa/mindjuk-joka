@@ -1,7 +1,6 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 
-import { stripExtension } from '../lib/filename';
 import type { UploadQueueItem } from './types';
 
 interface StatusPatch {
@@ -9,6 +8,7 @@ interface StatusPatch {
   step?: UploadQueueItem['step'] | undefined;
   errorMessage?: string | undefined;
   mediaId?: string | undefined;
+  syncedDescription?: string | undefined;
 }
 
 interface UploadQueueState {
@@ -31,7 +31,7 @@ function makeItem(file: File): UploadQueueItem {
   return {
     id: nanoid(),
     file,
-    description: stripExtension(file.name),
+    description: '',
     status: 'pending',
     progress: 0,
     retryCount: 0,

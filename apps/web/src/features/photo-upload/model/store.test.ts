@@ -11,13 +11,15 @@ describe('useUploadQueueStore', () => {
     useUploadQueueStore.getState().reset();
   });
 
-  test('enqueue 는 파일명을 description 기본값으로 채운다', () => {
-    useUploadQueueStore.getState().enqueue([makeFile('a.jpg'), makeFile('b.png')]);
+  test('enqueue 는 description 을 빈 값으로 둔다(설명은 선택사항)', () => {
+    useUploadQueueStore
+      .getState()
+      .enqueue([makeFile('a.jpg'), makeFile('b.png')]);
     const items = useUploadQueueStore.getState().items;
 
     expect(items).toHaveLength(2);
-    expect(items[0].description).toBe('a');
-    expect(items[1].description).toBe('b');
+    expect(items[0].description).toBe('');
+    expect(items[1].description).toBe('');
     expect(items.every((it) => it.status === 'pending')).toBe(true);
     expect(items.every((it) => it.progress === 0)).toBe(true);
     expect(items.every((it) => it.retryCount === 0)).toBe(true);
@@ -47,11 +49,13 @@ describe('useUploadQueueStore', () => {
     const item = useUploadQueueStore.getState().items[0];
     expect(item.status).toBe('uploading');
     expect(item.step).toBe('put');
-    expect(item.description).toBe('a');
+    expect(item.description).toBe('');
   });
 
   test('remove 후 길이 감소', () => {
-    useUploadQueueStore.getState().enqueue([makeFile('a.jpg'), makeFile('b.jpg')]);
+    useUploadQueueStore
+      .getState()
+      .enqueue([makeFile('a.jpg'), makeFile('b.jpg')]);
     const firstId = useUploadQueueStore.getState().items[0].id;
 
     useUploadQueueStore.getState().remove(firstId);
