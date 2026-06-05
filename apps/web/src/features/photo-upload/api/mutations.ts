@@ -3,7 +3,6 @@ import { UploadQueueItem, UploadStep } from '../model/types';
 
 import { http } from '@/shared/api';
 import type { HttpInit } from '@/shared/api/client';
-
 import { createMediaUploadFlow } from '@/shared/lib/media-upload-logging';
 
 interface CreateMediaResponse {
@@ -48,7 +47,9 @@ export async function uploadSinglePhoto(
     await putToS3(url, item.file, putOptions);
 
     onStep('contents');
-    await registerContents(mediaId, reqOptions);
+
+    const contentUrl = url.split('?')[0];
+    await registerContents(mediaId, contentUrl, reqOptions);
 
     onStep('confirm');
     await confirmMedia(mediaId, flow, reqOptions);
@@ -87,15 +88,10 @@ async function getUploadUrl(
 
 async function registerContents(
   mediaId: string,
+  url: string,
   reqOptions?: HttpInit,
 ): Promise<void> {
-  await http.post(
-    `/v1/media/${mediaId}/contents`,
-    {
-      url: `media/${mediaId}/original`,
-    },
-    reqOptions,
-  );
+  await http.post(`/v1/media/${mediaId}/contents`, { url }, reqOptions);
 }
 
 async function confirmMedia(
