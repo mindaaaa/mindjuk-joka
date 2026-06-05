@@ -35,6 +35,7 @@ import { SelectionBar } from '@/widgets/selection-bar';
 interface BatchDownloadResult {
   ok: number;
   failed: number;
+  errors: unknown[];
 }
 
 function useBatchDownload(
@@ -75,6 +76,22 @@ function useBatchDownload(
   return { downloading, run };
 }
 
+function allFailMessage(errors: unknown[]): string {
+  const all403 = errors.every((e) => e instanceof ApiError && e.status === 403);
+  if (all403) {
+    return '다운로드 링크가 만료됐어요. 새로고침 후 다시 시도해 주세요.';
+  }
+
+  const allNetwork = errors.every(
+    (e) => e instanceof ApiError && e.status === 0,
+  );
+  if (allNetwork) {
+    return '네트워크 연결을 확인하고 다시 시도해 주세요.';
+  }
+
+  return '다운로드에 실패했어요. 잠시 후 다시 시도해 주세요.';
+}
+
 export function PhotoListPage() {
   const navigate = useNavigate();
   const role = useCurrentAlbumRole();
@@ -109,11 +126,15 @@ export function PhotoListPage() {
     const result = await runBatchDownload();
     if (!result) return;
 
-    const { ok, failed } = result;
-    const message = `${ok}개 다운로드 완료${failed ? `, ${failed}개 실패` : ''}`;
+    const { ok, failed, errors } = result;
 
-    if (failed) toast.warning(message);
-    else toast.success(message);
+    if (failed === 0) {
+      toast.success(`${ok}장 다운로드 완료`);
+    } else if (ok === 0) {
+      toast.error(allFailMessage(errors));
+    } else {
+      toast.warning(`${ok}장 완료 · ${failed}장 실패`);
+    }
   };
 
   return (
