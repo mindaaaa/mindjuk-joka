@@ -50,20 +50,20 @@ export function EditMetaForm({ photo, canEdit }: EditMetaFormProps) {
 
   if (!editing) {
     return (
-      <div className="flex items-start justify-between gap-3">
-        <p className="whitespace-pre-wrap wrap-break-word text-base">
+      <div className="flex items-center justify-center gap-2">
+        <p className="whitespace-pre-wrap wrap-break-word text-center text-[15px] leading-[22.5px] tracking-[-0.234px] text-foreground/80">
           {photo.description}
         </p>
         {canEdit && (
           <Button
             type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0"
+            variant="ghost"
+            size="icon"
+            className="size-7 shrink-0 rounded-full text-muted-foreground"
+            aria-label="설명 편집"
             onClick={() => setEditing(true)}
           >
             <Pencil className="size-4" />
-            편집
           </Button>
         )}
       </div>
@@ -72,7 +72,7 @@ export function EditMetaForm({ photo, canEdit }: EditMetaFormProps) {
 
   return (
     <form
-      className="space-y-2"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         handleSave();
@@ -84,21 +84,31 @@ export function EditMetaForm({ photo, canEdit }: EditMetaFormProps) {
         aria-label="사진 설명"
         autoFocus
         disabled={mutation.isPending}
+        className="h-auto rounded-none border-0 border-b border-border bg-transparent px-0 pb-1 text-center text-[15px] leading-[22.5px] shadow-none focus-visible:ring-0"
       />
       {!isValid && (
-        <p className="text-xs text-destructive">설명을 입력해 주세요.</p>
+        <p className="text-center text-xs text-destructive">
+          설명을 입력해 주세요.
+        </p>
       )}
-      <div className="flex justify-end gap-2">
+
+      {/* TODO: 같은 제목 일괄 수정 스코프 (현재 단건 description만 수정) */}
+
+      <div className="flex justify-center gap-2">
         <Button
           type="button"
-          variant="ghost"
-          size="sm"
+          variant="secondary"
+          className="flex-1 rounded-[10px]"
           onClick={handleCancel}
           disabled={mutation.isPending}
         >
           취소
         </Button>
-        <Button type="submit" size="sm" disabled={!canSave}>
+        <Button
+          type="submit"
+          className="flex-1 rounded-[10px]"
+          disabled={!canSave}
+        >
           {mutation.isPending ? '저장 중…' : '저장'}
         </Button>
       </div>

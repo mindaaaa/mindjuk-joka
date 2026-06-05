@@ -20,7 +20,7 @@ export function UploadProgress({ value, className }: UploadProgressProps) {
       )}
     >
       <div
-        className="h-full bg-primary transition-all"
+        className="h-full rounded-full bg-primary transition-all"
         style={{ width: `${clamped}%` }}
       />
     </div>

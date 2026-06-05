@@ -69,7 +69,8 @@ describe('putToS3', () => {
     instances = [];
     vi.stubGlobal(
       'XMLHttpRequest',
-      vi.fn(() => {
+      // new XMLHttpRequest()로 호출되므로 화살표 함수 불가 (일반 함수로 mock)
+      vi.fn(function () {
         const xhr = createFakeXhr();
         instances.push(xhr);
         return xhr;

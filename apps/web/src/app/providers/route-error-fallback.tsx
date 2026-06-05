@@ -5,26 +5,27 @@ import {
   useRevalidator,
   useRouteError,
 } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
 
+import { useAuthErrorRedirect } from '@/features/auth';
+import { errorFallbackMessage } from '@/shared/lib/error-fallback';
 import { log } from '@/shared/lib/logger';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
-import { Button } from '@/shared/ui/button';
-
-const STATUS_MESSAGE: Record<number, string> = {
-  403: '접근 권한이 없어요',
-  404: '페이지를 찾을 수 없어요',
-  500: '서버에 문제가 생겼어요',
-};
+import { ErrorState } from '@/shared/ui/error-state';
 
 interface RouteErrorFallbackProps {
   backTo?: string;
+}
+
+/** 돌아갈 위치에 맞춘 보조 액션 라벨 */
+function exitLabel(backTo: string): string {
+  if (backTo === '/login') return '로그인으로';
+  return '처음으로';
 }
 
 export function RouteErrorFallback({ backTo = '/' }: RouteErrorFallbackProps) {
   const error = useRouteError();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
+  const redirecting = useAuthErrorRedirect(error);
 
   useEffect(() => {
     if (isRouteErrorResponse(error)) {
@@ -39,33 +40,25 @@ export function RouteErrorFallback({ backTo = '/' }: RouteErrorFallbackProps) {
     log.bug(instance, { operationId: 'route_error' });
   }, [error]);
 
-  const title = isRouteErrorResponse(error)
-    ? (STATUS_MESSAGE[error.status] ?? '요청을 처리하지 못했어요')
-    : '이 페이지를 불러오지 못했어요';
+  // 401/403은 로그인으로 리다이렉트 중 → 풀백 깜빡임 방지로 렌더 생략.
+  if (redirecting) return null;
 
   const isRevalidating = revalidator.state === 'loading';
 
   return (
-    <section className="mx-auto max-w-2xl p-6">
-      <Alert variant="destructive">
-        <AlertCircle />
-        <AlertTitle>{title}</AlertTitle>
-        <AlertDescription>잠시 후 다시 시도해 주세요.</AlertDescription>
-      </Alert>
-
-      <div className="mt-4 flex gap-2">
-        <Button
-          variant="outline"
-          disabled={isRevalidating}
-          onClick={() => revalidator.revalidate()}
-        >
-          {isRevalidating ? '다시 시도 중…' : '다시 시도'}
-        </Button>
-
-        <Button variant="ghost" onClick={() => navigate(backTo)}>
-          나가기
-        </Button>
-      </div>
-    </section>
+    <ErrorState
+      fill="screen"
+      title="페이지를 불러오지 못했어요"
+      description={errorFallbackMessage(error)}
+      retry={{
+        label: '다시 시도',
+        pending: isRevalidating,
+        onClick: () => revalidator.revalidate(),
+      }}
+      secondary={{
+        label: exitLabel(backTo),
+        onClick: () => navigate(backTo),
+      }}
+    />
   );
 }

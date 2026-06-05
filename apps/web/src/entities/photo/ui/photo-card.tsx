@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react';
 
-import { cn } from '@/shared/lib/utils/cn';
-
 import type { Photo } from '../model/types';
 import { PhotoThumbnail } from './photo-thumbnail';
 
@@ -22,25 +20,28 @@ export function PhotoCard({
 }: PhotoCardProps) {
   return (
     <div className="group relative">
-      {selectionSlot && (
-        <div className="absolute left-2 top-2 z-10">{selectionSlot}</div>
-      )}
-      {actionSlot && (
-        <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
-          {actionSlot}
-        </div>
-      )}
       <button
         type="button"
         onClick={() => onOpen?.(photo.id)}
         aria-label={photo.description}
-        className={cn(
-          'block w-full overflow-hidden rounded-md text-left ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          selected && 'ring-2 ring-primary ring-offset-2',
-        )}
+        className="block w-full overflow-hidden rounded-2xl text-left ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <PhotoThumbnail src={photo.imageUrl} alt={photo.description} />
+        {selected && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl bg-primary/10"
+          />
+        )}
       </button>
+      {selectionSlot && (
+        <div className="absolute right-2 top-2 z-10">{selectionSlot}</div>
+      )}
+      {actionSlot && (
+        <div className="absolute bottom-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+          {actionSlot}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { useAlbumStore } from '@/entities/album';
@@ -9,7 +9,7 @@ import {
   usePhotosInfinite,
   type Photo,
 } from '@/entities/photo';
-import { useAuthRole } from '@/features/auth';
+import { canUpload, useAuthErrorRedirect, useAuthRole } from '@/features/auth';
 import {
   DownloadButton,
   downloadFilename,
@@ -17,7 +17,6 @@ import {
 } from '@/features/photo-download';
 import {
   SelectCheckbox,
-  SelectToggle,
   useIsSelected,
   usePhotoSelectStore,
   useSelectEnabled,
@@ -27,8 +26,9 @@ import { SortSheet, usePhotoSortStore } from '@/features/photo-sort';
 
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
-import { Button } from '@/shared/ui/button';
+import { errorFallbackMessage } from '@/shared/lib/error-fallback';
+import { cn } from '@/shared/lib/utils/cn';
+import { ErrorState } from '@/shared/ui/error-state';
 import { toast } from '@/shared/ui/toast';
 
 import { PhotoGrid } from '@/widgets/photo-grid';
@@ -120,23 +120,30 @@ export function PhotoListPage() {
 
   return (
     <section
-      className={`mx-auto max-w-5xl space-y-4 p-6 ${enabled ? 'pb-24' : ''}`}
+      className={`mx-auto max-w-5xl space-y-4 px-4 pt-4 ${enabled ? 'pb-24' : ''}`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">사진 목록</h2>
-        <div className="flex items-center gap-2">
-          <SortSheet />
-          <SelectToggle />
-        </div>
+      <div className="flex items-center justify-between gap-3 px-2">
+        <FilterTabs />
+        <SortSheet />
       </div>
 
-      <ErrorBoundary fallback={<GridErrorFallback />}>
+      <ErrorBoundary fallback={(error) => <GridErrorFallback error={error} />}>
         <PhotoGrid
           photos={photos}
           isLoading={!albumId || query.isLoading}
           isFetchingNextPage={query.isFetchingNextPage}
           hasNextPage={!!query.hasNextPage}
           onLoadMore={() => query.fetchNextPage()}
+          emptyAction={
+            canUpload(role) ? (
+              <Link
+                to="/upload"
+                className="text-[14px] text-foreground opacity-30 transition-opacity hover:opacity-100"
+              >
+                사진 올리기
+              </Link>
+            ) : undefined
+          }
           renderCard={(photo) => (
             <GridCard
               key={photo.id}
@@ -155,17 +162,51 @@ export function PhotoListPage() {
   );
 }
 
-function GridErrorFallback() {
+const TABS = [
+  { key: 'all', label: '전체', enabled: true },
+  { key: 'recent', label: '최근', enabled: false },
+  { key: 'favorite', label: '즐겨찾기', enabled: false },
+] as const;
+
+// TODO: 최근/즐겨찾기 필터 API 연결 (연결되면 active를 상태로 변경)
+function FilterTabs() {
+  const active = 'all';
+
   return (
-    <Alert variant="destructive" className="mx-auto max-w-md text-center">
-      <AlertTitle>이 영역을 불러오지 못했어요</AlertTitle>
-      <AlertDescription className="space-y-3">
-        <p>사진 목록을 표시하는 중 문제가 발생했어요.</p>
-        <Button size="sm" onClick={() => window.location.reload()}>
-          다시 시도
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <nav className="flex items-center gap-8" aria-label="사진 필터">
+      {TABS.map((tab) => {
+        const isActive = tab.key === active;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            disabled={!tab.enabled}
+            aria-current={isActive ? 'page' : undefined}
+            className={cn(
+              'text-[22px] tracking-tight',
+              isActive ? 'text-primary' : 'text-foreground',
+              !tab.enabled && 'opacity-25',
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+// 401/403이면 로그인으로 리다이렉트, 그 외엔 에러 풀백 표시
+function GridErrorFallback({ error }: { error: unknown }) {
+  const redirecting = useAuthErrorRedirect(error);
+  if (redirecting) return null;
+
+  return (
+    <ErrorState
+      title="사진을 불러오지 못했어요"
+      description={errorFallbackMessage(error)}
+      retry={{ label: '다시 시도', onClick: () => window.location.reload() }}
+    />
   );
 }
 

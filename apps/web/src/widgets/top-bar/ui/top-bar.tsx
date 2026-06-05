@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { UserRole } from '@/entities/user';
@@ -9,40 +10,53 @@ import {
   useIsAuthenticated,
   useLogoutMutation,
 } from '@/features/auth';
+
+import { SelectToggle } from '@/features/photo-select';
+import { ThemeToggle } from '@/features/theme';
+
 import { Button } from '@/shared/ui/button';
-
-function UploadButton({ role }: { role: UserRole | undefined }) {
-  if (!canUpload(role)) return null;
-
-  return (
-    <Button variant="ghost" size="sm" asChild>
-      <Link to="/upload">업로드</Link>
-    </Button>
-  );
-}
 
 export function TopBar() {
   const isAuthenticated = useIsAuthenticated();
   const user = useAuthUser();
+  const isListRoute = useLocation().pathname.endsWith('/photos');
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link to="/photos" className="text-lg font-semibold tracking-tight">
+        <Link to="/photos" className="text-lg font-bold tracking-tight">
           JOKA
         </Link>
 
-        {isAuthenticated ? (
-          <nav className="flex items-center gap-2">
-            <UploadButton role={user?.role} />
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {user?.name}
-            </span>
-            <LogoutButton />
-          </nav>
-        ) : null}
+        <nav className="flex items-center gap-1.5">
+          {isAuthenticated && isListRoute ? <SelectToggle /> : null}
+          <ThemeToggle />
+          {isAuthenticated ? (
+            <>
+              <UploadFab role={user?.role} />
+              <LogoutButton />
+            </>
+          ) : null}
+        </nav>
       </div>
     </header>
+  );
+}
+
+function UploadFab({ role }: { role: UserRole | undefined }) {
+  if (!canUpload(role)) return null;
+
+  return (
+    <Button
+      asChild
+      size="icon"
+      className="rounded-full"
+      aria-label="사진 올리기"
+    >
+      <Link to="/upload">
+        <Plus />
+      </Link>
+    </Button>
   );
 }
 
@@ -68,12 +82,13 @@ function LogoutButton() {
 
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant="ghost"
+      size="icon"
+      aria-label="로그아웃"
       disabled={logoutMutation.isPending}
       onClick={handleLogout}
     >
-      {logoutMutation.isPending ? '로그아웃 중…' : '로그아웃'}
+      <LogOut />
     </Button>
   );
 }
