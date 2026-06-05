@@ -40,7 +40,8 @@ export function AuthGuard() {
     bootstrapAccessToken();
   }, []);
 
-  const meQuery = useMe();
+  // unauthenticated 상태에서 /me 재요청을 막아 로그아웃이 되살아나지 않게 한다
+  const meQuery = useMe({ enabled: status !== 'unauthenticated' });
 
   useEffect(() => {
     if (meQuery.isSuccess) {
