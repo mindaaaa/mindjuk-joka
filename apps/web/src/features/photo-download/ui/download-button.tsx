@@ -1,15 +1,15 @@
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 
+import { downloadOne } from '../lib/downloader';
+import { downloadFilename } from '../lib/filename';
+
+import { useCurrentAlbumRole } from '@/entities/album';
 import type { Photo } from '@/entities/photo';
-import { useAuthRole } from '@/features/auth';
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { Button, type ButtonProps } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/toast';
-
-import { downloadOne } from '../lib/downloader';
-import { downloadFilename } from '../lib/filename';
 
 interface DownloadButtonProps {
   photo: Photo;
@@ -23,7 +23,7 @@ export function DownloadButton({
   variant = 'secondary',
   size = 'icon',
 }: DownloadButtonProps) {
-  const role = useAuthRole();
+  const role = useCurrentAlbumRole();
   const [busy, setBusy] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
@@ -38,7 +38,10 @@ export function DownloadButton({
       });
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        recordForbidden({ userRole: role ?? 'unknown', operationId: 'downloadMedia' });
+        recordForbidden({
+          userRole: role ?? 'unknown',
+          operationId: 'downloadMedia',
+        });
         toast.error('다운로드 권한이 없거나 링크가 만료됐어요.');
       } else {
         toast.error('다운로드에 실패했어요.');

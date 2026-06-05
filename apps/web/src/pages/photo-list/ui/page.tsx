@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
-import { useAlbumStore } from '@/entities/album';
+import { useAlbumStore, useCurrentAlbumRole } from '@/entities/album';
 import {
   PhotoCard,
   selectPhotos,
   usePhotosInfinite,
   type Photo,
 } from '@/entities/photo';
-import { canUpload, useAuthErrorRedirect, useAuthRole } from '@/features/auth';
+import { canUpload, useAuthErrorRedirect } from '@/features/auth';
 import {
   DownloadButton,
   downloadFilename,
@@ -23,14 +23,12 @@ import {
   useSelectedIds,
 } from '@/features/photo-select';
 import { SortSheet, usePhotoSortStore } from '@/features/photo-sort';
-
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { errorFallbackMessage } from '@/shared/lib/error-fallback';
 import { cn } from '@/shared/lib/utils/cn';
 import { ErrorState } from '@/shared/ui/error-state';
 import { toast } from '@/shared/ui/toast';
-
 import { PhotoGrid } from '@/widgets/photo-grid';
 import { SelectionBar } from '@/widgets/selection-bar';
 
@@ -79,7 +77,7 @@ function useBatchDownload(
 
 export function PhotoListPage() {
   const navigate = useNavigate();
-  const role = useAuthRole();
+  const role = useCurrentAlbumRole();
 
   const order = usePhotoSortStore((s) => s.order);
   const enabled = useSelectEnabled();

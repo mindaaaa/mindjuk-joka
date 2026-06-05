@@ -3,10 +3,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { expect, within } from 'storybook/test';
 
+import { TopBar } from './top-bar';
+
+import { useAlbumStore } from '@/entities/album';
 import { useAuthStore } from '@/features/auth';
 import { usePhotoSelectStore } from '@/features/photo-select';
-
-import { TopBar } from './top-bar';
 
 const meta = {
   title: 'widgets/TopBar',
@@ -33,6 +34,7 @@ type Story = StoryObj<typeof meta>;
 export const LoggedOut: Story = {
   async beforeEach() {
     useAuthStore.getState().reset();
+    useAlbumStore.getState().clear();
   },
 };
 
@@ -47,9 +49,16 @@ export const EditorOnPhotoList: Story = {
       id: 'u1',
       name: '홍길동',
       email: 'user@joka.app',
+    });
+    useAlbumStore.getState().setCurrent({
+      id: 'a1',
+      name: '테스트 앨범',
       role: 'EDITOR',
     });
-    return () => useAuthStore.getState().reset();
+    return () => {
+      useAuthStore.getState().reset();
+      useAlbumStore.getState().clear();
+    };
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -76,9 +85,16 @@ export const EditorElsewhere: Story = {
       id: 'u1',
       name: '홍길동',
       email: 'user@joka.app',
+    });
+    useAlbumStore.getState().setCurrent({
+      id: 'a1',
+      name: '테스트 앨범',
       role: 'EDITOR',
     });
-    return () => useAuthStore.getState().reset();
+    return () => {
+      useAuthStore.getState().reset();
+      useAlbumStore.getState().clear();
+    };
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -100,9 +116,16 @@ export const ViewerOnPhotoList: Story = {
       id: 'u2',
       name: '뷰어',
       email: 'viewer@joka.app',
+    });
+    useAlbumStore.getState().setCurrent({
+      id: 'a1',
+      name: '테스트 앨범',
       role: 'VIEWER',
     });
-    return () => useAuthStore.getState().reset();
+    return () => {
+      useAuthStore.getState().reset();
+      useAlbumStore.getState().clear();
+    };
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
