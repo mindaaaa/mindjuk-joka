@@ -27,9 +27,9 @@ export function UploadItem({
   useEffect(() => () => URL.revokeObjectURL(previewUrl), [previewUrl]);
 
   const isUploading = item.status === 'uploading';
-  const isError = item.status === 'error';
   const isUploaded = item.status === 'success';
   const isWaiting = item.status === 'pending' || item.status === 'canceled';
+  const isRetryable = item.status === 'error' || item.status === 'canceled';
 
   function retry() {
     setStatus(item.id, {
@@ -84,12 +84,12 @@ export function UploadItem({
           )}
         </button>
 
-        {/* 실패: 이미지 위 원형 재시도 (타일 버튼과 형제 → 중첩 버튼 방지) */}
-        {isError && (
+        {/* 실패·취소: 탭하면 다시 업로드 (타일 버튼과 형제 → 중첩 버튼 방지) */}
+        {isRetryable && (
           <button
             type="button"
             onClick={retry}
-            aria-label="재시도"
+            aria-label={item.status === 'canceled' ? '다시 올리기' : '재시도'}
             className="absolute inset-0 z-10 flex items-center justify-center rounded-[14px] bg-black/60"
           >
             <span className="flex size-10 items-center justify-center rounded-full bg-white/90 text-neutral-600">
@@ -108,10 +108,10 @@ export function UploadItem({
           </span>
         )}
 
-        {/* 대기/취소: 아직 업로드되지 않음 */}
-        {isWaiting && (
+        {/* 대기: 아직 업로드 안 됨 (취소는 위 재시도 오버레이로 표시) */}
+        {item.status === 'pending' && (
           <span className="absolute bottom-1.5 left-1.5 z-10 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
-            {item.status === 'canceled' ? '취소됨' : '대기'}
+            대기
           </span>
         )}
 

@@ -77,7 +77,9 @@ export function useUploadRunner() {
         handleSuccess(item.id, mediaId, sentDescription);
         return true;
       } catch (err) {
-        handleFailure(item.id, err);
+        if (!controller.signal.aborted) {
+          handleFailure(item.id, err);
+        }
         return false;
       } finally {
         abortersRef.current.delete(item.id);
