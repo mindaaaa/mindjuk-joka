@@ -1,13 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 
+import { useUploadQueueStore } from './store';
+import type { UploadQueueItem } from './types';
+import { uploadSinglePhoto } from '../api/mutations';
+
 import { MAX_RETRY_COUNT } from '@/app/providers/constants';
 import { photoKeys } from '@/entities/photo/api/keys';
 import { recordNetworkRetryExceeded } from '@/shared/lib/business-ux-logging';
-
-import { uploadSinglePhoto } from '../api/mutations';
-import { useUploadQueueStore } from './store';
-import type { UploadQueueItem } from './types';
 
 function isAbortError(err: unknown): boolean {
   return err instanceof DOMException && err.name === 'AbortError';
@@ -89,6 +89,7 @@ export function useUploadRunner() {
 
       state.setRunning(true);
       state.setStatus(next.id, { status: 'uploading', step: 'create' });
+      state.setProgress(next.id, 0);
 
       const success = await runUpload(next);
       useUploadQueueStore.getState().setRunning(false);
