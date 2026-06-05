@@ -1,4 +1,4 @@
-import { ImageIcon, RefreshCw, X } from 'lucide-react';
+import { Check, ImageIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { useUploadQueueStore } from '../model/store';
@@ -29,6 +29,7 @@ export function UploadItem({
   const isUploading = item.status === 'uploading';
   const isError = item.status === 'error';
   const isUploaded = item.status === 'success';
+  const isWaiting = item.status === 'pending' || item.status === 'canceled';
 
   function retry() {
     setStatus(item.id, {
@@ -65,7 +66,10 @@ export function UploadItem({
               src={previewUrl}
               alt=""
               onError={() => setImgError(true)}
-              className="size-full object-cover"
+              className={cn(
+                'size-full object-cover',
+                isWaiting && 'opacity-40',
+              )}
             />
           ) : (
             <span className="flex size-full items-center justify-center text-muted-foreground">
@@ -92,6 +96,23 @@ export function UploadItem({
               <RefreshCw className="size-5" />
             </span>
           </button>
+        )}
+
+        {/* 업로드 완료 표시 */}
+        {isUploaded && (
+          <span
+            aria-hidden
+            className="absolute bottom-1.5 right-1.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow"
+          >
+            <Check className="size-3" />
+          </span>
+        )}
+
+        {/* 대기/취소: 아직 업로드되지 않음 */}
+        {isWaiting && (
+          <span className="absolute bottom-1.5 left-1.5 z-10 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            {item.status === 'canceled' ? '취소됨' : '대기'}
+          </span>
         )}
 
         {/* 우상단 제거/취소 X — 이미 업로드된 사진은 숨김 */}
