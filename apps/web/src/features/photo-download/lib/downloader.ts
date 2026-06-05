@@ -37,12 +37,14 @@ export async function downloadOne(target: DownloadTarget): Promise<void> {
 
     setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   } catch (err) {
-    if (err instanceof TypeError) {
-      triggerAnchor(target.url, target.filename);
-      return;
-    }
+    if (err instanceof ApiError) throw err;
 
-    throw err;
+    // cross-origin이라 a[download] 무시됨 → URL 이동 대신 에러 처리
+    throw new ApiError({
+      status: 0,
+      code: 'NETWORK',
+      message: '다운로드에 실패했어요. 네트워크를 확인해 주세요.',
+    });
   }
 }
 
