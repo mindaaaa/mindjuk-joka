@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
 import { ImageIcon, RefreshCw, X } from 'lucide-react';
-
-import { cn } from '@/shared/lib/utils/cn';
+import { useEffect, useState } from 'react';
 
 import { useUploadQueueStore } from '../model/store';
 import type { UploadQueueItem } from '../model/types';
+
+import { cn } from '@/shared/lib/utils/cn';
 
 interface UploadItemProps {
   item: UploadQueueItem;
@@ -28,6 +28,7 @@ export function UploadItem({
 
   const isUploading = item.status === 'uploading';
   const isError = item.status === 'error';
+  const isUploaded = item.status === 'success';
 
   function retry() {
     setStatus(item.id, {
@@ -93,15 +94,17 @@ export function UploadItem({
           </button>
         )}
 
-        {/* 우상단 제거/취소 X */}
-        <button
-          type="button"
-          onClick={handleRemove}
-          aria-label={isUploading ? '취소' : '삭제'}
-          className="absolute right-2 top-2 z-20 flex size-5 items-center justify-center rounded-full bg-white/90 text-black shadow"
-        >
-          <X className="size-3" />
-        </button>
+        {/* 우상단 제거/취소 X — 이미 업로드된 사진은 숨김 */}
+        {!isUploaded && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label={isUploading ? '취소' : '삭제'}
+            className="absolute right-2 top-2 z-20 flex size-5 items-center justify-center rounded-full bg-white/90 text-black shadow"
+          >
+            <X className="size-3" />
+          </button>
+        )}
       </div>
 
       <p className="truncate text-xs text-muted-foreground">{item.file.name}</p>
