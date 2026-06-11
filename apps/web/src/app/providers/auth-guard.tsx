@@ -30,7 +30,6 @@ export function AuthGuard() {
 
   const setUser = useAuthStore((s) => s.setUser);
   const status = useAuthStore((s) => s.status);
-  const user = useAuthStore((s) => s.user);
 
   const setAlbum = useAlbumStore((s) => s.setCurrent);
   const clearAlbum = useAlbumStore((s) => s.clear);
@@ -40,7 +39,8 @@ export function AuthGuard() {
     bootstrapAccessToken();
   }, []);
 
-  const meQuery = useMe();
+  // unauthenticated 상태에서 /me 재요청을 막아 로그아웃이 되살아나지 않게 한다
+  const meQuery = useMe({ enabled: status !== 'unauthenticated' });
 
   useEffect(() => {
     if (meQuery.isSuccess) {
@@ -81,10 +81,19 @@ export function AuthGuard() {
     return <Navigate to="/photos" replace />;
   }
 
+  const isEditorRoute = isEditorOnly(location.pathname);
+  const isAlbumRolePending = !currentAlbum && !albumsQuery.isError;
+  const shouldDeferUploadGuard =
+    status === 'authenticated' && isEditorRoute && isAlbumRolePending;
+
+  if (shouldDeferUploadGuard) {
+    return <GuardFallback />;
+  }
+
   const lacksUploadPermission =
     status === 'authenticated' &&
-    isEditorOnly(location.pathname) &&
-    !canUpload(user?.role);
+    isEditorRoute &&
+    !canUpload(currentAlbum?.role);
   if (lacksUploadPermission) {
     return <Navigate to="/photos" replace />;
   }

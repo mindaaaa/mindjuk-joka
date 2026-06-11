@@ -218,7 +218,7 @@ describe('uploadSinglePhoto', () => {
     expect(mocks.httpPost).toHaveBeenNthCalledWith(
       3,
       '/v1/media/media-1/contents',
-      { url: 'media/media-1/original' },
+      { url: 'https://s3/url' },
       undefined,
     );
     expect(mocks.httpPost).toHaveBeenNthCalledWith(
@@ -233,6 +233,35 @@ describe('uploadSinglePhoto', () => {
       expect.objectContaining({ onProgress: expect.any(Function) }),
     );
     expect(mocks.onUploadUrlsRequest).toHaveBeenCalledWith('DRAFT');
+  });
+
+  test('contents에는 presigned URL의 쿼리스트링을 제거한 객체 URL을 보낸다', async () => {
+    mocks.httpPost
+      .mockResolvedValueOnce({ id: 'media-1', state: 'DRAFT' })
+      .mockResolvedValueOnce({
+        url: 'https://s3/bucket/media/media-1/original?X-Amz-Signature=abc&X-Amz-Expires=180',
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+    mocks.putToS3.mockResolvedValueOnce(undefined);
+
+    await uploadSinglePhoto(makeItem(), {
+      onStep: vi.fn(),
+      onProgress: vi.fn(),
+    });
+
+    // PUT은 쿼리 포함 presigned URL로, contents는 쿼리 제거한 객체 URL로
+    expect(mocks.putToS3).toHaveBeenCalledWith(
+      'https://s3/bucket/media/media-1/original?X-Amz-Signature=abc&X-Amz-Expires=180',
+      expect.any(File),
+      expect.anything(),
+    );
+    expect(mocks.httpPost).toHaveBeenNthCalledWith(
+      3,
+      '/v1/media/media-1/contents',
+      { url: 'https://s3/bucket/media/media-1/original' },
+      undefined,
+    );
   });
 
   test('signal 전달 시 각 http.post 와 putToS3 에 그대로 전파', async () => {

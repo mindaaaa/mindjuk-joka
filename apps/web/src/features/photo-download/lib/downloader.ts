@@ -8,6 +8,7 @@ export interface DownloadTarget {
 export interface DownloadManyResult {
   ok: number;
   failed: number;
+  errors: unknown[]; // 실패한 항목들의 에러(사유별 메시지 분기에 사용)
 }
 
 const BATCH_DELAY_MS = 300; // 연속 다운로드를 브라우저가 차단하지 않도록 항목 간 간격
@@ -37,12 +38,14 @@ export async function downloadOne(target: DownloadTarget): Promise<void> {
 
     setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   } catch (err) {
-    if (err instanceof TypeError) {
-      triggerAnchor(target.url, target.filename);
-      return;
-    }
+    if (err instanceof ApiError) throw err;
 
-    throw err;
+    // cross-origin이라 a[download] 무시됨 → URL 이동 대신 에러 처리
+    throw new ApiError({
+      status: 0,
+      code: 'NETWORK',
+      message: '다운로드에 실패했어요. 네트워크를 확인해 주세요.',
+    });
   }
 }
 
@@ -57,6 +60,7 @@ export async function downloadMany(
 
   let ok = 0;
   let failed = 0;
+  const errors: unknown[] = [];
 
   for (const target of targets) {
     try {
@@ -64,11 +68,12 @@ export async function downloadMany(
       ok += 1;
     } catch (err) {
       failed += 1;
+      errors.push(err);
       options?.onError?.(target, err);
     }
 
     await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
-  return { ok, failed };
+  return { ok, failed, errors };
 }

@@ -1,10 +1,10 @@
+import { Check, ImageIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ImageIcon, RefreshCw, X } from 'lucide-react';
-
-import { cn } from '@/shared/lib/utils/cn';
 
 import { useUploadQueueStore } from '../model/store';
 import type { UploadQueueItem } from '../model/types';
+
+import { cn } from '@/shared/lib/utils/cn';
 
 interface UploadItemProps {
   item: UploadQueueItem;
@@ -27,7 +27,9 @@ export function UploadItem({
   useEffect(() => () => URL.revokeObjectURL(previewUrl), [previewUrl]);
 
   const isUploading = item.status === 'uploading';
-  const isError = item.status === 'error';
+  const isUploaded = item.status === 'success';
+  const isWaiting = item.status === 'pending' || item.status === 'canceled';
+  const isRetryable = item.status === 'error' || item.status === 'canceled';
 
   function retry() {
     setStatus(item.id, {
@@ -64,7 +66,10 @@ export function UploadItem({
               src={previewUrl}
               alt=""
               onError={() => setImgError(true)}
-              className="size-full object-cover"
+              className={cn(
+                'size-full object-cover',
+                isWaiting && 'opacity-40',
+              )}
             />
           ) : (
             <span className="flex size-full items-center justify-center text-muted-foreground">
@@ -79,12 +84,12 @@ export function UploadItem({
           )}
         </button>
 
-        {/* 실패: 이미지 위 원형 재시도 (타일 버튼과 형제 → 중첩 버튼 방지) */}
-        {isError && (
+        {/* 실패·취소: 탭하면 다시 업로드 (타일 버튼과 형제 → 중첩 버튼 방지) */}
+        {isRetryable && (
           <button
             type="button"
             onClick={retry}
-            aria-label="재시도"
+            aria-label={item.status === 'canceled' ? '다시 올리기' : '재시도'}
             className="absolute inset-0 z-10 flex items-center justify-center rounded-[14px] bg-black/60"
           >
             <span className="flex size-10 items-center justify-center rounded-full bg-white/90 text-neutral-600">
@@ -93,15 +98,34 @@ export function UploadItem({
           </button>
         )}
 
-        {/* 우상단 제거/취소 X */}
-        <button
-          type="button"
-          onClick={handleRemove}
-          aria-label={isUploading ? '취소' : '삭제'}
-          className="absolute right-2 top-2 z-20 flex size-5 items-center justify-center rounded-full bg-white/90 text-black shadow"
-        >
-          <X className="size-3" />
-        </button>
+        {/* 업로드 완료 표시 */}
+        {isUploaded && (
+          <span
+            aria-hidden
+            className="absolute bottom-1.5 right-1.5 z-10 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow"
+          >
+            <Check className="size-3" />
+          </span>
+        )}
+
+        {/* 대기: 아직 업로드 안 됨 (취소는 위 재시도 오버레이로 표시) */}
+        {item.status === 'pending' && (
+          <span className="absolute bottom-1.5 left-1.5 z-10 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            대기
+          </span>
+        )}
+
+        {/* 우상단 제거/취소 X — 이미 업로드된 사진은 숨김 */}
+        {!isUploaded && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label={isUploading ? '취소' : '삭제'}
+            className="absolute right-2 top-2 z-20 flex size-5 items-center justify-center rounded-full bg-white/90 text-black shadow"
+          >
+            <X className="size-3" />
+          </button>
+        )}
       </div>
 
       <p className="truncate text-xs text-muted-foreground">{item.file.name}</p>

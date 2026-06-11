@@ -1,24 +1,22 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Plus } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { useCurrentAlbumRole } from '@/entities/album';
 import type { UserRole } from '@/entities/user';
 import {
   canUpload,
   useAuthStore,
-  useAuthUser,
   useIsAuthenticated,
   useLogoutMutation,
 } from '@/features/auth';
-
 import { SelectToggle } from '@/features/photo-select';
 import { ThemeToggle } from '@/features/theme';
-
 import { Button } from '@/shared/ui/button';
 
 export function TopBar() {
   const isAuthenticated = useIsAuthenticated();
-  const user = useAuthUser();
+  const role = useCurrentAlbumRole();
   const isListRoute = useLocation().pathname.endsWith('/photos');
 
   return (
@@ -33,7 +31,7 @@ export function TopBar() {
           <ThemeToggle />
           {isAuthenticated ? (
             <>
-              <UploadFab role={user?.role} />
+              <UploadFab role={role} />
               <LogoutButton />
             </>
           ) : null}

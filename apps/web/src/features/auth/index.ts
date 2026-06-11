@@ -9,7 +9,6 @@ export { useAuthStore } from './model/store';
 export {
   useAuthUser,
   useAuthStatus,
-  useAuthRole,
   useIsAuthenticated,
 } from './model/selectors';
 

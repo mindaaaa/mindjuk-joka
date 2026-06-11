@@ -1,4 +1,9 @@
-export type UploadStatus = 'pending' | 'uploading' | 'success' | 'error';
+export type UploadStatus =
+  | 'pending'
+  | 'uploading'
+  | 'success'
+  | 'error'
+  | 'canceled';
 export type UploadStep = 'create' | 'urls' | 'put' | 'contents' | 'confirm';
 
 export interface UploadQueueItem {
@@ -11,4 +16,5 @@ export interface UploadQueueItem {
   mediaId?: string | undefined;
   errorMessage?: string | undefined;
   retryCount: number;
+  syncedDescription?: string | undefined;
 }

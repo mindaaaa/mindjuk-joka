@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
-import { useAlbumStore } from '@/entities/album';
+import { useAlbumStore, useCurrentAlbumRole } from '@/entities/album';
 import {
   PhotoMeta,
   selectPhotos,
@@ -12,17 +12,14 @@ import {
   usePhotosInfinite,
   type Photo,
 } from '@/entities/photo';
-
 import {
   canWriteMeta,
   useAuthErrorRedirect,
-  useAuthRole,
   useAuthUser,
 } from '@/features/auth';
 import { DownloadButton } from '@/features/photo-download';
 import { EditMetaForm } from '@/features/photo-edit-meta';
 import { usePhotoSortStore } from '@/features/photo-sort';
-
 import { ApiError } from '@/shared/api/error';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { errorFallbackMessage } from '@/shared/lib/error-fallback';
@@ -73,6 +70,7 @@ export function PhotoDetailPage() {
 
   const albumId = useAlbumStore((s) => s.current?.id);
   const user = useAuthUser();
+  const role = useCurrentAlbumRole();
 
   const query = usePhotoDetail(id, { enabled: !!albumId && !!id });
   const photo = query.data;
@@ -82,7 +80,7 @@ export function PhotoDetailPage() {
     return <DetailSkeleton />;
   }
 
-  const canWrite = canWriteMeta(user?.role, photo.createdBy.id, user?.id);
+  const canWrite = canWriteMeta(role, photo.createdBy.id, user?.id);
 
   return (
     <section className="mx-auto max-w-2xl space-y-6 p-6">
@@ -185,7 +183,7 @@ function NavArrow({
 
 function DeletePhotoButton({ photo }: { photo: Photo }) {
   const navigate = useNavigate();
-  const role = useAuthRole();
+  const role = useCurrentAlbumRole();
   const [open, setOpen] = useState(false);
   const mutation = useDeletePhotoMutation();
 

@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import {
   isRouteErrorResponse,
   useNavigate,
-  useRevalidator,
   useRouteError,
 } from 'react-router-dom';
 
@@ -24,7 +23,6 @@ function exitLabel(backTo: string): string {
 export function RouteErrorFallback({ backTo = '/' }: RouteErrorFallbackProps) {
   const error = useRouteError();
   const navigate = useNavigate();
-  const revalidator = useRevalidator();
   const redirecting = useAuthErrorRedirect(error);
 
   useEffect(() => {
@@ -43,8 +41,6 @@ export function RouteErrorFallback({ backTo = '/' }: RouteErrorFallbackProps) {
   // 401/403은 로그인으로 리다이렉트 중 → 풀백 깜빡임 방지로 렌더 생략.
   if (redirecting) return null;
 
-  const isRevalidating = revalidator.state === 'loading';
-
   return (
     <ErrorState
       fill="screen"
@@ -52,8 +48,7 @@ export function RouteErrorFallback({ backTo = '/' }: RouteErrorFallbackProps) {
       description={errorFallbackMessage(error)}
       retry={{
         label: '다시 시도',
-        pending: isRevalidating,
-        onClick: () => revalidator.revalidate(),
+        onClick: () => window.location.reload(),
       }}
       secondary={{
         label: exitLabel(backTo),
