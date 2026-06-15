@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
@@ -99,7 +99,6 @@ export function PhotoListPage() {
   const order = usePhotoSortStore((s) => s.order);
   const enabled = useSelectEnabled();
   const selectedIds = useSelectedIds();
-  const clearSelection = usePhotoSelectStore((s) => s.clear);
 
   const albumId = useAlbumStore((s) => s.current?.id);
   const query = usePhotosInfinite(
@@ -113,14 +112,6 @@ export function PhotoListPage() {
     selectedIds,
     role,
   );
-
-  const prevOrder = useRef(order);
-  useEffect(() => {
-    if (prevOrder.current !== order) {
-      prevOrder.current = order;
-      clearSelection();
-    }
-  }, [order, clearSelection]);
 
   const handleBatchDownload = async () => {
     const result = await runBatchDownload();
