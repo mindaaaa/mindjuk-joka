@@ -128,7 +128,9 @@ export function UploadItem({
         )}
       </div>
 
-      <p className="truncate text-xs text-muted-foreground">{item.file.name}</p>
+      <p className="truncate text-xs text-muted-foreground">
+        {item.description.trim() || item.file.name}
+      </p>
     </div>
   );
 }
