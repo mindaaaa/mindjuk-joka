@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { useAlbums, useAlbumStore } from '@/entities/album';
 import { useAuthStore, useMe, canUpload } from '@/features/auth';
 import { authTokenStore } from '@/shared/api/auth-token';
 import { readCookie } from '@/shared/api/cookie';
+import { setAnalyticsUser, track } from '@/shared/lib/analytics';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 const PUBLIC_PATHS = new Set(['/login']);
@@ -35,6 +36,8 @@ export function AuthGuard() {
   const clearAlbum = useAlbumStore((s) => s.clear);
   const currentAlbum = useAlbumStore((s) => s.current);
 
+  const loginTrackedRef = useRef(false);
+
   useEffect(() => {
     bootstrapAccessToken();
   }, []);
@@ -45,9 +48,18 @@ export function AuthGuard() {
   useEffect(() => {
     if (meQuery.isSuccess) {
       setUser(meQuery.data);
+
+      void setAnalyticsUser(meQuery.data.id).then(() => {
+        // 새 탭/새로고침 시 /me가 중복 호출되므로, 탭 단위 최초 1회만 로그인으로 집계
+        if (!loginTrackedRef.current) {
+          loginTrackedRef.current = true;
+          track('auth.login_success');
+        }
+      });
     } else if (meQuery.isError) {
       setUser(null);
       clearAlbum();
+      void setAnalyticsUser(null);
     }
   }, [meQuery.isSuccess, meQuery.isError, meQuery.data, setUser, clearAlbum]);
 

@@ -7,6 +7,7 @@ import { downloadFilename } from '../lib/filename';
 import { useCurrentAlbumRole } from '@/entities/album';
 import type { Photo } from '@/entities/photo';
 import { ApiError } from '@/shared/api/error';
+import { track } from '@/shared/lib/analytics';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { Button, type ButtonProps } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/toast';
@@ -31,12 +32,15 @@ export function DownloadButton({
     if (!photo.downloadUrl) return;
 
     setBusy(true);
+    track('download.single_start');
     try {
       await downloadOne({
         url: photo.downloadUrl,
         filename: downloadFilename(photo),
       });
+      track('download.single_success');
     } catch (err) {
+      track('download.single_fail');
       if (err instanceof ApiError && err.status === 403) {
         recordForbidden({
           userRole: role ?? 'unknown',

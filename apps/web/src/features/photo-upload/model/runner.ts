@@ -7,6 +7,7 @@ import { uploadSinglePhoto } from '../api/mutations';
 
 import { MAX_RETRY_COUNT } from '@/app/providers/constants';
 import { photoKeys } from '@/entities/photo/api/keys';
+import { track } from '@/shared/lib/analytics';
 import { recordNetworkRetryExceeded } from '@/shared/lib/business-ux-logging';
 
 function isAbortError(err: unknown): boolean {
@@ -55,6 +56,8 @@ function handleFailure(id: string, err: unknown): void {
 export function useUploadRunner() {
   const queryClient = useQueryClient();
   const abortersRef = useRef(new Map<string, AbortController>());
+  const sessionStartRef = useRef<number | null>(null);
+  const sessionItemIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let unmounted = false;
@@ -86,6 +89,38 @@ export function useUploadRunner() {
       }
     }
 
+    function startUploadSession(): void {
+      sessionStartRef.current = Date.now();
+
+      const currentItems = useUploadQueueStore.getState().items;
+      sessionItemIdsRef.current = new Set(currentItems.map((it) => it.id));
+    }
+
+    function maybeEmitSessionComplete(): void {
+      if (sessionStartRef.current === null) return;
+
+      const { items } = useUploadQueueStore.getState();
+      const sessionItems = items.filter((it) =>
+        sessionItemIdsRef.current.has(it.id),
+      );
+
+      const active = sessionItems.some(
+        (it) => it.status === 'pending' || it.status === 'uploading',
+      );
+      if (active) return;
+
+      const ok = sessionItems.filter((it) => it.status === 'success').length;
+      const fail = sessionItems.filter((it) => it.status === 'error').length;
+      track('upload.session_complete', {
+        ok,
+        fail,
+        durMs: Date.now() - sessionStartRef.current,
+      });
+
+      sessionStartRef.current = null;
+      sessionItemIdsRef.current.clear();
+    }
+
     async function processNext(): Promise<void> {
       if (unmounted) return;
 
@@ -93,7 +128,14 @@ export function useUploadRunner() {
       if (state.isRunning) return;
 
       const next = state.items.find((it) => it.status === 'pending');
-      if (!next) return;
+      if (!next) {
+        maybeEmitSessionComplete();
+        return;
+      }
+
+      if (sessionStartRef.current === null) {
+        startUploadSession();
+      }
 
       state.setRunning(true);
       state.setStatus(next.id, { status: 'uploading', step: 'create' });

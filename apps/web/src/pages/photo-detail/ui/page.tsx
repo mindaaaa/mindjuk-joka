@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Heart, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { useAlbumStore, useCurrentAlbumRole } from '@/entities/album';
@@ -21,6 +21,7 @@ import { DownloadButton } from '@/features/photo-download';
 import { EditMetaForm } from '@/features/photo-edit-meta';
 import { usePhotoSortStore } from '@/features/photo-sort';
 import { ApiError } from '@/shared/api/error';
+import { track } from '@/shared/lib/analytics';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { errorFallbackMessage } from '@/shared/lib/error-fallback';
 import { cn } from '@/shared/lib/utils/cn';
@@ -65,8 +66,23 @@ function usePrevNext(currentId: string) {
   };
 }
 
+/** 라우터 state에서 진입 경로(source)를 안전하게 읽는다. 없으면 'direct'. */
+function readNavSource(state: unknown): string {
+  if (
+    typeof state === 'object' &&
+    state !== null &&
+    'source' in state &&
+    typeof state.source === 'string'
+  ) {
+    return state.source;
+  }
+  return 'direct';
+}
+
 export function PhotoDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
+  const { state } = useLocation();
+  const source = readNavSource(state);
 
   const albumId = useAlbumStore((s) => s.current?.id);
   const user = useAuthUser();
@@ -75,6 +91,10 @@ export function PhotoDetailPage() {
   const query = usePhotoDetail(id, { enabled: !!albumId && !!id });
   const photo = query.data;
   const { prevId, nextId } = usePrevNext(id);
+
+  useEffect(() => {
+    track('detail.view', { source });
+  }, [id, source]);
 
   if (query.isLoading || !photo) {
     return <DetailSkeleton />;
@@ -166,7 +186,10 @@ function NavArrow({
       size="icon"
       aria-label={isPrev ? '이전' : '다음'}
       disabled={!targetId}
-      onClick={() => targetId && navigate(`/photos/${targetId}`)}
+      onClick={() =>
+        targetId &&
+        navigate(`/photos/${targetId}`, { state: { source: 'nav' } })
+      }
       className={cn(
         'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/40 text-white hover:bg-black/60 hover:text-white',
         isPrev ? 'left-2' : 'right-2',

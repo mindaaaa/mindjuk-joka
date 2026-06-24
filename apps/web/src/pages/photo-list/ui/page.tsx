@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
@@ -24,6 +24,7 @@ import {
 } from '@/features/photo-select';
 import { SortSheet, usePhotoSortStore } from '@/features/photo-sort';
 import { ApiError } from '@/shared/api/error';
+import { track } from '@/shared/lib/analytics';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { errorFallbackMessage } from '@/shared/lib/error-fallback';
 import { cn } from '@/shared/lib/utils/cn';
@@ -107,6 +108,17 @@ export function PhotoListPage() {
   );
   const photos = selectPhotos(query.data);
 
+  useEffect(() => {
+    track('list.view');
+  }, []);
+
+  const pagesLoaded = query.data?.pages.length ?? 0;
+  useEffect(() => {
+    if (pagesLoaded > 1) {
+      track('list.scroll_depth', { pagesLoaded });
+    }
+  }, [pagesLoaded]);
+
   const { downloading, run: runBatchDownload } = useBatchDownload(
     photos,
     selectedIds,
@@ -114,16 +126,21 @@ export function PhotoListPage() {
   );
 
   const handleBatchDownload = async () => {
+    track('download.bulk_start', { count: selectedIds.size });
+
     const result = await runBatchDownload();
     if (!result) return;
 
     const { ok, failed, errors } = result;
 
     if (failed === 0) {
+      track('download.bulk_success', { ok });
       toast.success(`${ok}장 다운로드 완료`);
     } else if (ok === 0) {
+      track('download.bulk_fail', { failed });
       toast.error(allFailMessage(errors));
     } else {
+      track('download.bulk_success', { ok, failed });
       toast.warning(`${ok}장 완료 · ${failed}장 실패`);
     }
   };
@@ -158,7 +175,9 @@ export function PhotoListPage() {
             <GridCard
               key={photo.id}
               photo={photo}
-              onOpen={(id) => navigate(`/photos/${id}`)}
+              onOpen={(id) =>
+                navigate(`/photos/${id}`, { state: { source: 'grid' } })
+              }
             />
           )}
         />
