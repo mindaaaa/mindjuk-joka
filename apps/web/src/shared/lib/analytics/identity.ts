@@ -3,8 +3,13 @@ import type { UserRole } from '@/entities/user';
 const SESSION_KEY = 'joka.sid';
 const ANON_ID_LENGTH = 16;
 
-let anonUserId: string | null = null;
-let roleResolver: () => UserRole | null = () => null;
+const state: {
+  anonUserId: string | null;
+  roleResolver: () => UserRole | null;
+} = {
+  anonUserId: null,
+  roleResolver: () => null,
+};
 
 export function getSessionId(): string {
   let id = sessionStorage.getItem(SESSION_KEY);
@@ -17,11 +22,11 @@ export function getSessionId(): string {
 }
 
 export async function setAnalyticsUser(userId: string | null): Promise<void> {
-  anonUserId = userId ? await sha256hex(userId) : null;
+  state.anonUserId = userId ? await sha256hex(userId) : null;
 }
 
 export function getAnonUserId(): string | null {
-  return anonUserId;
+  return state.anonUserId;
 }
 
 async function sha256hex(input: string): Promise<string> {
@@ -40,11 +45,11 @@ async function sha256hex(input: string): Promise<string> {
  * - Note: 유저 권한은 머무르는 앨범에 따라 실시간으로 변하므로, 이벤트가 전송(emit)되는 순간에 이 함수를 실행해 최신 값을 읽어옵니다.
  */
 export function setRoleResolver(resolver: () => UserRole | null): void {
-  roleResolver = resolver;
+  state.roleResolver = resolver;
 }
 
 export function getUserRole(): UserRole | null {
-  return roleResolver();
+  return state.roleResolver();
 }
 
 /**
