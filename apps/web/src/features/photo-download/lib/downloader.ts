@@ -26,7 +26,8 @@ function triggerAnchor(href: string, filename: string): void {
 
 export async function downloadOne(target: DownloadTarget): Promise<void> {
   try {
-    const response = await fetch(target.url);
+    // 브라우저가 presigned URL 응답을 캐시하면 만료된 URL을 재사용하므로 캐시 우회
+    const response = await fetch(target.url, { cache: 'no-store' });
     if (!response.ok) {
       throw new ApiError({ status: response.status });
     }
