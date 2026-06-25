@@ -3,8 +3,6 @@ import type { JwtPayload } from 'packages/domain-auth/src/domain/helper/jwt.prov
 
 export interface CloudflareEnv {
   Bindings: {
-    MEDIA_BUCKET: R2Bucket;
-    MEDIA_CACHE: KVNamespace;
     HYPERDRIVE?: Hyperdrive;
     OBJECT_STORAGE_ACCESS_KEY_ID: string;
     OBJECT_STORAGE_SECRET_ACCESS_KEY: string;
@@ -17,6 +15,7 @@ export interface CloudflareEnv {
     JWT_SECRET: string;
     AUTH_SUCCESS_REDIRECT?: string;
     ALLOWED_ORIGINS?: string;
+    COOKIE_DOMAIN?: string;
   };
   Variables: {
     actor: Actor;
