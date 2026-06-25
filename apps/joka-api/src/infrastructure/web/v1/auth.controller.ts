@@ -4,6 +4,7 @@ import {
 } from '@joka/core/src/exception';
 import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { CookieOptions } from 'hono/dist/types/utils/cookie';
 
 import Config from '../../../application/config';
 import type { CloudflareEnv } from '../../../application/model';
@@ -58,21 +59,43 @@ auth.get('/callback', async (c) => {
   // 또한 Secure는 HTTPS에서만 의미가 있어 로컬 HTTP에선 일부 브라우저가 거절한다.
   const isHttps = new URL(c.req.url).protocol === 'https:';
 
-  setCookie(c, 'refreshToken', tokenPair.refreshToken, {
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: 'Lax',
-    path: '/api/v1/auth',
-    maxAge: REFRESH_TOKEN_MAX_AGE,
-  });
+  setCookie(
+    c,
+    'refreshToken',
+    tokenPair.refreshToken,
+    (() => {
+      const options: CookieOptions = {
+        httpOnly: true,
+        secure: isHttps,
+        sameSite: 'Lax',
+        path: '/api/v1/auth',
+        maxAge: REFRESH_TOKEN_MAX_AGE,
+      };
+      if (c.env.COOKIE_DOMAIN) {
+        options.domain = c.env.COOKIE_DOMAIN;
+      }
+      return options;
+    })(),
+  );
 
-  setCookie(c, 'accessToken', tokenPair.accessToken, {
-    httpOnly: false,
-    secure: isHttps,
-    sameSite: 'Lax',
-    path: '/',
-    maxAge: 15 * 60, // 15분
-  });
+  setCookie(
+    c,
+    'accessToken',
+    tokenPair.accessToken,
+    (() => {
+      const options: CookieOptions = {
+        httpOnly: false,
+        secure: isHttps,
+        sameSite: 'Lax',
+        path: '/',
+        maxAge: 15 * 60, // 15분
+      };
+      if (c.env.COOKIE_DOMAIN) {
+        options.domain = c.env.COOKIE_DOMAIN;
+      }
+      return options;
+    })(),
+  );
 
   return c.redirect(c.env.AUTH_SUCCESS_REDIRECT ?? '/api');
 });
@@ -108,13 +131,25 @@ auth.post('/refresh', async (c) => {
   );
 
   const isHttps = new URL(c.req.url).protocol === 'https:';
-  setCookie(c, 'refreshToken', tokenPair.refreshToken, {
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: 'Lax',
-    path: '/api/v1/auth',
-    maxAge: REFRESH_TOKEN_MAX_AGE,
-  });
+  setCookie(
+    c,
+    'refreshToken',
+    tokenPair.refreshToken,
+    (() => {
+      const options: CookieOptions = {
+        httpOnly: true,
+        secure: isHttps,
+        sameSite: 'Lax',
+        path: '/api/v1/auth',
+        maxAge: REFRESH_TOKEN_MAX_AGE,
+      };
+      if (c.env.COOKIE_DOMAIN) {
+        options.domain = c.env.COOKIE_DOMAIN;
+      }
+
+      return options;
+    })(),
+  );
 
   return c.json({ accessToken: tokenPair.accessToken }, 200);
 });
@@ -126,8 +161,32 @@ auth.post('/logout', async (c) => {
     await refreshTokenStore.revoke(refreshToken, c.env.AUTH_TOKENS);
   }
 
-  deleteCookie(c, 'refreshToken', { path: '/api/v1/auth' });
-  deleteCookie(c, 'accessToken', { path: '/' });
+  deleteCookie(
+    c,
+    'refreshToken',
+    (() => {
+      const options: CookieOptions = {
+        path: '/api/v1/auth',
+      };
+      if (c.env.COOKIE_DOMAIN) {
+        options.domain = c.env.COOKIE_DOMAIN;
+      }
+      return options;
+    })(),
+  );
+  deleteCookie(
+    c,
+    'accessToken',
+    (() => {
+      const options: CookieOptions = {
+        path: '/',
+      };
+      if (c.env.COOKIE_DOMAIN) {
+        options.domain = c.env.COOKIE_DOMAIN;
+      }
+      return options;
+    })(),
+  );
 
   return c.body(null, 204);
 });
