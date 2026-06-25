@@ -6,7 +6,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "wrangler:local": "wrangler dev"
+    "wrangler:local": "wrangler dev",
+    "wrangler:deploy": "wrangler deploy"
   },
   "dependencies": {
     "@joka/core": "workspace:*",

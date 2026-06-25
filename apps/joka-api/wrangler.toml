@@ -4,35 +4,33 @@ main = "src/index.ts"
 compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2024-09-23"
 
-# R2 버킷 바인딩
-[[r2_buckets]]
-binding = "MEDIA_BUCKET"
-bucket_name = "joka-media-contents-prod"
-preview_bucket_name = "joka-media-contents-dev"
+# workers.dev 서브도메인 유지 (로컬용)
+workers_dev = true
 
-# KV 네임스페이스 바인딩
-[[kv_namespaces]]
-binding = "MEDIA_CACHE"
-id = "joka-media-cache-prod"
-preview_id = "joka-media-cache-dev"
+# 커스텀 도메인
+[[routes]]
+pattern = "api.mindjuk.quest"
+custom_domain = true
 
 # Auth KV 네임스페이스 바인딩
 [[kv_namespaces]]
 binding = "AUTH_TOKENS"
-id = "joka-auth-tokens-prod"
-preview_id = "joka-auth-tokens-dev"
+id = "056bed64ceed4ffaac3feea145363211"
+preview_id = "056bed64ceed4ffaac3feea145363211"
 
-# Hyperdrive 바인딩
+# Hyperdrive
 [[hyperdrive]]
 binding = "HYPERDRIVE"
-id = "<hyperdrive-config-id>"
+id = "b620191d4d484662be45eff46fd9b692"
 localConnectionString = "postgres://admin:my-very-secure-pw@localhost:5432/mindjuk"
 
-# 일반 환경 변수 (시크릿이 아님)
+# 일반 환경 변수
 [vars]
-AUTH_SUCCESS_REDIRECT = "/"
+AUTH_SUCCESS_REDIRECT = "https://joka.mindjuk.quest"
+ALLOWED_ORIGINS = "https://joka.mindjuk.quest,http://localhost:5173"
+COOKIE_DOMAIN = ".mindjuk.quest"
 
-# 로컬 개발 환경 관련 설정
+# 로컬 관련
 [dev]
 port = 54861
 local_protocol = "http"
