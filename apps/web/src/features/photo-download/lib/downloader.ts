@@ -13,6 +13,20 @@ export interface DownloadManyResult {
 
 const BATCH_DELAY_MS = 300; // 연속 다운로드를 브라우저가 차단하지 않도록 항목 간 간격
 
+// iOS Safari는 a[download]를 지원하지 않아 파일이 새 탭에서 열리기만 함 → Web Share로 우회
+function isIOS(): boolean {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent);
+}
+
+function canUseWebShare(file: File): boolean {
+  return (
+    isIOS() &&
+    typeof navigator.share === 'function' &&
+    typeof navigator.canShare === 'function' &&
+    navigator.canShare({ files: [file] })
+  );
+}
+
 function triggerAnchor(href: string, filename: string): void {
   const anchor = document.createElement('a');
   anchor.href = href;
@@ -33,6 +47,18 @@ export async function downloadOne(target: DownloadTarget): Promise<void> {
     }
 
     const blob = await response.blob();
+
+    const file = new File([blob], target.filename, { type: blob.type });
+    if (canUseWebShare(file)) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch (err) {
+        // 사용자가 공유 시트를 취소하면 다운로드를 진행하지 않음
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+      }
+    }
+
     const objectUrl = URL.createObjectURL(blob);
 
     triggerAnchor(objectUrl, target.filename);
