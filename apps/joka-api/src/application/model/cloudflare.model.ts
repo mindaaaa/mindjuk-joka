@@ -1,6 +1,12 @@
 import { Actor } from '@joka/domain-actor/src/domain/Actor';
 import type { JwtPayload } from 'packages/domain-auth/src/domain/helper/jwt.provider';
 
+// 썸네일 추출 큐(thumbnail-jobs) 메시지 스키마.
+// 객체로 두어 향후 필드 확장 여지를 남긴다.
+export interface ThumbnailJob {
+  mediaCid: string;
+}
+
 export interface CloudflareEnv {
   Bindings: {
     HYPERDRIVE?: Hyperdrive;
@@ -8,6 +14,7 @@ export interface CloudflareEnv {
     OBJECT_STORAGE_SECRET_ACCESS_KEY: string;
     OBJECT_STORAGE_ENDPOINT: string;
     OBJECT_STORAGE_BUCKET_NAME: string;
+    THUMBNAIL_QUEUE: Queue<ThumbnailJob>;
     AUTH_TOKENS: KVNamespace;
     KAKAO_CLIENT_ID: string;
     KAKAO_CLIENT_SECRET: string;
