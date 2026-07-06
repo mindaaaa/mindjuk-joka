@@ -113,6 +113,31 @@ importers:
         specifier: ^4.61.1
         version: 4.62.0(@cloudflare/workers-types@4.20260203.0)
 
+  apps/nail-artist:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@joka/domain-media':
+        specifier: workspace:*
+        version: link:../../packages/domain-media
+      '@joka/infra-object-storage':
+        specifier: workspace:*
+        version: link:../../packages/infra-object-storage
+      '@joka/infra-thumbnail':
+        specifier: workspace:*
+        version: link:../../packages/infra-thumbnail
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../../packages/lib-drizzle
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260131.0
+        version: 4.20260203.0
+      wrangler:
+        specifier: ^4.61.1
+        version: 4.62.0(@cloudflare/workers-types@4.20260203.0)
+
   apps/web:
     dependencies:
       '@radix-ui/react-dialog':
@@ -301,9 +326,6 @@ importers:
       blurhash:
         specifier: ^2.0.5
         version: 2.0.5
-      sharp:
-        specifier: ^0.34.5
-        version: 0.34.5
 
   packages/lib-drizzle:
     dependencies:
