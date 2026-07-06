@@ -289,6 +289,119 @@ describe('S3Client', () => {
     });
   });
 
+  describe('get', () => {
+    let client: S3Client;
+
+    beforeEach(() => {
+      S3Client.init(TEST_CONFIG);
+      client = S3Client.getInstance();
+    });
+
+    it('객체 바이트를 ArrayBuffer로 반환한다', async () => {
+      // given
+      const url = Url.from('http://example.com/path/to/file.jpg');
+      const bytes = new Uint8Array([1, 2, 3, 4]).buffer;
+      mockFetch.mockResolvedValue({
+        status: 200,
+        ok: true,
+        arrayBuffer: jest.fn().mockResolvedValue(bytes),
+      });
+
+      // when
+      const result = await client.get(url);
+
+      // then
+      expect(result).toBe(bytes);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://example.com/path/to/file.jpg',
+        { method: 'GET' },
+      );
+    });
+
+    it('객체가 없으면 NotFoundException을 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/non-existent.jpg');
+      mockFetch.mockResolvedValue({ status: 404, ok: false });
+
+      // when & then
+      await expect(client.get(url)).rejects.toThrow(NotFoundException);
+      await expect(client.get(url)).rejects.toThrow('OBJECT_NOT_FOUND');
+    });
+
+    it('서버 에러가 발생하면 예외를 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/file.jpg');
+      mockFetch.mockResolvedValue({ status: 500, ok: false });
+
+      // when & then
+      await expect(client.get(url)).rejects.toThrow('S3_GET_FAILED');
+    });
+  });
+
+  describe('put', () => {
+    let client: S3Client;
+
+    beforeEach(() => {
+      S3Client.init(TEST_CONFIG);
+      client = S3Client.getInstance();
+    });
+
+    it('바이트를 업로드하고 eTag·size를 담은 BucketObject를 반환한다', async () => {
+      // given
+      const url = Url.from('http://example.com/media/abc/thumbnail.jpg');
+      const body = new Uint8Array([1, 2, 3, 4, 5]).buffer;
+      mockFetch.mockResolvedValue({
+        status: 200,
+        ok: true,
+        headers: new Map([['etag', '"put-etag"']]),
+      });
+
+      // when
+      const result = await client.put(url, body, 'image/jpeg');
+
+      // then
+      expect(result.key).toBe('media/abc/thumbnail.jpg');
+      expect(result.size).toBe(5);
+      expect(result.eTag).toBe('put-etag');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://example.com/media/abc/thumbnail.jpg',
+        expect.objectContaining({
+          method: 'PUT',
+          body,
+          headers: { 'Content-Type': 'image/jpeg' },
+        }),
+      );
+    });
+
+    it('업로드 실패 시 예외를 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/media/abc/thumbnail.jpg');
+      const body = new Uint8Array([1, 2, 3]).buffer;
+      mockFetch.mockResolvedValue({ status: 500, ok: false });
+
+      // when & then
+      await expect(client.put(url, body, 'image/jpeg')).rejects.toThrow(
+        'S3_PUT_FAILED',
+      );
+    });
+
+    it('응답에 eTag가 없으면 예외를 던진다', async () => {
+      // given
+      const url = Url.from('http://example.com/media/abc/thumbnail.jpg');
+      const body = new Uint8Array([1, 2, 3]).buffer;
+      mockFetch.mockResolvedValue({
+        status: 200,
+        ok: true,
+        headers: new Map(),
+      });
+
+      // when & then
+      await expect(client.put(url, body, 'image/jpeg')).rejects.toThrow(
+        'INVALID_S3_OBJECT_HEADER',
+      );
+    });
+  });
+
   describe('getPresignedUrl', () => {
     let client: S3Client;
 
