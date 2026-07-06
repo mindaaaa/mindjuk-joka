@@ -33,31 +33,17 @@ describe('extractImageThumbnail', () => {
   const jpegBuffer = new Uint8Array([9, 9, 9]).buffer;
 
   let images: ImagesPort;
-  let transformer: {
-    transform: jest.Mock;
-    output: jest.Mock;
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    transformer = {
-      transform: jest.fn().mockReturnThis(),
-      output: jest.fn((opts: { format: string }) => ({
-        response: () => ({
-          arrayBuffer: jest
-            .fn()
-            .mockResolvedValue(
-              opts.format === 'rgba' ? rgbaBuffer : jpegBuffer,
-            ),
-        }),
-      })),
-    };
     images = {
-      input: jest.fn().mockReturnValue(transformer),
+      transform: jest.fn((_source: ArrayBuffer, params: { format: string }) =>
+        Promise.resolve(params.format === 'rgba' ? rgbaBuffer : jpegBuffer),
+      ),
     } as unknown as ImagesPort;
   });
 
-  it('원본당 input을 정확히 2회(rgba, jpeg) 동일 버퍼로 호출한다', async () => {
+  it('원본당 transform을 정확히 2회(rgba, jpeg) 동일 버퍼로 호출한다', async () => {
     // given
     const original = new Uint8Array([1, 2, 3]).buffer;
 
@@ -65,9 +51,9 @@ describe('extractImageThumbnail', () => {
     await extractImageThumbnail(images, original);
 
     // then
-    expect(images.input).toHaveBeenCalledTimes(2);
-    expect((images.input as jest.Mock).mock.calls[0][0]).toBe(original);
-    expect((images.input as jest.Mock).mock.calls[1][0]).toBe(original);
+    expect(images.transform).toHaveBeenCalledTimes(2);
+    expect((images.transform as jest.Mock).mock.calls[0][0]).toBe(original);
+    expect((images.transform as jest.Mock).mock.calls[1][0]).toBe(original);
   });
 
   it('blurhash를 먼저(rgba) 계산하고 이어서 jpeg 썸네일을 만든다', async () => {
@@ -77,11 +63,11 @@ describe('extractImageThumbnail', () => {
     // when
     const result = await extractImageThumbnail(images, original);
 
-    // then: 변환 순서 — 첫 변환은 blurhash(32x32), 두 번째는 썸네일(300x300)
-    expect(transformer.transform.mock.calls[0][0]).toEqual(BLURHASH_TRANSFORM);
-    expect(transformer.transform.mock.calls[1][0]).toEqual(THUMBNAIL_TRANSFORM);
-    expect(transformer.output.mock.calls[0][0]).toEqual({ format: 'rgba' });
-    expect(transformer.output.mock.calls[1][0]).toEqual({
+    // then: 변환 순서 — 첫 변환은 blurhash(32x32 rgba), 두 번째는 썸네일(300x300 jpeg)
+    const calls = (images.transform as jest.Mock).mock.calls;
+    expect(calls[0][1]).toEqual({ ...BLURHASH_TRANSFORM, format: 'rgba' });
+    expect(calls[1][1]).toEqual({
+      ...THUMBNAIL_TRANSFORM,
       format: 'image/jpeg',
     });
 
