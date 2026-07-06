@@ -47,7 +47,7 @@ export default tseslint.config({
       "warn",
       { argsIgnorePattern: "^_" },
     ],
-    eqeqeq: ["error", "always"],
+    eqeqeq: ["error", "always", { null: "ignore" }],
     curly: ["error", "all"],
   },
 }, prettier, storybook.configs["flat/recommended"]);
