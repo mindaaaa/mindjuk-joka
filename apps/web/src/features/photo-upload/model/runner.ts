@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 
 import { useUploadQueueStore } from './store';
@@ -6,9 +6,13 @@ import type { UploadQueueItem } from './types';
 import { uploadSinglePhoto } from '../api/mutations';
 
 import { MAX_RETRY_COUNT } from '@/app/providers/constants';
-import { photoKeys } from '@/entities/photo/api/keys';
+import { prependMediaToLists, type MediaDto } from '@/entities/photo';
+import type { User } from '@/entities/user';
 import { track } from '@/shared/lib/analytics';
 import { recordNetworkRetryExceeded } from '@/shared/lib/business-ux-logging';
+import { toast } from '@/shared/ui/toast';
+
+const ANON_UPLOADER: User = { id: '', name: '', email: '' };
 
 function isAbortError(err: unknown): boolean {
   return err instanceof DOMException && err.name === 'AbortError';
@@ -33,6 +37,34 @@ function handleSuccess(
   store.setProgress(id, 100);
 }
 
+/**
+ * 업로드 성공 시 목록 캐시 맨 앞에 끼워넣을 낙관적 미디어를 만든다.
+ * - 표시 URL은 방금 고른 로컬 File의 objectURL → R2 재요청 없이 즉시 노출
+ * - 썸네일/eTag 등 서버 전용 필드는 비워두고, 실제 값은 다음 정상 fetch가 채운다
+ */
+function buildOptimisticDto(
+  mediaId: string,
+  item: UploadQueueItem,
+  description: string,
+  uploader: User,
+  objectUrl: string,
+): MediaDto {
+  return {
+    id: mediaId,
+    description,
+    state: 'COMPLETE',
+    isFavorite: false,
+    created: { at: new Date().toISOString(), by: uploader },
+    content: {
+      location: { url: objectUrl, accessUrl: objectUrl },
+      size: item.file.size,
+      eTag: '',
+      mimeType: item.file.type || 'application/octet-stream',
+      thumbnail: null,
+    },
+  };
+}
+
 function handleFailure(id: string, err: unknown): void {
   if (isAbortError(err)) return;
 
@@ -53,11 +85,36 @@ function handleFailure(id: string, err: unknown): void {
   });
 }
 
-export function useUploadRunner() {
+function prependUploaded(
+  queryClient: QueryClient,
+  mediaId: string,
+  item: UploadQueueItem,
+  description: string,
+  uploader: User,
+): void {
+  const objectUrl = URL.createObjectURL(item.file);
+  const dto = buildOptimisticDto(
+    mediaId,
+    item,
+    description,
+    uploader,
+    objectUrl,
+  );
+  prependMediaToLists(queryClient, dto);
+}
+
+export function useUploadRunner(
+  currentUser?: User | null,
+  order: 'asc' | 'desc' = 'desc',
+) {
   const queryClient = useQueryClient();
   const abortersRef = useRef(new Map<string, AbortController>());
   const sessionStartRef = useRef<number | null>(null);
   const sessionItemIdsRef = useRef<Set<string>>(new Set());
+  const uploaderRef = useRef<User>(currentUser ?? ANON_UPLOADER);
+  uploaderRef.current = currentUser ?? ANON_UPLOADER;
+  const orderRef = useRef(order);
+  orderRef.current = order;
 
   useEffect(() => {
     let unmounted = false;
@@ -78,6 +135,18 @@ export function useUploadRunner() {
         });
 
         handleSuccess(item.id, mediaId, sentDescription);
+
+        // asc는 맨 앞 prepend가 오배치므로 건너뜀
+        if (orderRef.current === 'desc') {
+          prependUploaded(
+            queryClient,
+            mediaId,
+            item,
+            sentDescription,
+            uploaderRef.current,
+          );
+        }
+
         return true;
       } catch (err) {
         if (!controller.signal.aborted) {
@@ -117,6 +186,11 @@ export function useUploadRunner() {
         durMs: Date.now() - sessionStartRef.current,
       });
 
+      // asc는 prepend를 건너뛰므로 배치 완료 시 1회 토스트
+      if (orderRef.current === 'asc' && ok > 0) {
+        toast.success(`${ok}장 업로드 완료`);
+      }
+
       sessionStartRef.current = null;
       sessionItemIdsRef.current.clear();
     }
@@ -141,12 +215,8 @@ export function useUploadRunner() {
       state.setStatus(next.id, { status: 'uploading', step: 'create' });
       state.setProgress(next.id, 0);
 
-      const success = await runUpload(next);
+      await runUpload(next);
       useUploadQueueStore.getState().setRunning(false);
-
-      if (success) {
-        queryClient.invalidateQueries({ queryKey: photoKeys.lists() });
-      }
 
       if (!unmounted) {
         queueMicrotask(() => void processNext());

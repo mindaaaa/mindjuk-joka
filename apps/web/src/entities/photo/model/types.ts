@@ -73,3 +73,9 @@ export interface MediaListResponse {
   items: MediaDto[];
   pagination: MediaPagination;
 }
+
+/** useInfiniteQuery 캐시 형태 (setQueriesData/getQueriesData용) */
+export interface InfiniteMedia {
+  pages: MediaListResponse[];
+  pageParams: unknown[];
+}

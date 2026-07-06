@@ -1,86 +1,42 @@
 import { Check } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
-import { useUpdatePhotoMetaMutation } from '@/entities/photo';
+import { useDescriptionEditor } from '../model/use-description-editor';
+import { useSheetClose } from '../model/use-sheet-close';
+
+import { useAuthUser } from '@/features/auth';
+import { usePhotoSortStore } from '@/features/photo-sort';
 import {
   UploadDropzone,
   UploadItem,
   useUploadQueueStore,
   useUploadRunner,
 } from '@/features/photo-upload';
-import { PhotoListPage } from '@/pages/photo-list'; // TODO: 목록 콘텐츠 widget 추출/라우터 오버레이
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
 export function UploadPage() {
   const items = useUploadQueueStore((s) => s.items);
-  const reset = useUploadQueueStore((s) => s.reset);
-  const updateDescription = useUploadQueueStore((s) => s.updateDescription);
-  const setStatus = useUploadQueueStore((s) => s.setStatus);
 
-  const { cancel, cancelAll } = useUploadRunner();
-  const updateMeta = useUpdatePhotoMetaMutation();
+  const user = useAuthUser();
+  const order = usePhotoSortStore((s) => s.order);
+  const { cancel, cancelAll } = useUploadRunner(user, order);
 
-  const navigate = useNavigate();
-
-  // 딤·ESC 닫기 (업로드 중엔 무시, 중단은 "취소" 버튼으로)
-  const close = useCallback(() => {
-    const flying = useUploadQueueStore
-      .getState()
-      .items.some((i) => i.status === 'pending' || i.status === 'uploading');
-    if (flying) return;
-
-    reset();
-    navigate('/photos');
-  }, [reset, navigate]);
+  const close = useSheetClose();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedItem = items.find((i) => i.id === selectedId) ?? items[0];
-
   const inFlight = items.some(
     (i) => i.status === 'pending' || i.status === 'uploading',
   );
 
-  const canEditDesc = selectedItem?.status === 'success';
-
-  const selectedDesc = (selectedItem?.description ?? '').trim();
-  const selectedSynced = (selectedItem?.syncedDescription ?? '').trim();
-  const canSaveDesc =
-    !!selectedItem?.mediaId &&
-    selectedDesc.length > 0 &&
-    selectedDesc !== selectedSynced;
-  const descSaved =
-    !!selectedItem?.mediaId &&
-    selectedDesc.length > 0 &&
-    selectedDesc === selectedSynced;
-
-  const handleSaveDescription = () => {
-    if (!selectedItem?.mediaId || !canSaveDesc) return;
-    const id = selectedItem.id;
-    updateMeta.mutate(
-      { id: selectedItem.mediaId, description: selectedDesc },
-      { onSuccess: () => setStatus(id, { syncedDescription: selectedDesc }) },
-    );
-  };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [close]);
+  const desc = useDescriptionEditor(selectedItem);
 
   const hasItems = items.length > 0;
 
   return (
     <>
-      {/* 배경 */}
-      <div aria-hidden className="pointer-events-none">
-        <PhotoListPage />
-      </div>
-      {/* 딤 (클릭 시 닫기) */}
+      {/* 딤 (클릭 시 닫기) — 배경 목록은 라우터 레이아웃이 유지(재마운트/재요청 없음) */}
       <button
         type="button"
         aria-label="닫기"
@@ -124,16 +80,13 @@ export function UploadPage() {
               {/* 설명 + 저장 (선택사항) */}
               <div className="flex items-center gap-2 px-6">
                 <Input
-                  value={selectedItem?.description ?? ''}
-                  onChange={(e) =>
-                    selectedItem &&
-                    updateDescription(selectedItem.id, e.target.value)
-                  }
-                  disabled={!canEditDesc}
+                  value={desc.value}
+                  onChange={(e) => desc.change(e.target.value)}
+                  disabled={!desc.canEdit}
                   placeholder={
                     !selectedItem
                       ? ''
-                      : canEditDesc
+                      : desc.canEdit
                         ? `${selectedItem.file.name}에 남기실 말이 있으신가요?`
                         : '업로드되면 설명을 남길 수 있어요'
                   }
@@ -142,16 +95,16 @@ export function UploadPage() {
                 />
                 <Button
                   type="button"
-                  onClick={handleSaveDescription}
-                  disabled={!canSaveDesc || updateMeta.isPending}
+                  onClick={desc.save}
+                  disabled={!desc.canSave || desc.isSaving}
                   className="h-[45px] shrink-0 gap-1 rounded-[14px] px-4"
                 >
-                  {descSaved ? (
+                  {desc.saved ? (
                     <>
                       <Check className="size-4" />
                       저장됨
                     </>
-                  ) : updateMeta.isPending ? (
+                  ) : desc.isSaving ? (
                     '저장 중…'
                   ) : (
                     '저장'

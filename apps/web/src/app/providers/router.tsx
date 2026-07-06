@@ -5,14 +5,14 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 
+import { AuthGuard } from './auth-guard';
+import { RouteErrorFallback } from './route-error-fallback';
+
 import { AuthPage } from '@/pages/auth';
 import { PhotoDetailPage } from '@/pages/photo-detail';
 import { PhotoListPage } from '@/pages/photo-list';
 import { UploadPage } from '@/pages/upload';
 import { TopBar } from '@/widgets/top-bar';
-
-import { AuthGuard } from './auth-guard';
-import { RouteErrorFallback } from './route-error-fallback';
 
 /**
  * 모든 라우트 위에 항상 마운트되는 레이아웃.
@@ -24,6 +24,20 @@ function RootLayout() {
       <TopBar />
       <Outlet />
     </div>
+  );
+}
+
+/**
+ * /photos와 /upload가 공유하는 레이아웃.
+ * - 목록을 항상 마운트해 두고 업로드 시트는 Outlet 오버레이로 띄운다.
+ * - /photos ↔ /upload 이동 시 목록이 언마운트되지 않아 사진을 다시 받지 않는다.
+ */
+function PhotoListLayout() {
+  return (
+    <>
+      <PhotoListPage />
+      <Outlet />
+    </>
   );
 }
 
@@ -56,14 +70,12 @@ const router = createBrowserRouter([
             errorElement: <RouteErrorFallback backTo="/login" />,
           },
           {
-            path: '/upload',
-            element: <UploadPage />,
+            element: <PhotoListLayout />,
             errorElement: <RouteErrorFallback backTo="/photos" />,
-          },
-          {
-            path: '/photos',
-            element: <PhotoListPage />,
-            errorElement: <RouteErrorFallback backTo="/photos" />,
+            children: [
+              { path: '/photos' },
+              { path: '/upload', element: <UploadPage /> },
+            ],
           },
           {
             path: '/photos/:id',

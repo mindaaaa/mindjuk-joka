@@ -5,12 +5,17 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 
+import { photoKeys, type PhotoListFilters } from './keys';
+import { toPhoto } from '../lib/mapper';
+import type {
+  InfiniteMedia,
+  MediaDto,
+  MediaListResponse,
+  Photo,
+} from '../model/types';
+
 import { buildQuery, http } from '@/shared/api';
 import { recordMediaListSlow } from '@/shared/lib/business-ux-logging';
-
-import { toPhoto } from '../lib/mapper';
-import type { MediaDto, MediaListResponse, Photo } from '../model/types';
-import { photoKeys, type PhotoListFilters } from './keys';
 
 const PAGE_SIZE = 20;
 
@@ -68,6 +73,35 @@ export function findPhotoInListCache(
   }
 
   return undefined;
+}
+
+/**
+ * 업로드 직후 새 사진을 목록 캐시 맨 앞에 낙관적으로 끼워넣는다.
+ * - 로컬 objectURL을 쓰므로 이 사진에 대한 별도 네트워크 요청은 없다.
+ * - 실제 서버 데이터는 다음 정상 fetch가 교체한다.
+ */
+export function prependMediaToLists(
+  queryClient: QueryClient,
+  dto: MediaDto,
+): void {
+  queryClient.setQueriesData<InfiniteMedia>(
+    { queryKey: photoKeys.lists() },
+    (data) => {
+      const first = data?.pages[0];
+      if (!data || !first) return data;
+
+      const exists = data.pages.some((page) =>
+        page.items.some((it) => it.id === dto.id),
+      );
+      if (exists) return data;
+
+      const updatedFirst: MediaListResponse = {
+        ...first,
+        items: [dto, ...first.items],
+      };
+      return { ...data, pages: [updatedFirst, ...data.pages.slice(1)] };
+    },
+  );
 }
 
 async function fetchPhotoDetail(id: string): Promise<Photo> {
