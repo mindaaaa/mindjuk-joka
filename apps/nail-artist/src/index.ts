@@ -1,5 +1,4 @@
 import { S3Client } from '@joka/infra-object-storage/src/infrastructure/impl/S3Client';
-import type { ImagesPort } from '@joka/infra-thumbnail/src';
 import ClientFactory from '@joka/lib-drizzle/src/client';
 
 import Config from './application/config';
@@ -24,9 +23,8 @@ export default {
     }
 
     Config.mediaBucketName = env.OBJECT_STORAGE_BUCKET_NAME;
-    // 요청 스코프 IMAGES 바인딩을 전역에 주입한다. workers-types의 input()은
-    // ReadableStream을 명시하나 런타임은 ArrayBuffer를 수용하므로 좁은 포트로 단언한다.
-    Config.images = env.IMAGES as unknown as ImagesPort;
+    // 요청 스코프 IMAGES 바인딩을 전역에 주입한다(어댑터가 좁은 포트로 감쌈).
+    Config.images = env.IMAGES;
 
     await consumeThumbnailBatch(batch);
   },

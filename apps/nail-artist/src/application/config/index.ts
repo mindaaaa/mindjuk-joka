@@ -4,12 +4,13 @@ import { MediaService } from '@joka/domain-media/src/service/media.service';
 import { ImagesPort } from '@joka/infra-thumbnail/src';
 
 import { ThumbnailStrategy } from '../../domain/strategy/ThumbnailStrategy';
+import { CloudflareImagesAdapter } from '../../infrastructure/images/CloudflareImagesAdapter';
 import { ImageThumbnailStrategy } from '../../infrastructure/strategy/ImageThumbnailStrategy';
 import { VideoThumbnailStrategy } from '../../infrastructure/strategy/VideoThumbnailStrategy';
 
 class Config {
   private bucketName: string | null = null;
-  private imagesPort: ImagesPort | null = null;
+  private imagesBinding: ImagesBinding | null = null;
 
   get mediaService() {
     const mediaRepository = new MediaRepository();
@@ -28,15 +29,16 @@ class Config {
   }
 
   // 배치 진입 시 env.IMAGES를 전역에 주입한다(joka-api의 batch-wiring 관용구와 동형).
+  // 소비자에겐 좁은 ImagesPort로만 노출하고, Workers 바인딩은 어댑터가 감싼다.
   get images(): ImagesPort {
-    if (!this.imagesPort) {
+    if (!this.imagesBinding) {
       throw new UncaughtException('IMAGES binding is not configured');
     }
-    return this.imagesPort;
+    return new CloudflareImagesAdapter(this.imagesBinding);
   }
 
-  set images(value: ImagesPort) {
-    this.imagesPort = value;
+  set images(value: ImagesBinding) {
+    this.imagesBinding = value;
   }
 
   // mimeType 우선순위 순으로 전략을 선택한다.
