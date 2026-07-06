@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/app/providers/error-boundary';
-import { useAlbumStore, useCurrentAlbumRole } from '@/entities/album';
+import {
+  useAlbums,
+  useAlbumStore,
+  useCurrentAlbumRole,
+} from '@/entities/album';
 import {
   PhotoCard,
   selectPhotos,
@@ -102,6 +106,10 @@ export function PhotoListPage() {
   const selectedIds = useSelectedIds();
 
   const albumId = useAlbumStore((s) => s.current?.id);
+
+  const albumsQuery = useAlbums();
+  const albumsSettled = albumsQuery.isSuccess || albumsQuery.isError;
+
   const query = usePhotosInfinite(
     { sortBy: 'createdAt', order },
     { enabled: !!albumId },
@@ -157,7 +165,7 @@ export function PhotoListPage() {
       <ErrorBoundary fallback={(error) => <GridErrorFallback error={error} />}>
         <PhotoGrid
           photos={photos}
-          isLoading={!albumId || query.isLoading}
+          isLoading={!albumsSettled || query.isLoading}
           isFetchingNextPage={query.isFetchingNextPage}
           hasNextPage={!!query.hasNextPage}
           onLoadMore={() => query.fetchNextPage()}

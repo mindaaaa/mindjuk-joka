@@ -3,6 +3,7 @@ export {
   usePhotosInfinite,
   usePhotoDetail,
   findPhotoInListCache,
+  prependMediaToLists,
   selectPhotos,
   nextCursorOf,
 } from './api/queries';

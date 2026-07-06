@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
 import { ImageIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import type { Photo } from '@/entities/photo';
 import { useIntersection } from '@/shared/lib/hooks/use-intersection';
@@ -16,25 +16,40 @@ interface PhotoGridProps {
   emptyAction?: ReactNode;
 }
 
-// CSS 멀티컬럼 메이슨리: 2열, 카드 높이는 사진 비율대로 제각각.
-const MASONRY_CLASS = 'columns-2 gap-3';
-const ITEM_CLASS = 'mb-3 break-inside-avoid';
+const COLUMN_COUNT = 2;
+const MASONRY_CLASS = 'flex gap-3';
+const COLUMN_CLASS = 'flex flex-1 flex-col gap-3 min-w-0';
+
+// 라운드로빈으로 열에 나눠 담아 행 우선 읽기 순서 유지
+// [0,1,2,3,4,5] → [[0,2,4],[1,3,5]]
+function toColumns<T>(items: T[], columns: number): T[][] {
+  const buckets: T[][] = Array.from({ length: columns }, () => []);
+  items.forEach((item, i) => buckets[i % columns]!.push(item));
+  return buckets;
+}
 
 // 메이슨리 느낌의 스켈레톤(높이 제각각)
 const SKELETON_HEIGHTS = ['h-40', 'h-56', 'h-44', 'h-64', 'h-48', 'h-52'];
 
 function GridSkeleton({ count = 12 }: { count?: number }) {
+  const columns = toColumns(
+    Array.from({ length: count }, (_, i) => i),
+    COLUMN_COUNT,
+  );
   return (
     <div className={MASONRY_CLASS}>
-      {Array.from({ length: count }, (_, i) => (
-        <Skeleton
-          key={i}
-          className={cn(
-            'w-full rounded-2xl bg-black/5 dark:bg-white/5',
-            ITEM_CLASS,
-            SKELETON_HEIGHTS[i % SKELETON_HEIGHTS.length],
-          )}
-        />
+      {columns.map((col, c) => (
+        <div key={c} className={COLUMN_CLASS}>
+          {col.map((i) => (
+            <Skeleton
+              key={i}
+              className={cn(
+                'w-full rounded-2xl bg-black/5 dark:bg-white/5',
+                SKELETON_HEIGHTS[i % SKELETON_HEIGHTS.length],
+              )}
+            />
+          ))}
+        </div>
       ))}
     </div>
   );
@@ -75,9 +90,9 @@ export function PhotoGrid({
   return (
     <div className="space-y-3">
       <div className={MASONRY_CLASS}>
-        {photos.map((photo) => (
-          <div key={photo.id} className={ITEM_CLASS}>
-            {renderCard(photo)}
+        {toColumns(photos, COLUMN_COUNT).map((col, c) => (
+          <div key={c} className={COLUMN_CLASS}>
+            {col.map((photo) => renderCard(photo))}
           </div>
         ))}
       </div>

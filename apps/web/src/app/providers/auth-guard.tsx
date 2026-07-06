@@ -78,6 +78,10 @@ export function AuthGuard() {
 
   const isPublic = PUBLIC_PATHS.has(location.pathname);
 
+  if (isPublic && status !== 'authenticated') {
+    return <Outlet />;
+  }
+
   const isCheckingSession = status === 'idle' && meQuery.isPending;
   if (isCheckingSession) {
     return <GuardFallback />;
