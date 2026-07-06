@@ -208,6 +208,18 @@ export class MediaRepository {
     return media;
   }
 
+  // 시스템 전용: media.cid가 전역 유일하므로 album 무관하게 조회한다.
+  async findByCid(cid: string): Promise<Media> {
+    const [found] = await this.selectAndJoinClause().where(eq(media.cid, cid));
+    if (!found) {
+      throw new NotFoundException('MEDIA_NOT_FOUND', [
+        `Media(${cid})가 존재하지 않습니다.`,
+      ]);
+    }
+
+    return this.refine(found);
+  }
+
   async update(target: Media): Promise<Media> {
     return this.connection.transaction(async (trx) => {
       // 1. update media

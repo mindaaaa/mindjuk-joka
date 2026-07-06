@@ -7,6 +7,7 @@ import {
   ListMediaPagination,
 } from '../domain/ListMediaCondition';
 import { Media, DraftMedia } from '../domain/Media';
+import { Thumbnail } from '../domain/Thumbnail';
 import { UpdateMediaRequest } from '../domain/UpdateMediaRequest';
 import { MediaRepository } from '../infrastructure/persistence/media.repository';
 
@@ -74,6 +75,17 @@ export class MediaService {
 
   get(context: Context, request: GetRequest): Promise<Media> {
     return this.repository.findOne(context.album.id, request.cid);
+  }
+
+  // 시스템 전용: 사용자 세션 없이 cid만으로 조회한다(권한 검사 없음).
+  getByCid(mediaCid: string): Promise<Media> {
+    return this.repository.findByCid(mediaCid);
+  }
+
+  // 시스템 전용: COMPLETE 미디어의 content에 thumbnail만 부착한다.
+  attachThumbnail(media: Media, thumbnail: Thumbnail): Promise<Media> {
+    const content = media.content!.attachThumbnail(thumbnail);
+    return this.repository.update(media.setContent(content));
   }
 
   async update(context: Context, request: UpdateMediaRequest): Promise<Media> {

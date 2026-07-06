@@ -59,7 +59,15 @@ export class Content {
     return result;
   }
 
-  // TODO: Content가 Thumbnail을 만들 수 있도록 하기
+  attachThumbnail(thumbnail: Thumbnail): Content {
+    return new Content(
+      this.url,
+      this.size,
+      this.eTag,
+      this.mimeType,
+      thumbnail,
+    );
+  }
 }
 
 export type ContentType = z.infer<typeof Content.Schema>;
