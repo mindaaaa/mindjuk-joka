@@ -79,6 +79,7 @@ describe('MediaService', () => {
       insert: jest.fn(),
       findMany: jest.fn(),
       findOne: jest.fn(),
+      findByCid: jest.fn(),
       update: jest.fn(),
       deleteOne: jest.fn(),
     } as unknown as jest.Mocked<MediaRepository>;
@@ -179,6 +180,51 @@ describe('MediaService', () => {
       // then
       expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
       expect(result).toBe(expectedMedia);
+    });
+  });
+
+  describe('getByCid', () => {
+    it('album 무관하게 cid로 미디어를 조회한다(권한 검사 없음)', async () => {
+      // given
+      const expectedMedia = createMockMedia();
+      mockRepository.findByCid.mockResolvedValue(expectedMedia as any);
+
+      // when
+      const result = await service.getByCid('media-123');
+
+      // then
+      expect(mockRepository.findByCid).toHaveBeenCalledWith('media-123');
+      expect(result).toBe(expectedMedia);
+    });
+  });
+
+  describe('attachThumbnail', () => {
+    it('content에 thumbnail을 부착한 뒤 repository.update를 호출한다', async () => {
+      // given
+      const thumbnail = { blurhash: 'LEHV6nWB' };
+      const attachedContent = { withThumbnail: true };
+      const media = createMockMedia({
+        content: {
+          attachThumbnail: jest.fn().mockReturnValue(attachedContent),
+        },
+        setContent: jest.fn().mockReturnThis(),
+      });
+      const updatedMedia = createMockMedia({ state: 'COMPLETE' });
+      mockRepository.update.mockResolvedValue(updatedMedia as any);
+
+      // when
+      const result = await service.attachThumbnail(
+        media as any,
+        thumbnail as any,
+      );
+
+      // then
+      // @ts-ignore
+      expect(media.content.attachThumbnail).toHaveBeenCalledWith(thumbnail);
+      // @ts-ignore
+      expect(media.setContent).toHaveBeenCalledWith(attachedContent);
+      expect(mockRepository.update).toHaveBeenCalledWith(media);
+      expect(result).toBe(updatedMedia);
     });
   });
 
@@ -303,9 +349,9 @@ describe('MediaService', () => {
       mockRepository.findOne.mockResolvedValue(targetMedia as any);
 
       // when & then
-      await expect(
-        service.delete(context as any, request),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.delete(context as any, request)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });
