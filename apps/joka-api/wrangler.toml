@@ -24,6 +24,11 @@ binding = "HYPERDRIVE"
 id = "b620191d4d484662be45eff46fd9b692"
 localConnectionString = "postgres://admin:my-very-secure-pw@localhost:5432/mindjuk"
 
+# 썸네일 추출 큐 producer 바인딩(consumer는 nail-artist)
+[[queues.producers]]
+queue = "thumbnail-jobs"
+binding = "THUMBNAIL_QUEUE"
+
 # 일반 환경 변수
 [vars]
 AUTH_SUCCESS_REDIRECT = "https://joka.mindjuk.quest"
