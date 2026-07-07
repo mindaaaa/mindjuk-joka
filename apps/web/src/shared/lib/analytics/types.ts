@@ -3,6 +3,8 @@ import type { UserRole } from '@/entities/user';
 export type AnalyticsEvent =
   | 'auth.login_success'
   | 'auth.logout'
+  | 'album.list_view'
+  | 'album.select'
   | 'list.view'
   | 'list.scroll_depth'
   | 'detail.view'
