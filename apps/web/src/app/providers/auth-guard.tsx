@@ -68,13 +68,14 @@ export function AuthGuard() {
   useEffect(() => {
     if (!albumsQuery.isSuccess) return;
 
-    const first = albumsQuery.data[0] ?? null;
-    const shouldUpdate = first !== null && first.id !== currentAlbum?.id;
-
-    if (shouldUpdate) {
-      setAlbum(first);
+    // 앨범 접근권을 잃었으면(강퇴/삭제) 선택 해제
+    if (currentAlbum) {
+      const stillExists = albumsQuery.data.some(
+        (a) => a.id === currentAlbum.id,
+      );
+      if (!stillExists) setAlbum(null);
     }
-  }, [albumsQuery.isSuccess, albumsQuery.data, currentAlbum?.id, setAlbum]);
+  }, [albumsQuery.isSuccess, albumsQuery.data, currentAlbum, setAlbum]);
 
   const isPublic = PUBLIC_PATHS.has(location.pathname);
 
@@ -95,6 +96,19 @@ export function AuthGuard() {
   const isAlreadyLoggedIn = status === 'authenticated' && isPublic;
   if (isAlreadyLoggedIn) {
     return <Navigate to="/photos" replace />;
+  }
+
+  // /albums는 제외 — 안 그러면 무한 리다이렉트
+  const isAlbumSelectRoute = location.pathname === '/albums';
+  const needsAlbumSelection =
+    status === 'authenticated' &&
+    !isPublic &&
+    !isAlbumSelectRoute &&
+    !currentAlbum;
+
+  if (needsAlbumSelection) {
+    if (albumsQuery.isPending) return <GuardFallback />;
+    return <Navigate to="/albums" replace />;
   }
 
   const isEditorRoute = isEditorOnly(location.pathname);
