@@ -12,32 +12,63 @@ import {
 } from '@/features/auth';
 import { SelectToggle } from '@/features/photo-select';
 import { ThemeToggle } from '@/features/theme';
+import { cn } from '@/shared/lib/utils/cn';
 import { Button } from '@/shared/ui/button';
 
+/**
+ * 모든 라우트에 상시 노출되는 상단 바
+ * - 로그인(풀블리드)에서는 투명 오버레이로 떠서 배경 이미지를 가리지 않는다.
+ * - 로고를 제외한 액션은 인증 여부로 한 지점에서만 분기한다.
+ */
 export function TopBar() {
   const isAuthenticated = useIsAuthenticated();
+  const isImmersive = useLocation().pathname === '/login';
+
+  return (
+    <header
+      className={cn(
+        'top-0 z-40',
+        isImmersive
+          ? 'absolute inset-x-0'
+          : 'sticky border-b border-border bg-background/95 backdrop-blur',
+      )}
+    >
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+        <Logo immersive={isImmersive} />
+        {isAuthenticated ? <AuthActions /> : null}
+      </div>
+    </header>
+  );
+}
+
+/** 몰입형(이미지 배경) 화면에서 가독성을 위해 그림자를 얹는다. */
+function Logo({ immersive }: { immersive: boolean }) {
+  return (
+    <Link
+      to="/photos"
+      className={cn(
+        'text-lg font-bold tracking-tight',
+        immersive &&
+          '[text-shadow:0_1px_2px_rgba(255,255,255,0.55)] dark:[text-shadow:0_1px_3px_rgba(0,0,0,0.55)]',
+      )}
+    >
+      JOKA
+    </Link>
+  );
+}
+
+/** 로그인 이후에만 노출되는 액션 묶음. 요소가 늘어나도 여기서만 늘어난다. */
+function AuthActions() {
   const role = useCurrentAlbumRole();
   const isListRoute = useLocation().pathname.endsWith('/photos');
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link to="/photos" className="text-lg font-bold tracking-tight">
-          JOKA
-        </Link>
-
-        <nav className="flex items-center gap-1.5">
-          {isAuthenticated && isListRoute ? <SelectToggle /> : null}
-          <ThemeToggle />
-          {isAuthenticated ? (
-            <>
-              <UploadFab role={role} />
-              <LogoutButton />
-            </>
-          ) : null}
-        </nav>
-      </div>
-    </header>
+    <nav className="flex items-center gap-1.5">
+      {isListRoute ? <SelectToggle /> : null}
+      <ThemeToggle />
+      <UploadFab role={role} />
+      <LogoutButton />
+    </nav>
   );
 }
 
