@@ -12,8 +12,20 @@ const EVENTS_PATH = '/v1/events';
 const MAX_BUFFER = 20;
 const FLUSH_INTERVAL_MS = 10_000;
 
+// 우발적 중복 접기 (StrictMode 이중 마운트, 빠른 재렌더 등)
+const DEDUP_WINDOW_MS = 500;
+// 분당 상한 (렌더 루프 같은 버그 폭주)
+const RATE_WINDOW_MS = 60_000;
+const MAX_EVENTS_PER_MINUTE = 120;
+
 const buffer: EventEnvelope[] = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
+
+let lastKey: string | null = null;
+let lastKeyAt = 0;
+
+let windowStart = 0;
+let windowCount = 0;
 
 export function initAnalytics(): void {
   window.addEventListener('pagehide', () => flush(true));
@@ -25,6 +37,24 @@ export function initAnalytics(): void {
 }
 
 export function track(event: AnalyticsEvent, props?: AnalyticsProps): void {
+  const now = Date.now();
+
+  const key = `${event}|${routePattern()}|${props ? JSON.stringify(props) : ''}`;
+  if (key === lastKey && now - lastKeyAt < DEDUP_WINDOW_MS) {
+    return;
+  }
+  lastKey = key;
+  lastKeyAt = now;
+
+  if (now - windowStart >= RATE_WINDOW_MS) {
+    windowStart = now;
+    windowCount = 0;
+  }
+  if (windowCount >= MAX_EVENTS_PER_MINUTE) {
+    return;
+  }
+  windowCount += 1;
+
   buffer.push(buildEnvelope(event, props));
 
   if (buffer.length >= MAX_BUFFER) {
@@ -91,4 +121,8 @@ export function resetForTests(): void {
     timer = null;
   }
   buffer.length = 0;
+  lastKey = null;
+  lastKeyAt = 0;
+  windowStart = 0;
+  windowCount = 0;
 }
