@@ -275,6 +275,14 @@ async extract(content: Content): Promise<Thumbnail> {
 ### D1. 컨테이너 소유 = nail-artist Worker(별도 Worker 지양)
 Cloudflare 컨테이너는 이를 바인딩한 Worker의 DO로만 구동되므로, **컨테이너를 소유하는 Worker는 nail-artist**로 한다. `nail-clipper`는 **컨테이너 소스(Go + Dockerfile)**일 뿐 독립 Worker가 아니다. 대안(**nail-clipper를 별도 Worker로 만들고 service binding으로 호출**)은 Worker 인보케이션·지연·복잡도를 늘려 비용/단순성 목표에 반한다 → **YAGNI로 기각.** DO 클래스·wrangler 컨테이너 설정·바인딩은 nail-artist에 둔다.
 
+> **추후 재검토(2026-07-08) — 경로 A(service binding)로 분리 예정.** 위 D1은 현 스프린트에선 유지하되, **추후 nail-clipper를 컨테이너 소유 독립 Worker로 분리**하기로 한다. 이유: (1) nail-clipper는 언어·런타임·수명주기가 다른 Go 컨테이너인데, 현재 모델은 **매 nail-artist 배포마다 150MB 이미지가 결합 재빌드**된다 — 분리하면 라이프사이클이 끊긴다. (2) 경계가 명확해지고 모노레포의 "앱마다 자체 배포" 일관성에 맞는다. **D1이 든 비용·지연 반대 논거는 100건/월 규모에선 사실상 무력**하다(추가 Worker 인보케이션도 무료 구간, 홉 +수 ms는 비동기 썸네일에 무의미). 참고로 컨테이너는 "순수 단독" 배포가 불가하므로(항상 어떤 Worker의 DO), "nail-clipper 자체 배포"는 **얇은 전용 Worker를 주는 것**을 뜻한다.
+>
+> **분리 방식(경로 A)**: nail-clipper에 전용 Worker(`wrangler.toml` + `src/index.ts` DO export + `[[containers]]` + migration)를 신설해 컨테이너를 이관 → nail-artist는 **service binding**(`[[services]] service = "nail-clipper"`)으로 `env.NAIL_CLIPPER.fetch(request)` 호출(현 `getContainer(...).fetch()` 로직은 nail-clipper Worker 내부로 이동).
+>
+> **분리 시 뒤집히는 것(현 결정과의 충돌 — 전환 시 함께 수정)**: ① **배포 순서 반전** — nail-artist가 nail-clipper(service)를 참조하므로 **nail-clipper를 먼저** 배포해야 정합적(현재 상정한 "nail-artist 먼저"의 반대). ② **워크스페이스 의존성 반전** — 현재 `@joka/nail-clipper → @joka/nail-artist`를 **`@joka/nail-artist → @joka/nail-clipper`로 뒤집는다**(현 모델에선 nail-clipper 독립 배포가 없어 그 의존성은 상징적이었다).
+>
+> **유보(경로 B 배제 사유)**: cross-script DO 바인딩(`script_name`)은 홉 없이 직접 DO 접근이 가능하나, **컨테이너-backed DO의 cross-script 지원 안정성이 미확인**이라 검증 전엔 경로 A(service binding)를 택한다.
+
 ### D2. Wire 계약 — `POST /thumbnail { sourceUrl }` → gif body + `X-Blurhash`
 `.containerFetch`가 Request/Response를 그대로 통과시키므로 별도 프로토콜이 불필요. **gif는 바이너리 body**, **blurhash는 헤더**로 실어 base64 JSON의 ~33% 부풀림을 피한다. 실패는 non-2xx로 알리고 nail-artist가 로그·drop(nail-artist ADR D3).
 
