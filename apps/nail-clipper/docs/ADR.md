@@ -165,7 +165,7 @@ import { Container } from '@cloudflare/containers';
 
 export class NailClipperContainer extends Container {
   defaultPort = 8080;
-  sleepAfter = '30s';                // 최소 idle → scale-to-zero. mediaCid 라우팅상 warm 재사용 이득이 없어 짧게(§3.7 D7)
+  sleepAfter = '5s';                 // 최소 idle → scale-to-zero. mediaCid 라우팅상 warm 재사용 이득이 없어 짧게(§3.7 D7)
   override onError(error: unknown) { console.error('[nail-clipper] container error', error); }
 }
 ```
@@ -178,7 +178,8 @@ image = "../nail-clipper/Dockerfile"
 image_build_context = "../nail-clipper"
 instance_type = "basic"            # 1/4 vCPU · 1 GiB · 4GB disk (§5)
 max_instances = 6                  # ★ 3이면 부족: 활성 최대 2(큐 max_concurrency) + 직전 잡 인스턴스들이
-                                   #   sleepAfter=30s 동안 idle로 생존 → 정상 부하에서 동시 4개까지 도달.
+                                   #   sleepAfter=5s 동안 idle로 생존(창이 짧아 겹침은 30s 때보다 적다).
+                                   #   6은 넉넉한 상한이고 상향은 무료라 그대로 유지.
                                    #   초과 시 신규 기동 실패 → 재시도 없음(D3)이라 썸네일이 조용히 유실된다.
                                    #   비용은 사용량(실행 시간) 기준이지 이 상한 값 기준이 아니므로 상향은 무료.
 name = "nail-clipper"
@@ -266,7 +267,7 @@ async extract(content: Content): Promise<Thumbnail> {
 - **라우팅**: `getContainer(env.NAIL_CLIPPER, mediaCid)`로 **mediaCid별 인스턴스**에 보낸다.
   - 큐 `max_concurrency=2`면 최대 2건이 동시에 처리될 수 있는데, **싱글턴**이면 두 ffmpeg가 한 0.25 vCPU 인스턴스에서 경합해 **20초 예산을 위협**한다. mediaCid별 라우팅은 잡마다 별도 인스턴스라 **CPU 경합이 없다**.
   - 재시도가 없으므로(nail-artist ADR D3) "warm 인스턴스 재사용" 이득은 크지 않고, **경합 회피가 20초 상한 방어에 더 중요**하다.
-- **scale-to-zero**: `sleepAfter = '30s'`. mediaCid별 라우팅 + 재시도 부재(nail-artist D3)라 **warm 인스턴스 재사용 이득이 사실상 없으므로**, sleepAfter는 "cold start 완화" 명목이 아니라 **잡 종료 후 idle을 최소로 줄이는** 값이다. 즉 매 잡마다 cold start가 발생하지만, 썸네일은 비동기라 허용된다(§6). 라우팅을 싱글턴/소풀로 바꿔 warm 재사용을 노린다면 이 값을 몇 분으로 키우는 게 정합적이나, 20초 예산의 CPU 경합 위험 때문에 라우팅을 유지하고 sleepAfter를 짧게 두는 쪽을 택한다.
+- **scale-to-zero**: `sleepAfter = '5s'`. mediaCid별 라우팅 + 재시도 부재(nail-artist D3)라 **warm 인스턴스 재사용 이득이 사실상 없으므로**, sleepAfter는 "cold start 완화" 명목이 아니라 **잡 종료 후 idle을 최소로 줄이는** 값이다. 즉 매 잡마다 cold start가 발생하지만, 썸네일은 비동기라 허용된다(§6). 라우팅을 싱글턴/소풀로 바꿔 warm 재사용을 노린다면 이 값을 몇 분으로 키우는 게 정합적이나, 20초 예산의 CPU 경합 위험 때문에 라우팅을 유지하고 sleepAfter를 짧게 두는 쪽을 택한다.
 
 ---
 
@@ -303,7 +304,7 @@ Cloudflare 컨테이너는 이를 바인딩한 Worker의 DO로만 구동되므�
 
 **두 개의 시계는 별개다.** `20초 실행 상한`(D5)은 한 잡의 *능동 처리 시간*을, `sleepAfter`는 마지막 요청 이후 *idle하게 켜져 있는 시간*을 잰다. 따라서 `sleepAfter`가 20초보다 커도 모순이 아니다(측정 대상이 다름).
 
-idle 비용의 유일한 실질 레버인 `sleepAfter`를 **`30s`로 최소화**한다. 통상 `sleepAfter`는 "다음 요청을 위한 warm keep-alive"지만, 우리는 **D6에서 mediaCid별 라우팅**을 택해 서로 다른 영상이 서로 다른 인스턴스로 가고 **재시도도 없어(nail-artist D3) warm 재사용 이득이 사실상 0**이다. 그러므로 sleepAfter는 재사용을 노리는 값이 아니라 **잡 종료 후 idle을 최소로 줄이는** 값으로 둔다(nail-artist ADR §5 "20초 상한만으로는 idle 비용을 못 막는다"). 비용상으로는 30s든 몇 분이든 100건/월에선 모두 $0라 실무 차이는 없고(§5), **라우팅 결정과의 정합성** 때문에 짧게 유지한다.
+idle 비용의 유일한 실질 레버인 `sleepAfter`를 **`5s`로 최소화**한다. 통상 `sleepAfter`는 "다음 요청을 위한 warm keep-alive"지만, 우리는 **D6에서 mediaCid별 라우팅**을 택해 서로 다른 영상이 서로 다른 인스턴스로 가고 **재시도도 없어(nail-artist D3) warm 재사용 이득이 사실상 0**이다. 그러므로 sleepAfter는 재사용을 노리는 값이 아니라 **잡 종료 후 idle을 최소로 줄이는** 값으로 둔다(nail-artist ADR §5 "20초 상한만으로는 idle 비용을 못 막는다"). 비용상으로는 5s든 몇 분이든 100건/월에선 모두 $0라 실무 차이는 없으나(§5), **라우팅 결정과의 정합성**과 잡당 idle 과금 최소화를 위해 최대한 짧게 둔다. 처리 중 요청은 `inflightRequests > 0`인 동안 sleep이 유예되므로(@cloudflare/containers `isActivityExpired`), 20초 잡이 5s로 인해 잘릴 위험은 없다.
 
 ### D8. 컨테이너 바인딩 주입 — 배치당 전역 configure(nail-artist D8 답습)
 `env.NAIL_CLIPPER`(DO 네임스페이스)를 `queue()` 진입 시 `Config.nailClipper = env.NAIL_CLIPPER`로 주입한다. `Config.images = env.IMAGES`·`S3Client.init(...)`와 **동형** → nail-artist 관용구 일관성 유지(nail-artist ADR §0.4).
@@ -319,7 +320,7 @@ idle 비용의 유일한 실질 레버인 `sleepAfter`를 **`30s`로 최소화**
 **영상 100개/월 × 최대 20초, `basic`(0.25 vCPU · 1 GiB)** 가정:
 - CPU: 100 × 20s × 0.25 = **500 vCPU-초** ≪ 22,500 → **$0**
 - 메모리(실행분): 100 × 20s × 1 GiB = **2,000 GiB-초** ≪ 90,000 → **$0**
-- **idle 메모리(핵심 감시)**: `sleepAfter=30s`이면 잡당 최대 30초 idle × 1 GiB = 100 × 30 × 1 = **3,000 GiB-초** ≪ 90,000 → **$0**. (참고로 `5m`로 늘려도 30,000 GiB-초로 아직 여유지만, mediaCid 라우팅상 재사용 이득이 없어 짧게 유지 — D7.)
+- **idle 메모리(핵심 감시)**: `sleepAfter=5s`이면 잡당 최대 5초 idle × 1 GiB = 100 × 5 × 1 = **500 GiB-초** ≪ 90,000 → **$0**. (참고로 `5m`로 늘려도 30,000 GiB-초로 아직 여유지만, mediaCid 라우팅상 재사용 이득이 없어 짧게 유지 — D7.)
 - cold start(부팅) 시간도 provisioned로 계상되나 100건 규모에선 위 여유 안.
 - R2: 썸네일 gif PUT 100(Class A) ≪ 1M, 저장 수십 MB ≪ 10GB → **$0**.
 - **Cloudflare Images: 미사용**(영상 blurhash는 컨테이너가 계산). 즉 영상 경로는 Images 변환 과금 벡터가 아니다.
