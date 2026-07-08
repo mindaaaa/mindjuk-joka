@@ -8,6 +8,10 @@ import type { AnalyticsEvent, AnalyticsProps, EventEnvelope } from './types';
 
 import { env } from '@/shared/config/env';
 
+export interface TrackOptions {
+  bypassRateLimit?: boolean;
+}
+
 const EVENTS_PATH = '/v1/events';
 const MAX_BUFFER = 20;
 const FLUSH_INTERVAL_MS = 10_000;
@@ -36,7 +40,11 @@ export function initAnalytics(): void {
   });
 }
 
-export function track(event: AnalyticsEvent, props?: AnalyticsProps): void {
+export function track(
+  event: AnalyticsEvent,
+  props?: AnalyticsProps,
+  options?: TrackOptions,
+): void {
   const now = Date.now();
 
   const key = `${event}|${routePattern()}|${props ? JSON.stringify(props) : ''}`;
@@ -46,14 +54,10 @@ export function track(event: AnalyticsEvent, props?: AnalyticsProps): void {
   lastKey = key;
   lastKeyAt = now;
 
-  if (now - windowStart >= RATE_WINDOW_MS) {
-    windowStart = now;
-    windowCount = 0;
-  }
-  if (windowCount >= MAX_EVENTS_PER_MINUTE) {
+  // 전량 수집이 목적인 계측 이벤트는 상한을 건너뜀
+  if (!options?.bypassRateLimit && isRateLimited(now)) {
     return;
   }
-  windowCount += 1;
 
   buffer.push(buildEnvelope(event, props));
 
@@ -62,6 +66,18 @@ export function track(event: AnalyticsEvent, props?: AnalyticsProps): void {
     return;
   }
   scheduleFlush();
+}
+
+function isRateLimited(now: number): boolean {
+  if (now - windowStart >= RATE_WINDOW_MS) {
+    windowStart = now;
+    windowCount = 0;
+  }
+  if (windowCount >= MAX_EVENTS_PER_MINUTE) {
+    return true;
+  }
+  windowCount += 1;
+  return false;
 }
 
 function buildEnvelope(

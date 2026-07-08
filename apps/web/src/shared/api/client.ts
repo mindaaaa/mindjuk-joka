@@ -1,12 +1,14 @@
-import { env } from '@/shared/config/env';
-import { ApiError, reportApiError, toApiError } from './error';
-import { createRefresher } from './refresh';
 import { authTokenStore } from './auth-token';
+import { ApiError, reportApiError, toApiError } from './error';
 import {
   type ApiRequest,
   attachAuthHeader,
   attachAlbumHeader,
 } from './interceptors';
+import { createRefresher } from './refresh';
+
+import { env } from '@/shared/config/env';
+import { trackApiTiming } from '@/shared/lib/analytics';
 
 const DEFAULT_BASE_URL = env.VITE_API_BASE_URL;
 const DEFAULT_REFRESH_PATH = env.VITE_AUTH_REFRESH_PATH;
@@ -84,9 +86,17 @@ async function parseResponse(response: Response): Promise<unknown> {
 }
 
 async function sendRequest(ctx: ApiRequest): Promise<Response> {
+  const method = ctx.options.method ?? 'GET';
+  const start = performance.now();
+
   try {
-    return await fetch(ctx.url, ctx.options);
+    const response = await fetch(ctx.url, ctx.options);
+    trackApiTiming(ctx.url, method, performance.now() - start, response.status);
+    return response;
   } catch (cause) {
+    // 네트워크 실패도 status 0으로 계측 (이상치 분석에 포함)
+    trackApiTiming(ctx.url, method, performance.now() - start, 0);
+
     const err = new ApiError({
       status: 0,
       code: 'NETWORK',
