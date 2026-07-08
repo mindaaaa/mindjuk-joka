@@ -17,6 +17,24 @@ localConnectionString = "postgres://admin:my-very-secure-pw@localhost:5432/mindj
 [images]
 binding = "IMAGES"
 
+# nail-clipper 컨테이너(Go + ffmpeg) — 영상 썸네일 위임(ADR §3.5).
+# 3블록이 class_name으로 연결된다(전부 필수).
+[[containers]]
+class_name = "NailClipperContainer"
+image = "../nail-clipper/Dockerfile"
+image_build_context = "../nail-clipper"
+instance_type = "basic"            # 1/4 vCPU · 1 GiB · 4GB disk (ADR §5)
+max_instances = 6                  # 활성 2(큐 max_concurrency) + sleepAfter idle 생존분 여유(ADR §3.5)
+name = "nail-clipper"
+
+[[durable_objects.bindings]]
+class_name = "NailClipperContainer"
+name = "NAIL_CLIPPER"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["NailClipperContainer"]   # 컨테이너 DO는 sqlite-backed 강제
+
 # 썸네일 추출 큐 consumer 바인딩(producer는 joka-api)
 # 재시도 없음(max_retries=0) + always-ack: Images 재과금 원천 차단.
 # dead_letter_queue 미도입(놓친 썸네일은 thumbnail=null로 남고 백필로 복구).
