@@ -15,7 +15,7 @@ export function apiPathPattern(pathname: string): string {
  * API 호출 1건의 소요시간을 자체 이벤트 파이프라인으로 전량 수집한다.
  *
  * - path는 정규화하여 개인정보(원본 ID)를 배제하고 통계 그룹 키로만 사용.
- * - bypassRateLimit: 분당 상한에 걸려 계측이 유실되지 않도록 예외 처리.
+ * - raw: 전량 수집이 목적이므로 dedup·분당 상한을 모두 건너뛴다.
  */
 export function trackApiTiming(
   url: string,
@@ -25,7 +25,7 @@ export function trackApiTiming(
 ): void {
   let path: string;
   try {
-    path = apiPathPattern(new URL(url).pathname);
+    path = apiPathPattern(new URL(url, window.location.origin).pathname);
   } catch {
     path = url;
   }
@@ -33,6 +33,6 @@ export function trackApiTiming(
   track(
     'api.timing',
     { path, method, ms: Math.round(durationMs), status },
-    { bypassRateLimit: true },
+    { raw: true },
   );
 }

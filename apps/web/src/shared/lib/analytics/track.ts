@@ -9,7 +9,7 @@ import type { AnalyticsEvent, AnalyticsProps, EventEnvelope } from './types';
 import { env } from '@/shared/config/env';
 
 export interface TrackOptions {
-  bypassRateLimit?: boolean;
+  raw?: boolean;
 }
 
 const EVENTS_PATH = '/v1/events';
@@ -47,15 +47,18 @@ export function track(
 ): void {
   const now = Date.now();
 
-  const key = `${event}|${routePattern()}|${props ? JSON.stringify(props) : ''}`;
-  if (key === lastKey && now - lastKeyAt < DEDUP_WINDOW_MS) {
-    return;
+  // raw 계측 이벤트는 dedup을 건너뛰고 lastKey도 오염시키지 않음
+  if (!options?.raw) {
+    const key = `${event}|${routePattern()}|${props ? JSON.stringify(props) : ''}`;
+    if (key === lastKey && now - lastKeyAt < DEDUP_WINDOW_MS) {
+      return;
+    }
+    lastKey = key;
+    lastKeyAt = now;
   }
-  lastKey = key;
-  lastKeyAt = now;
 
-  // 전량 수집이 목적인 계측 이벤트는 상한을 건너뜀
-  if (!options?.bypassRateLimit && isRateLimited(now)) {
+  // raw 계측 이벤트는 분당 상한 건너뜀
+  if (!options?.raw && consumeRateLimit(now)) {
     return;
   }
 
@@ -68,7 +71,7 @@ export function track(
   scheduleFlush();
 }
 
-function isRateLimited(now: number): boolean {
+function consumeRateLimit(now: number): boolean {
   if (now - windowStart >= RATE_WINDOW_MS) {
     windowStart = now;
     windowCount = 0;

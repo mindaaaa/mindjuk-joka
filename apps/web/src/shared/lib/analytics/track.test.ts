@@ -70,8 +70,7 @@ describe('track / flush', () => {
     expect(lastFetchBody(fetchSpy).events).toHaveLength(20);
   });
 
-  // 정상 유저의 우발적 중복(StrictMode 이중 마운트·빠른 재렌더)과
-  // 코드 버그로 인한 폭주를 걸러, DB·서버리스 호출이 불필요하게 쌓이지 않게 한다
+  // 정상 유저의 우발적 중복과 코드 버그로 인한 폭주를 걸러, DB·서버리스 호출이 불필요하게 쌓이지 않게 한다
   test('동일 이벤트 연타는 우발적 중복으로 접어 1건만 집계', () => {
     const fetchSpy = mockFetch();
 
@@ -107,6 +106,34 @@ describe('track / flush', () => {
       0,
     );
     expect(total).toBe(120);
+  });
+
+  test('raw 이벤트는 dedup·분당 상한을 모두 건너뛰어 전량 수집', () => {
+    const fetchSpy = mockFetch();
+
+    // 동일 props를 150번(상한 120 초과)
+    const props = { path: '/v1/photos/:id', method: 'GET', ms: 1, status: 200 };
+    for (let i = 0; i < 150; i += 1) track('api.timing', props, { raw: true });
+    flush();
+
+    const total = fetchSpy.mock.calls.reduce(
+      (n, c) => n + JSON.parse(c[1]?.body as string).events.length,
+      0,
+    );
+    expect(total).toBe(150);
+  });
+
+  test('raw 이벤트는 일반 이벤트의 dedup 상태를 오염시키지 않음', () => {
+    const fetchSpy = mockFetch();
+
+    track('list.view');
+    track('api.timing', { ms: 1 }, { raw: true });
+    track('list.view'); // 직전 list.view와 동일 → 여전히 dedup에 걸려야
+    flush();
+
+    const events = lastFetchBody(fetchSpy).events as { event: string }[];
+    const listViews = events.filter((e) => e.event === 'list.view');
+    expect(listViews).toHaveLength(1);
   });
 
   test('인터벌 경과 시 자동 flush', () => {
