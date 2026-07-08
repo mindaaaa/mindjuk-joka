@@ -4,6 +4,7 @@ import { MediaService } from '@joka/domain-media/src/service/media.service';
 import { ImagesPort } from '@joka/infra-thumbnail/src';
 
 import { ThumbnailStrategy } from '../../domain/strategy/ThumbnailStrategy';
+import { NailClipperContainer } from '../../infrastructure/container/NailClipperContainer';
 import { CloudflareImagesAdapter } from '../../infrastructure/images/CloudflareImagesAdapter';
 import { ImageThumbnailStrategy } from '../../infrastructure/strategy/ImageThumbnailStrategy';
 import { VideoThumbnailStrategy } from '../../infrastructure/strategy/VideoThumbnailStrategy';
@@ -11,6 +12,8 @@ import { VideoThumbnailStrategy } from '../../infrastructure/strategy/VideoThumb
 class Config {
   private bucketName: string | null = null;
   private imagesBinding: ImagesBinding | null = null;
+  private nailClipperBinding: DurableObjectNamespace<NailClipperContainer> | null =
+    null;
 
   get mediaService() {
     const mediaRepository = new MediaRepository();
@@ -39,6 +42,18 @@ class Config {
 
   set images(value: ImagesBinding) {
     this.imagesBinding = value;
+  }
+
+  // 배치 진입 시 env.NAIL_CLIPPER(컨테이너 DO 네임스페이스)를 전역에 주입한다(ADR D8).
+  get nailClipper(): DurableObjectNamespace<NailClipperContainer> {
+    if (!this.nailClipperBinding) {
+      throw new UncaughtException('NAIL_CLIPPER binding is not configured');
+    }
+    return this.nailClipperBinding;
+  }
+
+  set nailClipper(value: DurableObjectNamespace<NailClipperContainer>) {
+    this.nailClipperBinding = value;
   }
 
   // mimeType 우선순위 순으로 전략을 선택한다.

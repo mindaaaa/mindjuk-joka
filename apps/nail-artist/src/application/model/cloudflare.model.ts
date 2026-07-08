@@ -1,3 +1,5 @@
+import type { NailClipperContainer } from '../../infrastructure/container/NailClipperContainer';
+
 // 썸네일 추출 큐(thumbnail-jobs) 메시지 스키마.
 // joka-api producer가 발행하는 페이로드와 동일하다.
 export interface ThumbnailJob {
@@ -10,6 +12,7 @@ export interface ThumbnailJob {
 export interface Bindings {
   HYPERDRIVE: Hyperdrive;
   IMAGES: ImagesBinding;
+  NAIL_CLIPPER: DurableObjectNamespace<NailClipperContainer>;
   OBJECT_STORAGE_ACCESS_KEY_ID: string;
   OBJECT_STORAGE_SECRET_ACCESS_KEY: string;
   OBJECT_STORAGE_ENDPOINT: string;
