@@ -3,4 +3,5 @@ export { useAlbums } from './api/queries';
 
 export type { Album } from './model/types';
 export { useAlbumStore } from './model/store';
+export { useMainAlbumStore } from './model/main-store';
 export { useCurrentAlbumRole } from './model/selectors';

@@ -8,6 +8,7 @@ import {
 import { AuthGuard } from './auth-guard';
 import { RouteErrorFallback } from './route-error-fallback';
 
+import { AlbumSelectPage } from '@/pages/album-select';
 import { AuthPage } from '@/pages/auth';
 import { PhotoDetailPage } from '@/pages/photo-detail';
 import { PhotoListPage } from '@/pages/photo-list';
@@ -68,6 +69,11 @@ const router = createBrowserRouter([
             path: '/login',
             element: <AuthPage />,
             errorElement: <RouteErrorFallback backTo="/login" />,
+          },
+          {
+            path: '/albums',
+            element: <AlbumSelectPage />,
+            errorElement: <RouteErrorFallback backTo="/albums" />,
           },
           {
             element: <PhotoListLayout />,
