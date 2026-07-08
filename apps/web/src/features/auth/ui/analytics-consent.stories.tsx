@@ -7,6 +7,7 @@ import { AnalyticsConsent } from './analytics-consent';
 const meta = {
   title: 'features/auth/AnalyticsConsent',
   component: AnalyticsConsent,
+  args: { checked: false, onCheckedChange: () => {} },
   parameters: { layout: 'centered' },
 } satisfies Meta<typeof AnalyticsConsent>;
 
