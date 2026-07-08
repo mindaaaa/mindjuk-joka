@@ -94,3 +94,56 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 로그인 히어로 애니메이션. transform/opacity/filter만 사용해 GPU 가속, reduced-motion에서는 정지 */
+
+@keyframes joka-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* 다크: 배경과 반대로 더 크게 움직여 패럴랙스 깊이감 */
+@keyframes joka-parallax {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(3.5%, -1.5%, 0); }
+}
+
+@keyframes joka-bg-zoom {
+  0%, 100% { transform: scale(1.02); }
+  50% { transform: scale(1.09); }
+}
+
+/* 회전 시 모서리 빈틈 방지용으로 살짝 확대 */
+@keyframes joka-bg-sway {
+  0%, 100% { transform: scale(1.06) rotate(-0.4deg); filter: brightness(0.96); }
+  50% { transform: scale(1.06) rotate(0.4deg); filter: brightness(1.05); }
+}
+
+.animate-joka-character {
+  animation: joka-float 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.dark .animate-joka-character {
+  animation: joka-parallax 7s ease-in-out infinite alternate;
+}
+
+/* 배경은 테마별 별도 <img>라 각 요소에 직접 애니메이션을 건다 */
+.animate-joka-bg-zoom {
+  animation: joka-bg-zoom 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-joka-bg-sway {
+  animation: joka-bg-sway 9s ease-in-out infinite;
+  transform-origin: 50% 0;
+  will-change: transform, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-joka-character,
+  .animate-joka-bg-zoom,
+  .animate-joka-bg-sway {
+    animation: none;
+  }
+}
