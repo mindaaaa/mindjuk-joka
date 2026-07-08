@@ -5,7 +5,7 @@ import { Container } from '@cloudflare/containers';
 export class NailClipperContainer extends Container {
   override defaultPort = 8080;
   // 최소 idle → scale-to-zero. mediaCid 라우팅상 warm 재사용 이득이 없어 짧게(ADR §3.7 D7).
-  override sleepAfter = '30s';
+  override sleepAfter = '5s';
 
   override onError(error: unknown) {
     console.error('[nail-clipper] container error', error);
