@@ -18,6 +18,7 @@ export function PhotoThumbnail({
   className,
 }: PhotoThumbnailProps) {
   const [loaded, setLoaded] = useState(false);
+  const [blurGone, setBlurGone] = useState(false);
 
   // blurhash → data URL 디코딩은 비용이 있으므로 hash가 바뀔 때만 계산한다.
   const blurUrl = useMemo(
@@ -34,7 +35,7 @@ export function PhotoThumbnail({
         className,
       )}
     >
-      {blurUrl && !loaded && (
+      {blurUrl && !blurGone && (
         <img
           src={blurUrl}
           alt=""
@@ -49,6 +50,10 @@ export function PhotoThumbnail({
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
+          // 페이드(opacity) 종료 시점에 뒤의 블러를 제거 → 회색 깜빡임 없이 정리
+          onTransitionEnd={(e) => {
+            if (e.propertyName === 'opacity' && loaded) setBlurGone(true);
+          }}
           className={cn(
             'relative block h-auto w-full transition-opacity duration-300',
             loaded ? 'opacity-100' : 'opacity-0',
