@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { useAlbumStore, useCurrentAlbumRole } from '@/entities/album';
 import {
   PhotoMeta,
+  PhotoProgressiveImage,
   selectPhotos,
   useDeletePhotoMutation,
   usePhotoDetail,
@@ -107,12 +108,14 @@ export function PhotoDetailPage() {
       <DetailHeader photo={photo} canWrite={canWrite} />
 
       {/* 이미지 뷰어 스테이지: 다크 배경 + object-contain + 좌우 네비 화살표 */}
+      {/* 3단계 progressive: blurhash → 썸네일(캐시) → 원본 */}
       <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-black">
         {photo.imageUrl && (
-          <img
+          <PhotoProgressiveImage
             src={photo.imageUrl}
+            previewSrc={photo.thumbnailUrl}
+            blurhash={photo.blurhash}
             alt={photo.description}
-            className="size-full object-contain"
           />
         )}
 
