@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createRoot } from 'react-dom/client';
 
+import { initClarity } from '@/app/providers/clarity';
 import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { queryClient } from '@/app/providers/query-client';
 import { AppRouter } from '@/app/providers/router';
@@ -10,6 +11,7 @@ import { useAlbumStore } from '@/entities/album';
 import { useAuthStore } from '@/features/auth';
 import { initTheme } from '@/features/theme';
 import { initAnalytics, setRoleResolver } from '@/shared/lib/analytics';
+import { hasConsent } from '@/shared/lib/consent';
 import { Toaster } from '@/shared/ui/toast';
 import './styles/globals.css';
 
@@ -17,6 +19,9 @@ initSentry();
 initTheme();
 initAnalytics();
 setRoleResolver(() => useAlbumStore.getState().current?.role ?? null);
+if (hasConsent()) {
+  initClarity();
+}
 
 const root = document.getElementById('root');
 if (root) {

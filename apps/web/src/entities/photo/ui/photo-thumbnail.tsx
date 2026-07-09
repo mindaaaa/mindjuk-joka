@@ -26,6 +26,7 @@ export function PhotoThumbnail({ src, alt, className }: PhotoThumbnailProps) {
           alt={alt}
           loading="lazy"
           decoding="async"
+          data-clarity-mask="True"
           onLoad={() => setLoaded(true)}
           className={cn(
             'block h-auto w-full transition-opacity duration-300',

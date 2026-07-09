@@ -112,6 +112,7 @@ export function PhotoDetailPage() {
           <img
             src={photo.imageUrl}
             alt={photo.description}
+            data-clarity-mask="True"
             className="size-full object-contain"
           />
         )}
