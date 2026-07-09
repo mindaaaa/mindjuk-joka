@@ -49,6 +49,7 @@ export function PhotoThumbnail({
           alt={alt}
           loading="lazy"
           decoding="async"
+          data-clarity-mask="True"
           onLoad={() => setLoaded(true)}
           // 페이드(opacity) 종료 시점에 뒤의 블러를 제거 → 회색 깜빡임 없이 정리
           onTransitionEnd={(e) => {

@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
+import { initClarity } from '@/app/providers/clarity';
 import { useAlbums, useAlbumStore } from '@/entities/album';
 import { useAuthStore, useMe, canUpload } from '@/features/auth';
+import { CLARITY_PENDING_KEY } from '@/features/auth/ui/login-form';
 import { authTokenStore } from '@/shared/api/auth-token';
 import { readCookie } from '@/shared/api/cookie';
 import { setAnalyticsUser, track } from '@/shared/lib/analytics';
+import { grantConsent, revokeConsent } from '@/shared/lib/consent';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 const PUBLIC_PATHS = new Set(['/login']);
@@ -54,12 +57,19 @@ export function AuthGuard() {
         if (!loginTrackedRef.current) {
           loginTrackedRef.current = true;
           track('auth.login_success');
+
+          if (sessionStorage.getItem(CLARITY_PENDING_KEY)) {
+            sessionStorage.removeItem(CLARITY_PENDING_KEY);
+            grantConsent();
+            initClarity();
+          }
         }
       });
     } else if (meQuery.isError) {
       setUser(null);
       clearAlbum();
       void setAnalyticsUser(null);
+      revokeConsent();
     }
   }, [meQuery.isSuccess, meQuery.isError, meQuery.data, setUser, clearAlbum]);
 

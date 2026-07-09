@@ -6,11 +6,18 @@ import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // 번들 분석 리포트 생성
+    process.env['VITE_VISUALIZE'] === 'true' &&
+      visualizer({ open: true, filename: 'dist/stats.html', gzipSize: true }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(dirname, './src'),

@@ -1,9 +1,8 @@
 import { env } from '@/shared/config/env';
 import { Button } from '@/shared/ui/button';
 
-/**
- * 카카오 말풍선 아이콘.
- */
+export const CLARITY_PENDING_KEY = 'joka_clarity_pending';
+
 function KakaoIcon() {
   return (
     <svg
@@ -20,8 +19,15 @@ function KakaoIcon() {
 /**
  * 카카오 OAuth 시작 버튼.
  */
-export function LoginForm() {
+interface LoginFormProps {
+  clarityConsent?: boolean;
+}
+
+export function LoginForm({ clarityConsent = false }: LoginFormProps) {
   const handleKakaoLogin = () => {
+    if (clarityConsent) {
+      sessionStorage.setItem(CLARITY_PENDING_KEY, '1');
+    }
     window.location.href = `${env.VITE_API_BASE_URL}/v1/auth/kakao`;
   };
 

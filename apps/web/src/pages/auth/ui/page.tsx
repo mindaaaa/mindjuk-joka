@@ -1,9 +1,10 @@
 import { Lock } from 'lucide-react';
+import { useState } from 'react';
 
 import bgDark from '@/assets/bg-dark.webp';
 import bgLight from '@/assets/bg-light.webp';
 import character from '@/assets/character.webp';
-import { LoginForm } from '@/features/auth';
+import { AnalyticsConsent, LoginForm } from '@/features/auth';
 import { toast } from '@/shared/ui/toast';
 
 function InviteButton() {
@@ -24,6 +25,8 @@ function InviteButton() {
 }
 
 export function AuthPage() {
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
+
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-muted">
       {/* 라이트는 슬로우 줌, 다크는 매달린 별 스웨이+밝기 맥동 */}
@@ -58,7 +61,7 @@ export function AuthPage() {
             aria-hidden="true"
           />
 
-          <LoginForm />
+          <LoginForm clarityConsent={analyticsConsent} />
 
           {/* 또는 구분선 */}
           <div className="flex w-full items-center gap-3">
@@ -78,6 +81,11 @@ export function AuthPage() {
             </span>
             에 동의하게 됩니다
           </p>
+
+          <AnalyticsConsent
+            checked={analyticsConsent}
+            onCheckedChange={setAnalyticsConsent}
+          />
         </div>
       </section>
     </main>

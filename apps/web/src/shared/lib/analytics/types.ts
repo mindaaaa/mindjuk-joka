@@ -8,6 +8,7 @@ export type AnalyticsEvent =
   | 'list.view'
   | 'list.scroll_depth'
   | 'detail.view'
+  | 'api.timing'
   | 'upload.session_complete'
   | 'download.single_start'
   | 'download.single_success'

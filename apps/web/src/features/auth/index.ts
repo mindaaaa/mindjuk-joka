@@ -13,3 +13,4 @@ export {
 } from './model/selectors';
 
 export { LoginForm } from './ui/login-form';
+export { AnalyticsConsent } from './ui/analytics-consent';

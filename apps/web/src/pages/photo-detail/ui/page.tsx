@@ -116,6 +116,8 @@ export function PhotoDetailPage() {
             previewSrc={photo.thumbnailUrl}
             blurhash={photo.blurhash}
             alt={photo.description}
+            data-clarity-mask="True"
+            className="size-full object-contain"
           />
         )}
 
