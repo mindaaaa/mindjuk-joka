@@ -9,15 +9,22 @@ export interface UserSummary {
 /**
  * 목록/그리드에서 사용하는 프론트 도메인 모델.
  *
- * 현재 썸네일/blurhash를 생성하지 않으므로
- *   - content.thumbnail === null
- *   - 표시·다운로드 모두 원본 content.location.accessUrl(presigned)을 사용
+ * URL 3종은 용도가 다르다(모두 presigned accessUrl)
+ *   - thumbnailUrl: 목록/그리드 표시용 경량 썸네일. 추출은 비동기라 없을 수 있음.
+ *   - imageUrl: 상세 화면 표시용 원본.
+ *   - downloadUrl: 다운로드용 원본.
+ *
+ * 썸네일이 아직 없으면(추출 전) 목록은 imageUrl로 폴백한다.
+ *
+ * blurhash는 썸네일 로드 전 placeholder 렌더용.
  */
 export interface Photo {
   id: string;
   description: string;
   state: PhotoState;
   imageUrl?: string;
+  thumbnailUrl?: string;
+  blurhash?: string;
   downloadUrl?: string;
   mimeType?: string;
   size?: number;

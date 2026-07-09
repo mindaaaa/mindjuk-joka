@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import type { Photo } from '../model/types';
 import { PhotoThumbnail } from './photo-thumbnail';
+import type { Photo } from '../model/types';
 
 interface PhotoCardProps {
   photo: Photo;
@@ -26,7 +26,11 @@ export function PhotoCard({
         aria-label={photo.description}
         className="block w-full overflow-hidden rounded-2xl text-left ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <PhotoThumbnail src={photo.imageUrl} alt={photo.description} />
+        <PhotoThumbnail
+          src={photo.thumbnailUrl ?? photo.imageUrl}
+          alt={photo.description}
+          blurhash={photo.blurhash}
+        />
         {selected && (
           <span
             aria-hidden

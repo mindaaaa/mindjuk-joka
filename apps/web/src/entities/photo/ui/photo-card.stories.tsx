@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 
-import type { Photo } from '../model/types';
 import { PhotoCard } from './photo-card';
+import type { Photo } from '../model/types';
 
 const fixturePhoto: Photo = {
   id: 'p1',
@@ -35,6 +35,43 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+/**
+ * 썸네일 추출 완료 상태
+ * - 목록은 경량 thumbnailUrl 사용
+ * - 로드 전 blurhash placeholder가 깔림
+ */
+export const WithThumbnail: Story = {
+  args: {
+    photo: {
+      ...fixturePhoto,
+      thumbnailUrl: 'https://placehold.co/200x200/1d4ed8/fff?text=thumb',
+      blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+    },
+  },
+  // 썸네일이 있으면 목록 이미지가 원본이 아니라 썸네일 accessUrl을 쓴다
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const img = canvas.getByRole('img', { name: '바닷가 사진' });
+    await expect(img).toHaveAttribute('src', args.photo.thumbnailUrl);
+    await expect(img).not.toHaveAttribute('src', args.photo.imageUrl);
+  },
+};
+
+/**
+ * 썸네일 추출 전(비동기 대기)
+ * - thumbnailUrl이 없어 원본 imageUrl로 폴백.
+ * - fixturePhoto에는 썸네일 키가 없으므로 그대로 사용한다.
+ */
+export const ThumbnailPending: Story = {
+  args: { photo: fixturePhoto },
+  // 썸네일이 없으면 원본 imageUrl로 폴백해 여전히 표시된다
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const img = canvas.getByRole('img', { name: '바닷가 사진' });
+    await expect(img).toHaveAttribute('src', args.photo.imageUrl);
+  },
+};
 
 export const Selected: Story = {
   args: {

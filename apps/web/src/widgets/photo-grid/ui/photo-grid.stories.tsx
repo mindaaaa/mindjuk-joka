@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, within } from 'storybook/test';
 
-import { PhotoCard, type Photo } from '@/entities/photo';
-
 import { PhotoGrid } from './photo-grid';
+
+import { PhotoCard, type Photo } from '@/entities/photo';
 
 function makePhoto(id: string): Photo {
   return {
@@ -11,6 +11,8 @@ function makePhoto(id: string): Photo {
     description: `사진 ${id}`,
     state: 'COMPLETE',
     imageUrl: 'https://placehold.co/400x400',
+    thumbnailUrl: 'https://placehold.co/200x200',
+    blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
     downloadUrl: 'https://placehold.co/400x400',
     mimeType: 'image/jpeg',
     size: 1000,

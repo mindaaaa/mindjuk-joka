@@ -24,4 +24,5 @@ export type {
 
 export { PhotoCard } from './ui/photo-card';
 export { PhotoThumbnail } from './ui/photo-thumbnail';
+export { PhotoProgressiveImage } from './ui/photo-progressive-image';
 export { PhotoMeta } from './ui/photo-meta';
