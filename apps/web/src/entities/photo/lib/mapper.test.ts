@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import type { MediaContent, MediaDto } from '../model/types';
 import { toPhoto } from './mapper';
+import type { MediaContent, MediaDto } from '../model/types';
 
 function baseDto(overrides: Partial<MediaDto> = {}): MediaDto {
   return {
@@ -51,21 +51,33 @@ describe('toPhoto', () => {
     expect('imageUrl' in photo).toBe(false);
   });
 
-  test('thumbnail이 있어도 원본 accessUrl을 쓴다 (썸네일 미사용 정책)', () => {
-    const withThumb = {
+  test('thumbnail이 있으면 목록용 thumbnailUrl·blurhash를 채우고 원본은 그대로 둔다', () => {
+    const withThumb: MediaContent = {
       ...content,
       thumbnail: {
         location: { url: 's3://t', accessUrl: 'https://signed/thumb.jpg' },
         size: 100,
         eTag: 'te',
-        mimeType: 'image/jpeg',
-        blurhash: 'abc',
+        mimeType: 'image/webp',
+        blurhash: 'LKO2?U',
       },
     };
     const photo = toPhoto(baseDto({ content: withThumb }));
 
+    // 목록 표시는 썸네일, 상세·다운로드는 원본
+    expect(photo.thumbnailUrl).toBe('https://signed/thumb.jpg');
+    expect(photo.blurhash).toBe('LKO2?U');
     expect(photo.imageUrl).toBe('https://signed/x.jpg');
     expect(photo.downloadUrl).toBe('https://signed/x.jpg');
+  });
+
+  test('thumbnail이 없으면(추출 전) thumbnailUrl/blurhash 키를 만들지 않는다', () => {
+    const photo = toPhoto(baseDto({ content }));
+
+    expect('thumbnailUrl' in photo).toBe(false);
+    expect('blurhash' in photo).toBe(false);
+    // 폴백: 목록도 원본 imageUrl을 쓸 수 있어야 한다
+    expect(photo.imageUrl).toBe('https://signed/x.jpg');
   });
 
   test('공통 필드(createdAt/createdBy/isFavorite/state)를 매핑한다', () => {
