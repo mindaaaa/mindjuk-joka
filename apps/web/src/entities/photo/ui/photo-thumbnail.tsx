@@ -1,15 +1,29 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+
+import { blurhashToDataUrl } from '../lib/blurhash';
 
 import { cn } from '@/shared/lib/utils/cn';
 
 interface PhotoThumbnailProps {
   src?: string | undefined;
   alt: string;
+  blurhash?: string | undefined;
   className?: string | undefined;
 }
 
-export function PhotoThumbnail({ src, alt, className }: PhotoThumbnailProps) {
+export function PhotoThumbnail({
+  src,
+  alt,
+  blurhash,
+  className,
+}: PhotoThumbnailProps) {
   const [loaded, setLoaded] = useState(false);
+
+  // blurhash → data URL 디코딩은 비용이 있으므로 hash가 바뀔 때만 계산한다.
+  const blurUrl = useMemo(
+    () => (blurhash ? blurhashToDataUrl(blurhash) : undefined),
+    [blurhash],
+  );
 
   return (
     <div
@@ -20,6 +34,14 @@ export function PhotoThumbnail({ src, alt, className }: PhotoThumbnailProps) {
         className,
       )}
     >
+      {blurUrl && !loaded && (
+        <img
+          src={blurUrl}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full scale-105 object-cover blur-md"
+        />
+      )}
       {src && (
         <img
           src={src}
@@ -28,7 +50,7 @@ export function PhotoThumbnail({ src, alt, className }: PhotoThumbnailProps) {
           decoding="async"
           onLoad={() => setLoaded(true)}
           className={cn(
-            'block h-auto w-full transition-opacity duration-300',
+            'relative block h-auto w-full transition-opacity duration-300',
             loaded ? 'opacity-100' : 'opacity-0',
           )}
         />
