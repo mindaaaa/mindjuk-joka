@@ -111,6 +111,71 @@ export class S3Client implements ObjectStorageClient {
     return object;
   }
 
+  // 원본 바이트를 ArrayBuffer로 반환한다
+  // 스트림이 아니라 버퍼인 이유는, 동일 버퍼를 여러 변환에 재사용해야 하는 소비자를 위함이다
+  async get(url: Url): Promise<ArrayBuffer> {
+    const objectKey = url.getPath({ withoutBeginningSlash: true });
+    const response = await this.client.fetch(url.fullPath, {
+      method: 'GET',
+    });
+
+    if (response.status === 404) {
+      throw new NotFoundException('OBJECT_NOT_FOUND', [
+        `오브젝트(${objectKey})가 존재하지 않습니다.`,
+      ]);
+    }
+
+    if (!response.ok) {
+      throw new UncaughtException('S3_GET_FAILED', [
+        `오브젝트(${objectKey}) 조회에 실패했습니다.`,
+        `상태 코드: ${response.status}`,
+        '관리자에게 문의하세요.',
+      ]);
+    }
+
+    return response.arrayBuffer();
+  }
+
+  // 바이트를 업로드하고 eTag·size를 담은 BucketObject를 반환한다
+  async put(
+    url: Url,
+    body: ArrayBuffer,
+    contentType: string,
+  ): Promise<BucketObject> {
+    const objectKey = url.getPath({ withoutBeginningSlash: true });
+    const response = await this.client.fetch(url.fullPath, {
+      method: 'PUT',
+      body: body,
+      headers: {
+        'Content-Type': contentType,
+      },
+    });
+
+    if (!response.ok) {
+      throw new UncaughtException('S3_PUT_FAILED', [
+        `오브젝트(${objectKey}) 저장에 실패했습니다.`,
+        `상태 코드: ${response.status}`,
+        '관리자에게 문의하세요.',
+      ]);
+    }
+
+    const eTag = response.headers.get('etag');
+    if (!eTag) {
+      throw new UncaughtException('INVALID_S3_OBJECT_HEADER', [
+        `오브젝트(${objectKey}) 저장 응답에 eTag가 없습니다.`,
+        '관리자에게 문의하세요.',
+      ]);
+    }
+
+    return BucketObject.from({
+      bucket: this.bucket,
+      key: objectKey,
+      size: body.byteLength,
+      eTag: eTag.replace(/"/g, ''),
+      contentType: contentType,
+    });
+  }
+
   async getPresignedUrl(
     bucket: string,
     key: string,

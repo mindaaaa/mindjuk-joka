@@ -113,6 +113,40 @@ importers:
         specifier: ^4.61.1
         version: 4.62.0(@cloudflare/workers-types@4.20260203.0)
 
+  apps/nail-artist:
+    dependencies:
+      '@cloudflare/containers':
+        specifier: ^0.3.7
+        version: 0.3.7
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@joka/domain-media':
+        specifier: workspace:*
+        version: link:../../packages/domain-media
+      '@joka/infra-object-storage':
+        specifier: workspace:*
+        version: link:../../packages/infra-object-storage
+      '@joka/infra-thumbnail':
+        specifier: workspace:*
+        version: link:../../packages/infra-thumbnail
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../../packages/lib-drizzle
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260131.0
+        version: 4.20260203.0
+      wrangler:
+        specifier: ^4.61.1
+        version: 4.62.0(@cloudflare/workers-types@4.20260203.0)
+
+  apps/nail-clipper:
+    dependencies:
+      '@joka/nail-artist':
+        specifier: workspace:*
+        version: link:../nail-artist
+
   apps/web:
     dependencies:
       '@radix-ui/react-dialog':
@@ -301,9 +335,6 @@ importers:
       blurhash:
         specifier: ^2.0.5
         version: 2.0.5
-      sharp:
-        specifier: ^0.34.5
-        version: 0.34.5
 
   packages/lib-drizzle:
     dependencies:
@@ -556,6 +587,9 @@ packages:
 
   '@blazediff/core@1.9.1':
     resolution: {integrity: sha512-ehg3jIkYKulZh+8om/O25vkvSsXXwC+skXmyA87FFx6A/45eqOkZsBltMw/TVteb0mloiGT8oGRTcjRAz66zaA==}
+
+  '@cloudflare/containers@0.3.7':
+    resolution: {integrity: sha512-DM9dm3FnIBSyiSJ1FLavKwl/lk3oAmTaynCzZQ9pZR0ncRPquSxkxd8Nu2MFILxmDDsPkxKsSNEh9mHHMty4Fw==}
 
   '@cloudflare/kv-asset-handler@0.4.2':
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
@@ -5939,6 +5973,8 @@ snapshots:
   '@bcoe/v8-coverage@1.0.2': {}
 
   '@blazediff/core@1.9.1': {}
+
+  '@cloudflare/containers@0.3.7': {}
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
 

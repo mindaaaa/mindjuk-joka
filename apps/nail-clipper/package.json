@@ -1,0 +1,14 @@
+{
+  "name": "@joka/nail-clipper",
+  "version": "0.0.1",
+  "description": "nail-clipper",
+  "scripts": {
+    "test": "cd src && go test ./...",
+    "test:watch": "echo 'skip test:watch for nail-clipper...'",
+    "test:coverage": "cd src && go test -cover ./...",
+    "wrangler:deploy": "echo 'skip wrangler:deploy for nail-clipper...'"
+  },
+  "dependencies": {
+    "@joka/nail-artist": "workspace:*"
+  }
+}

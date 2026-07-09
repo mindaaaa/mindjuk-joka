@@ -1,0 +1,24 @@
+{
+  "name": "@joka/nail-artist",
+  "version": "0.0.1",
+  "description": "nail-artist",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "wrangler:local": "wrangler dev",
+    "wrangler:deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "@joka/core": "workspace:*",
+    "@joka/domain-media": "workspace:*",
+    "@joka/infra-object-storage": "workspace:*",
+    "@joka/infra-thumbnail": "workspace:*",
+    "@joka/lib-drizzle": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260131.0",
+    "wrangler": "^4.61.1"
+  }
+}

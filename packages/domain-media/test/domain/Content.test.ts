@@ -97,6 +97,39 @@ describe('Content', () => {
     });
   });
 
+  describe('attachThumbnail', () => {
+    it('thumbnail만 채운 새 Content를 반환한다(불변)', () => {
+      // given
+      const content = Content.from({
+        url: 'http://example.com/content.jpg',
+        size: 10240,
+        eTag: 'content-etag',
+        mimeType: 'image/jpeg',
+        thumbnail: null,
+      });
+      const thumbnail = Thumbnail.from({
+        url: 'http://example.com/thumbnail.jpg',
+        size: 512,
+        eTag: 'thumb-etag',
+        mimeType: 'image/jpeg',
+        blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+      });
+
+      // when
+      const attached = content.attachThumbnail(thumbnail);
+
+      // then
+      expect(attached).toBeInstanceOf(Content);
+      expect(attached).not.toBe(content); // 새 인스턴스
+      expect(content.thumbnail).toBeNull(); // 원본 불변
+      expect(attached.thumbnail).toBe(thumbnail);
+      expect(attached.url).toBe(content.url);
+      expect(attached.size).toBe(content.size);
+      expect(attached.eTag).toBe(content.eTag);
+      expect(attached.mimeType).toBe(content.mimeType);
+    });
+  });
+
   describe('data', () => {
     it('썸네일이 있을 때 객체 데이터를 반환한다', () => {
       // given

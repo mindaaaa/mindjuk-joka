@@ -147,6 +147,9 @@ media.post('/:mediaId/confirm', async (c) => {
     mediaCid,
   });
 
+  // 확정 성공 후 썸네일 추출 작업을 큐에 발행한다(best-effort·non-blocking).
+  c.executionCtx.waitUntil(c.env.THUMBNAIL_QUEUE.send({ mediaCid }));
+
   return c.json(
     (await toMediaResponse(result)) as ConfirmMediaResponses[200],
     200,
