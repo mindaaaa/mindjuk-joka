@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { RefreshButton } from './refresh-button';
 import { usePhotoRefreshStore } from '../model/store';
@@ -39,8 +39,13 @@ export const Refreshing: Story = {
     await expect(
       canvas.getByRole('button', { name: '사진 목록 새로고침' }),
     ).toBeDisabled();
-    await expect(canvas.getByRole('status')).toHaveTextContent(
-      '사진 목록을 새로고침하는 중이에요',
+
+    // 안내 문구는 effect로 비동기 채워짐
+    // act() 없는 Chromatic 빌드에선 play가 먼저 돌 수 있어 waitFor로 대기 필요
+    await waitFor(() =>
+      expect(canvas.getByRole('status')).toHaveTextContent(
+        '사진 목록을 새로고침하는 중이에요',
+      ),
     );
   },
 };
@@ -54,8 +59,10 @@ export const AnnouncesCompletion: Story = {
       canvas.getByRole('button', { name: '사진 목록 새로고침' }),
     );
 
-    await expect(canvas.getByRole('status')).toHaveTextContent(
-      '사진 목록을 새로고침했어요',
+    await waitFor(() =>
+      expect(canvas.getByRole('status')).toHaveTextContent(
+        '사진 목록을 새로고침했어요',
+      ),
     );
   },
 };
