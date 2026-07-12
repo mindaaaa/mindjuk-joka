@@ -87,6 +87,9 @@ importers:
       '@joka/domain-media':
         specifier: workspace:*
         version: link:../../packages/domain-media
+      '@joka/domain-user-event':
+        specifier: workspace:*
+        version: link:../../packages/domain-user-event
       '@joka/infra-object-storage':
         specifier: workspace:*
         version: link:../../packages/infra-object-storage
