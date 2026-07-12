@@ -24,6 +24,7 @@ const createMockContext = () => ({
 });
 
 jest.mock('../../src/domain/UserEvent', () => ({
+  MAX_EVENTS_LENGTH: 20,
   UserEvent: {
     from: jest.fn((params) => ({
       albumId: params.album.id,
@@ -78,6 +79,41 @@ describe('UserEventService', () => {
       // given
       const context = createMockContext();
       const request = { events: [] };
+
+      // when & then
+      await expect(service.create(context as any, request)).rejects.toThrow(
+        InvalidArgumentException,
+      );
+      expect(mockRepository.insertMany).not.toHaveBeenCalled();
+    });
+
+    const createEvents = (length: number) =>
+      Array.from({ length }, (_, index) => ({
+        name: `event.${index}`,
+        timestamp: index,
+        userRole: 'EDITOR' as const,
+      }));
+
+    it('events가 최대 길이(20)이면 정상적으로 insertMany를 호출한다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { events: createEvents(20) };
+      // @ts-ignore
+      mockRepository.insertMany.mockResolvedValue(undefined);
+
+      // when
+      const result = await service.create(context as any, request);
+
+      // then
+      expect(result).toBeNull();
+      expect(mockRepository.insertMany).toHaveBeenCalledTimes(1);
+      expect(mockRepository.insertMany.mock.calls[0][0]).toHaveLength(20);
+    });
+
+    it('events가 최대 길이(20)를 초과하면 InvalidArgumentException을 던지고 insertMany를 호출하지 않는다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { events: createEvents(21) };
 
       // when & then
       await expect(service.create(context as any, request)).rejects.toThrow(
