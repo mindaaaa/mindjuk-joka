@@ -4,9 +4,15 @@ vi.mock('@/shared/config/env', () => ({
   env: { VITE_API_BASE_URL: 'http://test.local', VITE_APP_VERSION: 'test' },
 }));
 
+import { setRoleResolver } from './identity';
 import { flush, initAnalytics, resetForTests, track } from './track';
 
-const ENDPOINT = 'http://test.local/v1/events';
+import { albumIdStore } from '@/shared/api/album-id';
+import { authTokenStore } from '@/shared/api/auth-token';
+
+const ENDPOINT = 'http://test.local/v1/user-events';
+const TOKEN = 'access-token';
+const ALBUM_ID = 'album-1';
 
 function mockFetch() {
   return vi
@@ -14,20 +20,33 @@ function mockFetch() {
     .mockResolvedValue(new Response(null, { status: 204 }));
 }
 
-function lastFetchBody(spy: ReturnType<typeof mockFetch>) {
+function lastCall(spy: ReturnType<typeof mockFetch>) {
   const calls = spy.mock.calls;
-  const init = calls[calls.length - 1]?.[1];
-  return JSON.parse(init?.body as string);
+  return calls[calls.length - 1];
+}
+
+function bodyOf(spy: ReturnType<typeof mockFetch>) {
+  return JSON.parse(lastCall(spy)?.[1]?.body as string);
+}
+
+function headersOf(spy: ReturnType<typeof mockFetch>) {
+  return lastCall(spy)?.[1]?.headers as Record<string, string>;
 }
 
 beforeEach(() => {
   sessionStorage.clear();
   resetForTests();
+  authTokenStore.set(TOKEN);
+  albumIdStore.set(ALBUM_ID);
+  setRoleResolver(() => 'EDITOR');
 });
 
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  authTokenStore.clear();
+  albumIdStore.clear();
+  setRoleResolver(() => null);
 });
 
 describe('track / flush', () => {
@@ -41,23 +60,50 @@ describe('track / flush', () => {
 
     expect(fetchSpy).toHaveBeenCalledOnce();
     expect(fetchSpy.mock.calls[0][0]).toBe(ENDPOINT);
-    const payload = lastFetchBody(fetchSpy);
+    const payload = bodyOf(fetchSpy);
     expect(payload.events).toHaveLength(1);
-    expect(payload.events[0].event).toBe('list.view');
+    expect(payload.events[0].name).toBe('list.view');
   });
 
-  test('봉투에 공통 필드 포함', () => {
+  // 서버는 필수 필드가 하나라도 어긋나면 배치 전체를 400으로 버린다
+  test('봉투에 서버 필수 필드(name·timestamp·userRole)와 공통 필드 포함', () => {
     const fetchSpy = mockFetch();
 
     track('detail.view', { source: 'grid' });
     flush();
 
-    const e = lastFetchBody(fetchSpy).events[0];
+    const e = bodyOf(fetchSpy).events[0];
+    expect(e.name).toBe('detail.view');
+    expect(typeof e.timestamp).toBe('number');
+    expect(e.userRole).toBe('EDITOR');
     expect(e.sessionId).toBeTruthy();
     expect(e.route).toBeTruthy();
     expect(e.appVersion).toBe('test');
     expect(e.props).toEqual({ source: 'grid' });
-    expect(typeof e.timestamp).toBe('number');
+  });
+
+  // 서버가 인증·앨범을 헤더로만 받으므로, 빠지면 401/400으로 전량 유실된다
+  test('인증 토큰과 앨범 헤더를 실어 전송', () => {
+    const fetchSpy = mockFetch();
+
+    track('list.view');
+    flush();
+
+    expect(headersOf(fetchSpy)).toMatchObject({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${TOKEN}`,
+      'X-Album-Id': ALBUM_ID,
+    });
+  });
+
+  // sendBeacon은 헤더를 실을 수 없어 인증을 못해 헤더를 지원하는 keepalive로 대체
+  test('탭이 닫혀도 배달되도록 keepalive로 전송', () => {
+    const fetchSpy = mockFetch();
+
+    track('list.view');
+    flush();
+
+    expect(fetchSpy.mock.calls[0][1]?.keepalive).toBe(true);
   });
 
   test('버퍼 임계치(20) 도달 시 자동 전송', () => {
@@ -67,7 +113,7 @@ describe('track / flush', () => {
     for (let i = 0; i < 20; i += 1) track('list.view', { i });
 
     expect(fetchSpy).toHaveBeenCalledOnce();
-    expect(lastFetchBody(fetchSpy).events).toHaveLength(20);
+    expect(bodyOf(fetchSpy).events).toHaveLength(20);
   });
 
   // 정상 유저의 우발적 중복과 코드 버그로 인한 폭주를 걸러, DB·서버리스 호출이 불필요하게 쌓이지 않게 한다
@@ -79,7 +125,7 @@ describe('track / flush', () => {
     track('list.view');
     flush();
 
-    expect(lastFetchBody(fetchSpy).events).toHaveLength(1);
+    expect(bodyOf(fetchSpy).events).toHaveLength(1);
   });
 
   test('dedup 창(500ms)이 지나면 같은 이벤트도 다시 집계', () => {
@@ -91,7 +137,7 @@ describe('track / flush', () => {
     track('list.view');
     flush();
 
-    expect(lastFetchBody(fetchSpy).events).toHaveLength(2);
+    expect(bodyOf(fetchSpy).events).toHaveLength(2);
   });
 
   test('분당 상한(120)을 넘는 폭주는 조용히 드롭', () => {
@@ -131,8 +177,8 @@ describe('track / flush', () => {
     track('list.view'); // 직전 list.view와 동일 → 여전히 dedup에 걸려야
     flush();
 
-    const events = lastFetchBody(fetchSpy).events as { event: string }[];
-    const listViews = events.filter((e) => e.event === 'list.view');
+    const events = bodyOf(fetchSpy).events as { name: string }[];
+    const listViews = events.filter((e) => e.name === 'list.view');
     expect(listViews).toHaveLength(1);
   });
 
@@ -162,18 +208,78 @@ describe('track / flush', () => {
 
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
+});
 
-  test('useBeacon=true면 fetch 대신 sendBeacon 사용', () => {
+// 서버는 이벤트를 앨범 스코프로 저장하고 앨범을 헤더 하나로만 받는다.
+// 앨범이 다른 이벤트를 한 요청에 섞으면 통계가 엉뚱한 앨범으로 귀속된다.
+describe('앨범 귀속', () => {
+  test('앨범이 다른 이벤트는 요청을 나눠 각자의 앨범으로 전송', () => {
     const fetchSpy = mockFetch();
-    const beacon = vi.fn((_url: string, _body?: BodyInit) => true);
-    vi.stubGlobal('navigator', { sendBeacon: beacon });
 
-    track('auth.logout');
-    flush(true);
+    track('list.view');
+    albumIdStore.set('album-2');
+    track('detail.view');
+    flush();
 
-    expect(beacon).toHaveBeenCalledOnce();
-    expect(beacon.mock.calls[0][0]).toBe(ENDPOINT);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    const sent = fetchSpy.mock.calls.map((c) => ({
+      albumId: (c[1]?.headers as Record<string, string>)['X-Album-Id'],
+      names: JSON.parse(c[1]?.body as string).events.map(
+        (e: { name: string }) => e.name,
+      ),
+    }));
+    expect(sent).toEqual(
+      expect.arrayContaining([
+        { albumId: ALBUM_ID, names: ['list.view'] },
+        { albumId: 'album-2', names: ['detail.view'] },
+      ]),
+    );
+  });
+
+  test('앨범 확정 전 이벤트는 버리지 않고 보류했다가 첫 앨범에 귀속', () => {
+    const fetchSpy = mockFetch();
+    albumIdStore.clear();
+
+    track('auth.login_success');
+    flush();
+    expect(fetchSpy).not.toHaveBeenCalled(); // 보낼 앨범이 없으니 아직 보류
+
+    albumIdStore.set(ALBUM_ID);
+    track('list.view');
+    flush();
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(headersOf(fetchSpy)['X-Album-Id']).toBe(ALBUM_ID);
+    expect(
+      bodyOf(fetchSpy).events.map((e: { name: string }) => e.name),
+    ).toEqual(['auth.login_success', 'list.view']);
+  });
+
+  // 서버가 userRole을 필수 enum으로 요구하므로 null이 섞이면 배치 전체가 400으로 버려짐
+  test('권한이 끝내 확정되지 않은 이벤트는 배치를 오염시키지 않도록 드롭', () => {
+    const fetchSpy = mockFetch();
+    setRoleResolver(() => null);
+
+    track('list.view');
+    flush();
+
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  test('토큰이 없으면 전송하지 않고 로그인 이후로 보류', () => {
+    const fetchSpy = mockFetch();
+    authTokenStore.clear();
+
+    track('api.timing', { ms: 1 }, { raw: true });
+    flush();
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    authTokenStore.set(TOKEN);
+    flush();
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(bodyOf(fetchSpy).events).toHaveLength(1);
   });
 });
 
@@ -191,16 +297,15 @@ describe('initAnalytics', () => {
     );
   });
 
-  test('pagehide 발생 시 beacon으로 flush', () => {
-    const beacon = vi.fn((_url: string, _body?: BodyInit) => true);
-    vi.stubGlobal('navigator', { sendBeacon: beacon });
+  test('pagehide 발생 시 flush', () => {
+    const fetchSpy = mockFetch();
 
     initAnalytics();
     track('list.view');
 
     window.dispatchEvent(new Event('pagehide'));
 
-    expect(beacon).toHaveBeenCalledOnce();
-    expect(beacon.mock.calls[0][0]).toBe(ENDPOINT);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(fetchSpy.mock.calls[0][0]).toBe(ENDPOINT);
   });
 });
