@@ -7,7 +7,11 @@ import { z } from 'zod';
  *
  * Media 상태 정보
  */
-export const zMediaState = z.enum(['DRAFT', 'PREPARING', 'COMPLETE']);
+export const zMediaState = z.enum([
+    'DRAFT',
+    'PREPARING',
+    'COMPLETE'
+]);
 
 /**
  * Location
@@ -15,8 +19,8 @@ export const zMediaState = z.enum(['DRAFT', 'PREPARING', 'COMPLETE']);
  * Location과 관련된 정보
  */
 export const zLocation = z.object({
-  url: z.url().min(1),
-  accessUrl: z.url().min(1),
+    url: z.url().min(1),
+    accessUrl: z.url().min(1)
 });
 
 /**
@@ -25,11 +29,11 @@ export const zLocation = z.object({
  * Thumbnail과 관련된 정보
  */
 export const zThumbnail = z.object({
-  location: zLocation,
-  size: z.coerce.bigint().gte(BigInt(1)),
-  eTag: z.string(),
-  mimeType: z.string(),
-  blurhash: z.string(),
+    location: zLocation,
+    size: z.coerce.bigint().gte(BigInt(1)),
+    eTag: z.string(),
+    mimeType: z.string(),
+    blurhash: z.string()
 });
 
 /**
@@ -38,11 +42,11 @@ export const zThumbnail = z.object({
  * Content와 관련된 정보
  */
 export const zContent = z.object({
-  location: zLocation,
-  size: z.coerce.bigint().gte(BigInt(1)),
-  eTag: z.string(),
-  mimeType: z.string(),
-  thumbnail: z.optional(zThumbnail),
+    location: zLocation,
+    size: z.coerce.bigint().gte(BigInt(1)),
+    eTag: z.string(),
+    mimeType: z.string(),
+    thumbnail: z.optional(zThumbnail)
 });
 
 /**
@@ -51,9 +55,9 @@ export const zContent = z.object({
  * User와 관련된 정보
  */
 export const zUser = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.email(),
+    id: z.string(),
+    name: z.string(),
+    email: z.email()
 });
 
 /**
@@ -62,8 +66,8 @@ export const zUser = z.object({
  * 행위와 관련된 정보
  */
 export const zActioned = z.object({
-  at: z.iso.datetime(),
-  by: zUser,
+    at: z.iso.datetime(),
+    by: zUser
 });
 
 /**
@@ -72,12 +76,12 @@ export const zActioned = z.object({
  * Media와 관련된 정보
  */
 export const zMedia = z.object({
-  id: z.string(),
-  description: z.string(),
-  state: zMediaState,
-  content: z.optional(zContent),
-  isFavorite: z.boolean(),
-  created: zActioned,
+    id: z.string(),
+    description: z.string(),
+    state: zMediaState,
+    content: z.optional(zContent),
+    isFavorite: z.boolean(),
+    created: zActioned
 });
 
 /**
@@ -85,7 +89,11 @@ export const zMedia = z.object({
  *
  * Role 종류
  */
-export const zRole = z.enum(['ADMIN', 'EDITOR', 'VIEWER']);
+export const zRole = z.enum([
+    'ADMIN',
+    'EDITOR',
+    'VIEWER'
+]);
 
 /**
  * Error
@@ -93,12 +101,12 @@ export const zRole = z.enum(['ADMIN', 'EDITOR', 'VIEWER']);
  * Error와 관련된 정보
  */
 export const zError = z.object({
-  traceId: z.uuid(),
-  path: z.string(),
-  status: z.int().gte(400).lte(599),
-  code: z.string(),
-  messages: z.array(z.string()),
-  timestamp: z.string(),
+    traceId: z.uuid(),
+    path: z.string(),
+    status: z.int().gte(400).lte(599),
+    code: z.string(),
+    messages: z.array(z.string()),
+    timestamp: z.string()
 });
 
 /**
@@ -107,9 +115,9 @@ export const zError = z.object({
  * Album과 관련된 정보
  */
 export const zAlbum = z.object({
-  id: z.string(),
-  name: z.string(),
-  role: zRole,
+    id: z.string(),
+    name: z.string(),
+    role: zRole
 });
 
 /**
@@ -123,17 +131,28 @@ export const zAuthorization = z.string();
 export const zXAlbumId = z.string();
 
 /**
+ * User Event 수집 요청
+ */
+export const zCreateUserEvents = z.object({
+    events: z.array(z.object({
+        name: z.string().min(1),
+        timestamp: z.coerce.bigint(),
+        userRole: zRole
+    }))
+});
+
+/**
  * Media 생성 요청
  */
 export const zCreateMedia = z.object({
-  description: z.string().min(1),
+    description: z.string().min(1)
 });
 
 /**
  * Media 수정 요청
  */
 export const zUpdateMedia = z.object({
-  description: z.optional(z.string().min(1)),
+    description: z.optional(z.string().min(1))
 });
 
 /**
@@ -145,7 +164,7 @@ export const zCreateUploadUrlForMedia = z.record(z.string(), z.never());
  * Content 생성 요청
  */
 export const zCreateContent = z.object({
-  url: z.url().min(1),
+    url: z.url().min(1)
 });
 
 /**
@@ -163,46 +182,69 @@ export const zLogout = z.record(z.string(), z.never());
  */
 export const zConfirmMedia = z.record(z.string(), z.never());
 
+export const zCreateUserEventsData = z.object({
+    body: z.optional(zCreateUserEvents),
+    path: z.optional(z.never()),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
+});
+
+/**
+ * No Content
+ */
+export const zCreateUserEventsResponse = z.void();
+
 export const zListMediaData = z.object({
-  body: z.optional(z.never()),
-  path: z.optional(z.never()),
-  query: z.optional(
-    z.object({
-      size: z.optional(z.string().min(1)).default('20'),
-      sortBy: z.optional(z.enum(['CREATED_AT'])),
-      order: z.optional(z.enum(['ASC', 'DESC'])),
-      cursor: z.optional(z.string().min(1)),
-      states: z.optional(z.string().min(1)),
-    }),
-  ),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        size: z.optional(z.string().min(1)).default('20'),
+        sortBy: z.optional(z.enum([
+            'CREATED_AT'
+        ])),
+        order: z.optional(z.enum([
+            'ASC',
+            'DESC'
+        ])),
+        cursor: z.optional(z.string().min(1)),
+        states: z.optional(z.string().min(1))
+    })),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
  * Media 목록 조회 응답
  */
 export const zListMediaResponse = z.object({
-  items: z.array(zMedia),
-  pagination: z.object({
-    size: z.int().gte(1).lte(50),
-    sortBy: z.enum(['CREATED_AT']),
-    order: z.enum(['ASC', 'DESC']),
-    nextCursor: z.optional(z.string().min(1)),
-    hasNext: z.boolean(),
-  }),
+    items: z.array(zMedia),
+    pagination: z.object({
+        size: z.int().gte(1).lte(50),
+        sortBy: z.enum([
+            'CREATED_AT'
+        ]),
+        order: z.enum([
+            'ASC',
+            'DESC'
+        ]),
+        nextCursor: z.optional(z.string().min(1)),
+        hasNext: z.boolean()
+    })
 });
 
 export const zCreateMediaData = z.object({
-  body: z.optional(zCreateMedia),
-  path: z.optional(z.never()),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(zCreateMedia),
+    path: z.optional(z.never()),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
@@ -211,15 +253,15 @@ export const zCreateMediaData = z.object({
 export const zCreateMediaResponse = zMedia;
 
 export const zDeleteMediaData = z.object({
-  body: z.optional(z.never()),
-  path: z.object({
-    mediaId: z.string(),
-  }),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(z.never()),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
@@ -228,15 +270,15 @@ export const zDeleteMediaData = z.object({
 export const zDeleteMediaResponse = z.void();
 
 export const zGetMediaData = z.object({
-  body: z.optional(z.never()),
-  path: z.object({
-    mediaId: z.string(),
-  }),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(z.never()),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
@@ -245,15 +287,15 @@ export const zGetMediaData = z.object({
 export const zGetMediaResponse = zMedia;
 
 export const zUpdateMediaData = z.object({
-  body: z.optional(zUpdateMedia),
-  path: z.object({
-    mediaId: z.string(),
-  }),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(zUpdateMedia),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
@@ -262,34 +304,34 @@ export const zUpdateMediaData = z.object({
 export const zUpdateMediaResponse = zMedia;
 
 export const zCreateUploadUrlForMediaData = z.object({
-  body: z.optional(zCreateUploadUrlForMedia),
-  path: z.object({
-    mediaId: z.string(),
-  }),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(zCreateUploadUrlForMedia),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
  * Media 전용 업로드 URL 생성 응답
  */
 export const zCreateUploadUrlForMediaResponse = z.object({
-  url: z.url().min(1),
+    url: z.url().min(1)
 });
 
 export const zConfirmMediaData = z.object({
-  body: z.optional(zConfirmMedia),
-  path: z.object({
-    mediaId: z.string(),
-  }),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(zConfirmMedia),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
@@ -298,15 +340,15 @@ export const zConfirmMediaData = z.object({
 export const zConfirmMediaResponse = zMedia;
 
 export const zCreateContentData = z.object({
-  body: z.optional(zCreateContent),
-  path: z.object({
-    mediaId: z.string(),
-  }),
-  query: z.optional(z.never()),
-  headers: z.object({
-    'Authorization': z.string(),
-    'X-Album-Id': z.string(),
-  }),
+    body: z.optional(zCreateContent),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
 });
 
 /**
@@ -315,53 +357,57 @@ export const zCreateContentData = z.object({
 export const zCreateContentResponse = zContent;
 
 export const zListAlbumsData = z.object({
-  body: z.optional(z.never()),
-  path: z.optional(z.never()),
-  query: z.optional(
-    z.object({
-      size: z.optional(z.string().min(1)).default('20'),
-      order: z.optional(z.enum(['ASC', 'DESC'])),
-      cursor: z.optional(z.string().min(1)),
-    }),
-  ),
-  headers: z.object({
-    Authorization: z.string(),
-  }),
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        size: z.optional(z.string().min(1)).default('20'),
+        order: z.optional(z.enum([
+            'ASC',
+            'DESC'
+        ])),
+        cursor: z.optional(z.string().min(1))
+    })),
+    headers: z.object({
+        Authorization: z.string()
+    })
 });
 
 /**
  * Album 목록 조회 응답
  */
 export const zListAlbumsResponse = z.object({
-  items: z.array(zAlbum),
-  pagination: z.object({
-    size: z.int(),
-    order: z.enum(['ASC', 'DESC']),
-    nextCursor: z.optional(z.string()),
-    hasNext: z.boolean(),
-  }),
+    items: z.array(zAlbum),
+    pagination: z.object({
+        size: z.int(),
+        order: z.enum([
+            'ASC',
+            'DESC'
+        ]),
+        nextCursor: z.optional(z.string()),
+        hasNext: z.boolean()
+    })
 });
 
 export const zLoginData = z.object({
-  body: z.optional(zLogin),
-  path: z.optional(z.never()),
-  query: z.optional(z.never()),
+    body: z.optional(zLogin),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
 });
 
 /**
  * 로그인 응답
  */
 export const zLoginResponse = z.object({
-  accessToken: z.string().min(1),
+    accessToken: z.string().min(1)
 });
 
 export const zLogoutData = z.object({
-  body: z.optional(zLogout),
-  path: z.optional(z.never()),
-  query: z.optional(z.never()),
-  headers: z.object({
-    Authorization: z.string(),
-  }),
+    body: z.optional(zLogout),
+    path: z.optional(z.never()),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string()
+    })
 });
 
 /**
@@ -370,19 +416,19 @@ export const zLogoutData = z.object({
 export const zLogoutResponse = z.void();
 
 export const zGetMyInfoData = z.object({
-  body: z.optional(z.never()),
-  path: z.optional(z.never()),
-  query: z.optional(z.never()),
-  headers: z.object({
-    Authorization: z.string(),
-  }),
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string()
+    })
 });
 
 /**
  * '나' 상세 조회 응답
  */
 export const zGetMyInfoResponse = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  email: z.email().min(1),
+    id: z.string().min(1),
+    name: z.string().min(1),
+    email: z.email().min(1)
 });
