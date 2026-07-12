@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { useAlbumStore, useCurrentAlbumRole } from '@/entities/album';
 import {
+  isAlreadyDeleted,
   PhotoMeta,
   PhotoProgressiveImage,
   selectPhotos,
@@ -221,15 +222,22 @@ function DeletePhotoButton({ photo }: { photo: Photo }) {
       },
 
       onError: (err) => {
+        if (isAlreadyDeleted(err)) {
+          toast.info('이미 삭제된 사진이에요.');
+          navigate('/photos');
+          return;
+        }
+
         if (err instanceof ApiError && err.status === 403) {
           recordForbidden({
             userRole: role ?? 'unknown',
             operationId: 'deleteMedia',
           });
           toast.error('삭제 권한이 없어요.');
-        } else {
-          toast.error('삭제에 실패했어요.');
+          return;
         }
+
+        toast.error('삭제에 실패했어요.');
       },
     });
   };
