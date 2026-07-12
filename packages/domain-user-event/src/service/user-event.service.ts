@@ -3,7 +3,7 @@ import { Album } from '@joka/core/src/model/Album';
 import { User } from '@joka/core/src/model/User';
 
 import { Payload } from '../domain/type';
-import { UserEvent } from '../domain/UserEvent';
+import { MAX_EVENTS_LENGTH, UserEvent } from '../domain/UserEvent';
 import { UserEventRepository } from '../infrastructure/persistence/user-event.repository';
 
 interface Context {
@@ -28,6 +28,11 @@ export class UserEventService {
     if (!events.length) {
       throw new InvalidArgumentException('EMPTY_PAYLOAD', [
         `저장할 이벤트가 전달되지 않았습니다.`,
+      ]);
+    }
+    if (events.length > MAX_EVENTS_LENGTH) {
+      throw new InvalidArgumentException('TOO_MANY_EVENTS', [
+        `한 번에 저장할 수 있는 이벤트는 최대 ${MAX_EVENTS_LENGTH}개입니다.`,
       ]);
     }
 

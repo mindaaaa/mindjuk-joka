@@ -5,6 +5,8 @@ import { z } from 'zod';
 
 import { Payload } from './type';
 
+export const MAX_EVENTS_LENGTH = 20 as const;
+
 interface ConstructorParameters {
   album: Album;
   user: User;
