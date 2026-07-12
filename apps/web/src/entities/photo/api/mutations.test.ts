@@ -1,12 +1,16 @@
 import { MutationObserver, QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { photoKeys } from './keys';
 import {
   buildDeletePhotoOptions,
   buildUpdatePhotoMetaOptions,
+  isAlreadyDeleted,
 } from './mutations';
-import { photoKeys } from './keys';
-import type { MediaDto, Photo } from '../model/types';
+import { selectPhotos } from './queries';
+import type { MediaDto, MediaPagination, Photo } from '../model/types';
+
+import { ApiError } from '@/shared/api/error';
 
 const mocks = vi.hoisted(() => ({
   patch: vi.fn(),
@@ -44,6 +48,23 @@ function mediaDto(description: string): MediaDto {
     },
     created: { at: '2026-01-01T00:00:00.000Z', by: photo().createdBy },
   };
+}
+
+function otherDto(id: string): MediaDto {
+  return { ...mediaDto('다른 사진'), id };
+}
+
+const pagination: MediaPagination = {
+  size: 20,
+  sortBy: 'CREATED_AT',
+  order: 'DESC',
+  hasNext: false,
+};
+
+function listIds(qc: QueryClient): string[] {
+  return selectPhotos(qc.getQueryData(photoKeys.list({ order: 'desc' }))).map(
+    (p) => p.id,
+  );
 }
 
 function runUpdate(qc: QueryClient, vars: { id: string; description: string }) {
@@ -142,12 +163,20 @@ describe('buildUpdatePhotoMetaOptions', () => {
 });
 
 describe('buildDeletePhotoOptions', () => {
-  beforeEach(() => mocks.del.mockReset());
+  let qc: QueryClient;
+
+  beforeEach(() => {
+    mocks.del.mockReset();
+    qc = new QueryClient();
+    qc.setQueryData(photoKeys.detail('p1'), photo());
+    qc.setQueryData(photoKeys.list({ order: 'desc' }), {
+      pages: [{ items: [mediaDto('설명'), otherDto('p2')], pagination }],
+      pageParams: [undefined],
+    });
+  });
 
   test('성공 시 상세 캐시를 제거하고 목록을 무효화한다', async () => {
     mocks.del.mockResolvedValueOnce(undefined);
-    const qc = new QueryClient();
-    qc.setQueryData(photoKeys.detail('p1'), photo());
 
     const remove = vi.spyOn(qc, 'removeQueries');
     const invalidate = vi.spyOn(qc, 'invalidateQueries');
@@ -157,5 +186,40 @@ describe('buildDeletePhotoOptions', () => {
     expect(mocks.del).toHaveBeenCalledWith('/v1/media/p1');
     expect(remove).toHaveBeenCalledWith({ queryKey: photoKeys.detail('p1') });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: photoKeys.lists() });
+  });
+
+  // invalidate만으로는 enabled:false 옵저버뿐인 목록이 리페치되지 않아 유령 카드가 남는다.
+  test('성공 시 목록 캐시에서도 즉시 제거한다', async () => {
+    mocks.del.mockResolvedValueOnce(undefined);
+
+    await runDelete(qc, 'p1');
+
+    expect(listIds(qc)).toEqual(['p2']);
+  });
+
+  test('404(이미 삭제됨)면 실패로 두지 않고 캐시를 동일하게 정리한다', async () => {
+    mocks.del.mockRejectedValueOnce(new ApiError({ status: 404 }));
+
+    await expect(runDelete(qc, 'p1')).rejects.toBeInstanceOf(ApiError);
+
+    expect(listIds(qc)).toEqual(['p2']);
+    expect(qc.getQueryData(photoKeys.detail('p1'))).toBeUndefined();
+  });
+
+  test('403 같은 다른 실패는 캐시를 건드리지 않는다', async () => {
+    mocks.del.mockRejectedValueOnce(new ApiError({ status: 403 }));
+
+    await expect(runDelete(qc, 'p1')).rejects.toBeInstanceOf(ApiError);
+
+    expect(listIds(qc)).toEqual(['p1', 'p2']);
+    expect(qc.getQueryData(photoKeys.detail('p1'))).toBeDefined();
+  });
+});
+
+describe('isAlreadyDeleted', () => {
+  test('404 ApiError만 이미 삭제됨으로 본다', () => {
+    expect(isAlreadyDeleted(new ApiError({ status: 404 }))).toBe(true);
+    expect(isAlreadyDeleted(new ApiError({ status: 403 }))).toBe(false);
+    expect(isAlreadyDeleted(new Error('boom'))).toBe(false);
   });
 });

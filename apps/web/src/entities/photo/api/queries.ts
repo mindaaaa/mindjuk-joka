@@ -52,23 +52,48 @@ async function fetchPhotoPage(
   return response;
 }
 
+/** 목록 캐시에서 찾은 Photo와, 그 데이터를 받아온 시각. */
+export interface PhotoCacheHit {
+  photo: Photo;
+  dataUpdatedAt: number;
+}
+
+function isMediaListPage(value: unknown): value is MediaListResponse {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'items' in value &&
+    Array.isArray(value.items)
+  );
+}
+
+function isPagedMedia(value: unknown): value is { pages: MediaListResponse[] } {
+  if (typeof value !== 'object' || value === null) return false;
+  if (!('pages' in value)) return false;
+
+  return Array.isArray(value.pages) && value.pages.every(isMediaListPage);
+}
+
 /**
- * 이미 로드된 목록 캐시(모든 list 쿼리)에서 id에 해당하는 Photo를 찾는다.
- * - 목록 → 상세 진입 시 단건 요청을 기다리지 않고 즉시 표시한다.
- * - 직접 진입(새로고침)처럼 캐시가 없으면 undefined를 반환해 정상 fetch로 넘어간다.
+ * 이미 로드된 목록 캐시에서 id에 해당하는 Photo를 찾는다.
+ * - 캐시가 없으면 undefined를 반환함
+ * - dataUpdatedAt을 함께 반환해 호출자가 캐시 신선도를 판단할 수 있음
  */
 export function findPhotoInListCache(
   queryClient: QueryClient,
   id: string,
-): Photo | undefined {
-  const entries = queryClient.getQueriesData<{ pages: MediaListResponse[] }>({
-    queryKey: photoKeys.lists(),
-  });
+): PhotoCacheHit | undefined {
+  const queries = queryClient
+    .getQueryCache()
+    .findAll({ queryKey: photoKeys.lists() });
 
-  for (const [, data] of entries) {
+  for (const query of queries) {
+    const { data, dataUpdatedAt } = query.state;
+    if (!isPagedMedia(data)) continue;
+
     const found = selectPhotos(data).find((photo) => photo.id === id);
     if (found) {
-      return found;
+      return { photo: found, dataUpdatedAt };
     }
   }
 
@@ -104,6 +129,36 @@ export function prependMediaToLists(
   );
 }
 
+/**
+ * 삭제된 사진을 목록 캐시 전 페이지에서 즉시 걷어낸다.
+ * - 삭제 후 목록으로 돌아왔을 때 백그라운드 리페치를 기다리며 유령 카드가 보이는 걸 막음
+ * - 서버가 이미 404를 주는 상태(다른 기기에서 삭제됨)에서도 정리
+ */
+export function removeMediaFromLists(
+  queryClient: QueryClient,
+  id: string,
+): void {
+  queryClient.setQueriesData<InfiniteMedia>(
+    { queryKey: photoKeys.lists() },
+    (data) => {
+      if (!data) return data;
+
+      const exists = data.pages.some((page) =>
+        page.items.some((it) => it.id === id),
+      );
+      if (!exists) return data;
+
+      // 해당 사진이 없는 페이지는 참조를 유지해 불필요한 리렌더를 막는다.
+      const pages = data.pages.map((page) =>
+        page.items.some((it) => it.id === id)
+          ? { ...page, items: page.items.filter((it) => it.id !== id) }
+          : page,
+      );
+      return { ...data, pages };
+    },
+  );
+}
+
 async function fetchPhotoDetail(id: string): Promise<Photo> {
   const dto = await http.get<MediaDto>(`/v1/media/${id}`);
   return toPhoto(dto);
@@ -116,7 +171,9 @@ export function usePhotoDetail(id: string, options?: { enabled?: boolean }) {
     queryKey: photoKeys.detail(id),
     queryFn: () => fetchPhotoDetail(id),
     enabled: (options?.enabled ?? true) && !!id,
-    initialData: () => findPhotoInListCache(queryClient, id),
+    initialData: () => findPhotoInListCache(queryClient, id)?.photo,
+    initialDataUpdatedAt: () =>
+      findPhotoInListCache(queryClient, id)?.dataUpdatedAt,
     staleTime: 60_000,
     throwOnError: true,
     meta: { operationId: 'getMedia' },
