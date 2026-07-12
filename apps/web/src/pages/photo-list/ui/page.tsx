@@ -11,6 +11,7 @@ import {
   PhotoCard,
   selectPhotos,
   usePhotosInfinite,
+  useRefreshThumbnail,
   type Photo,
 } from '@/entities/photo';
 import { canUpload, useAuthErrorRedirect } from '@/features/auth';
@@ -32,6 +33,7 @@ import { ApiError } from '@/shared/api/error';
 import { track } from '@/shared/lib/analytics';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { errorFallbackMessage } from '@/shared/lib/error-fallback';
+import { log } from '@/shared/lib/logger';
 import { cn } from '@/shared/lib/utils/cn';
 import { ErrorState } from '@/shared/ui/error-state';
 import { toast } from '@/shared/ui/toast';
@@ -261,6 +263,23 @@ function GridCard({
   const enabled = useSelectEnabled();
   const selected = useIsSelected(photo.id);
   const toggle = usePhotoSelectStore((s) => s.toggle);
+  const refreshThumbnail = useRefreshThumbnail();
+
+  const handleThumbnailError = async (attempt: number) => {
+    log.bug(new Error('thumbnail load failed'), {
+      operationId: 'thumbnailLoad',
+      photoId: photo.id,
+      attempt,
+    });
+
+    if (attempt > 1) return undefined;
+
+    try {
+      return await refreshThumbnail(photo.id);
+    } catch {
+      return undefined; // 새 URL도 못 받으면 실패로 확정
+    }
+  };
 
   return (
     <PhotoCard
@@ -269,6 +288,7 @@ function GridCard({
       selectionSlot={enabled ? <SelectCheckbox id={photo.id} /> : undefined}
       actionSlot={!enabled ? <DownloadButton photo={photo} /> : undefined}
       onOpen={(id) => (enabled ? toggle(id) : onOpen(id))}
+      onThumbnailError={handleThumbnailError}
     />
   );
 }

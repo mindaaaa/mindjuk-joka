@@ -4,6 +4,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { photoKeys, type PhotoListFilters } from './keys';
 import { toPhoto } from '../lib/mapper';
@@ -178,6 +179,29 @@ export function usePhotoDetail(id: string, options?: { enabled?: boolean }) {
     throwOnError: true,
     meta: { operationId: 'getMedia' },
   });
+}
+
+/**
+ * 썸네일 로드에 실패한 사진 하나만 새 presigned URL로 다시 받아온다.
+ *
+ * - 목록 쿼리 무효화 대신 상세 조회로 그 사진만 재서명 (전체 재다운로드 방지)
+ * - 부수 효과로 상세 캐시도 채워져, 그 사진 상세 진입이 빨라짐
+ */
+export function useRefreshThumbnail() {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    async (id: string): Promise<string | undefined> => {
+      const photo = await queryClient.fetchQuery({
+        queryKey: photoKeys.detail(id),
+        queryFn: () => fetchPhotoDetail(id),
+        staleTime: 0, // 캐시를 건너뛰고 새 서명 URL을 받아야 한다
+      });
+
+      return photo.thumbnailUrl;
+    },
+    [queryClient],
+  );
 }
 
 export function usePhotosInfinite(

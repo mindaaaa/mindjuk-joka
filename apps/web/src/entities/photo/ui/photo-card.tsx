@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { PhotoThumbnail } from './photo-thumbnail';
+import { PhotoThumbnail, type ThumbnailErrorHandler } from './photo-thumbnail';
 import type { Photo } from '../model/types';
 
 interface PhotoCardProps {
@@ -9,6 +9,7 @@ interface PhotoCardProps {
   actionSlot?: ReactNode | undefined;
   selected?: boolean | undefined;
   onOpen?: ((id: string) => void) | undefined;
+  onThumbnailError?: ThumbnailErrorHandler | undefined;
 }
 
 export function PhotoCard({
@@ -17,6 +18,7 @@ export function PhotoCard({
   actionSlot,
   selected,
   onOpen,
+  onThumbnailError,
 }: PhotoCardProps) {
   return (
     // content-visibility로 화면 밖 카드 렌더링 스킵함
@@ -32,6 +34,7 @@ export function PhotoCard({
           src={photo.thumbnailUrl ?? photo.imageUrl}
           alt={photo.description}
           blurhash={photo.blurhash}
+          onLoadError={onThumbnailError}
         />
         {selected && (
           <span
