@@ -7,6 +7,7 @@ export type AnalyticsEvent =
   | 'album.select'
   | 'list.view'
   | 'list.scroll_depth'
+  | 'list.refresh'
   | 'detail.view'
   | 'api.timing'
   | 'upload.session_complete'
