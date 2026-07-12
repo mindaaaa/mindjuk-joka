@@ -1,12 +1,12 @@
-import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ImagePlus } from 'lucide-react';
-import { toast } from 'sonner';
-
-import { Button } from '@/shared/ui/button';
-import { cn } from '@/shared/lib/utils/cn';
+import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 
 import { validateFile } from '../lib/validate';
 import { useUploadQueueStore } from '../model/store';
+
+import { cn } from '@/shared/lib/utils/cn';
+import { Button } from '@/shared/ui/button';
+import { toast } from '@/shared/ui/toast';
 
 export function UploadDropzone() {
   const inputRef = useRef<HTMLInputElement>(null);

@@ -1,6 +1,5 @@
 import { LogOut, Plus } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import { useCurrentAlbumRole } from '@/entities/album';
 import type { UserRole } from '@/entities/user';
@@ -14,6 +13,7 @@ import { SelectToggle } from '@/features/photo-select';
 import { ThemeToggle } from '@/features/theme';
 import { cn } from '@/shared/lib/utils/cn';
 import { Button } from '@/shared/ui/button';
+import { toast } from '@/shared/ui/toast';
 
 /**
  * 모든 라우트에 상시 노출되는 상단 바

@@ -1,16 +1,22 @@
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
+import { TOAST_DURATION } from './toast';
+
+/**
+ * - toast 배경·글자색은 richColors 팔레트를 덮어쓰므로 지정하지 않는다.
+ * - theme은 앱의 수동 토글 값을 주입한다('system'은 OS 설정만 봄).
+ */
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
       position="top-center"
+      richColors
       toastOptions={{
-        duration: 2000,
+        duration: TOAST_DURATION.info,
+        closeButtonAriaLabel: '닫기',
         classNames: {
-          toast:
-            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
-          description: 'group-[.toast]:text-muted-foreground',
+          toast: 'group toast group-[.toaster]:shadow-lg',
           actionButton:
             'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
           cancelButton:

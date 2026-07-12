@@ -6,13 +6,13 @@ import { ErrorBoundary } from '@/app/providers/error-boundary';
 import { queryClient } from '@/app/providers/query-client';
 import { AppRouter } from '@/app/providers/router';
 import { initSentry } from '@/app/providers/sentry';
+import { AppToaster } from '@/app/providers/toaster';
 import { hideSplash, hideSplashWithFloor } from '@/app/splash';
 import { useAlbumStore } from '@/entities/album';
 import { useAuthStore } from '@/features/auth';
 import { initTheme } from '@/features/theme';
 import { initAnalytics, setRoleResolver } from '@/shared/lib/analytics';
 import { hasConsent } from '@/shared/lib/consent';
-import { Toaster } from '@/shared/ui/toast';
 import './styles/globals.css';
 
 initSentry();
@@ -29,7 +29,7 @@ if (root) {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <AppRouter />
-        <Toaster />
+        <AppToaster />
       </ErrorBoundary>
     </QueryClientProvider>,
   );
