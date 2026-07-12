@@ -9,6 +9,7 @@ import {
   useIsAuthenticated,
   useLogoutMutation,
 } from '@/features/auth';
+import { RefreshButton } from '@/features/photo-refresh';
 import { SelectToggle } from '@/features/photo-select';
 import { ThemeToggle } from '@/features/theme';
 import { cn } from '@/shared/lib/utils/cn';
@@ -65,6 +66,8 @@ function AuthActions() {
   return (
     <nav className="flex items-center gap-1.5">
       {isListRoute ? <SelectToggle /> : null}
+      {/* 목록에서만 새로고침 버튼을 노출한다. */}
+      {isListRoute ? <RefreshButton /> : null}
       <ThemeToggle />
       <UploadFab role={role} />
       <LogoutButton />
