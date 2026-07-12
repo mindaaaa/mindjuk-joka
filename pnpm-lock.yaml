@@ -324,6 +324,24 @@ importers:
         specifier: ^13.0.0
         version: 13.0.0
 
+  packages/domain-user-event:
+    dependencies:
+      '@joka/core':
+        specifier: workspace:*
+        version: link:../core
+      '@joka/lib-drizzle':
+        specifier: workspace:*
+        version: link:../lib-drizzle
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.1(@cloudflare/workers-types@4.20260203.0)(postgres@3.4.8)
+      postgres:
+        specifier: ^3.4.8
+        version: 3.4.8
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+
   packages/infra-object-storage:
     dependencies:
       '@joka/core':
