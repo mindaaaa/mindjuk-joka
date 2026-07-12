@@ -19,6 +19,7 @@ import {
   downloadFilename,
   downloadMany,
 } from '@/features/photo-download';
+import { PullToRefresh } from '@/features/photo-refresh';
 import {
   SelectCheckbox,
   useIsSelected,
@@ -163,32 +164,34 @@ export function PhotoListPage() {
       </div>
 
       <ErrorBoundary fallback={(error) => <GridErrorFallback error={error} />}>
-        <PhotoGrid
-          photos={photos}
-          isLoading={!albumsSettled || query.isLoading}
-          isFetchingNextPage={query.isFetchingNextPage}
-          hasNextPage={!!query.hasNextPage}
-          onLoadMore={() => query.fetchNextPage()}
-          emptyAction={
-            canUpload(role) ? (
-              <Link
-                to="/upload"
-                className="text-[14px] text-foreground opacity-30 transition-opacity hover:opacity-100"
-              >
-                사진 올리기
-              </Link>
-            ) : undefined
-          }
-          renderCard={(photo) => (
-            <GridCard
-              key={photo.id}
-              photo={photo}
-              onOpen={(id) =>
-                navigate(`/photos/${id}`, { state: { source: 'grid' } })
-              }
-            />
-          )}
-        />
+        <PullToRefresh>
+          <PhotoGrid
+            photos={photos}
+            isLoading={!albumsSettled || query.isLoading}
+            isFetchingNextPage={query.isFetchingNextPage}
+            hasNextPage={!!query.hasNextPage}
+            onLoadMore={() => query.fetchNextPage()}
+            emptyAction={
+              canUpload(role) ? (
+                <Link
+                  to="/upload"
+                  className="text-[14px] text-foreground opacity-30 transition-opacity hover:opacity-100"
+                >
+                  사진 올리기
+                </Link>
+              ) : undefined
+            }
+            renderCard={(photo) => (
+              <GridCard
+                key={photo.id}
+                photo={photo}
+                onOpen={(id) =>
+                  navigate(`/photos/${id}`, { state: { source: 'grid' } })
+                }
+              />
+            )}
+          />
+        </PullToRefresh>
       </ErrorBoundary>
 
       <SelectionBar
