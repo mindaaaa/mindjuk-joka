@@ -1,7 +1,8 @@
 import { ImageOff } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { blurhashToDataUrl } from '../lib/blurhash';
+import { useImageRetry } from '../lib/use-image-retry';
 import type { ImageErrorHandler } from '../model/types';
 
 import { cn } from '@/shared/lib/utils/cn';
@@ -23,20 +24,12 @@ export function PhotoThumbnail({
 }: PhotoThumbnailProps) {
   const [loaded, setLoaded] = useState(false);
   const [blurGone, setBlurGone] = useState(false);
-  const [failed, setFailed] = useState(false);
-  // 첫 실패 후 받아온 새 presigned URL(사진당 1회)
-  const [retrySrc, setRetrySrc] = useState<string | undefined>(undefined);
-  const attempts = useRef(0);
+  const { activeSrc, failed, handleError } = useImageRetry(src, onLoadError);
 
-  const activeSrc = retrySrc ?? src;
-
-  // src가 갈리면(목록 리페치로 서명이 새로 발급 등) 처음부터 다시 시작한다.
+  // src가 갈리면(목록 리페치로 서명이 새로 발급 등) 페이드도 처음부터 다시 시작한다.
   useEffect(() => {
     setLoaded(false);
     setBlurGone(false);
-    setFailed(false);
-    setRetrySrc(undefined);
-    attempts.current = 0;
   }, [src]);
 
   // blurhash → data URL 디코딩은 비용이 있으므로 hash가 바뀔 때만 계산한다.
@@ -44,22 +37,6 @@ export function PhotoThumbnail({
     () => (blurhash ? blurhashToDataUrl(blurhash) : undefined),
     [blurhash],
   );
-
-  // 이미지 로드 실패는 브라우저가 재시도해주지 않는다.
-  // 만료된 서명 같은 일시적 실패는 1회만 다시 시도하고, 그래도 실패하면 실패 상태로 굳힌다.
-  const handleError = async () => {
-    attempts.current += 1;
-    const attempt = attempts.current;
-
-    const nextSrc = await onLoadError?.(attempt);
-
-    if (attempt === 1 && nextSrc && nextSrc !== activeSrc) {
-      setRetrySrc(nextSrc);
-      return;
-    }
-
-    setFailed(true);
-  };
 
   return (
     <div

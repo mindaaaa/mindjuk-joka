@@ -1,7 +1,8 @@
 import { RefreshCw } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { blurhashToDataUrl } from '../lib/blurhash';
+import { useImageRetry } from '../lib/use-image-retry';
 import type { ImageErrorHandler } from '../model/types';
 
 import { cn } from '@/shared/lib/utils/cn';
@@ -39,58 +40,15 @@ export function PhotoProgressiveImage({
   const [fullLoaded, setFullLoaded] = useState(false);
   const [blurGone, setBlurGone] = useState(false);
   const [previewGone, setPreviewGone] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [retrying, setRetrying] = useState(false);
-  // 실패 후 받아온 새 presigned URL
-  const [retrySrc, setRetrySrc] = useState<string | undefined>(undefined);
-  const attempts = useRef(0);
-
-  const activeSrc = retrySrc ?? src;
-
-  // src가 갈리면(다른 사진으로 이동 등) 처음부터 다시 시작한다.
-  useEffect(() => {
-    setFailed(false);
-    setRetrying(false);
-    setRetrySrc(undefined);
-    attempts.current = 0;
-  }, [src]);
+  const { activeSrc, failed, retrying, handleError, retry } = useImageRetry(
+    src,
+    onLoadError,
+  );
 
   const blurUrl = useMemo(
     () => (blurhash ? blurhashToDataUrl(blurhash) : undefined),
     [blurhash],
   );
-
-  // presigned 만료 등으로 원본 로드가 실패하면 새 URL을 받아 1회 다시 시도한다.
-  // 브라우저는 이미지 로드를 재시도해주지 않으므로 직접 걸어야 한다.
-  const handleError = async () => {
-    attempts.current += 1;
-    const attempt = attempts.current;
-
-    setRetrying(true);
-    const nextSrc = await onLoadError?.(attempt);
-    setRetrying(false);
-
-    if (attempt === 1 && nextSrc && nextSrc !== activeSrc) {
-      setRetrySrc(nextSrc);
-      return;
-    }
-
-    setFailed(true);
-  };
-
-  // 수동 재시도 (새 URL을 받아낸 뒤에 실패 상태를 푼다)
-  // 먼저 풀면 죽은 src로 이미지가 다시 렌더되고, 그 error가 재시도와 경합한다.
-  const handleRetryClick = async () => {
-    setRetrying(true);
-    const nextSrc = await onLoadError?.(1);
-    setRetrying(false);
-
-    if (!nextSrc || nextSrc === activeSrc) return;
-
-    attempts.current = 0;
-    setRetrySrc(nextSrc);
-    setFailed(false);
-  };
 
   return (
     <>
@@ -156,7 +114,7 @@ export function PhotoProgressiveImage({
             variant="secondary"
             size="sm"
             className="rounded-full"
-            onClick={handleRetryClick}
+            onClick={retry}
             disabled={retrying}
           >
             <RefreshCw className={cn('size-4', retrying && 'animate-spin')} />
