@@ -2,7 +2,7 @@ export { photoKeys, type PhotoListFilters } from './api/keys';
 export {
   usePhotosInfinite,
   usePhotoDetail,
-  useRefreshThumbnail,
+  useRefreshPhotoUrls,
   findPhotoInListCache,
   prependMediaToLists,
   removeMediaFromLists,
@@ -24,12 +24,10 @@ export type {
   PhotoState,
   MediaDto,
   MediaListResponse,
+  ImageErrorHandler,
 } from './model/types';
 
 export { PhotoCard } from './ui/photo-card';
-export {
-  PhotoThumbnail,
-  type ThumbnailErrorHandler,
-} from './ui/photo-thumbnail';
+export { PhotoThumbnail } from './ui/photo-thumbnail';
 export { PhotoProgressiveImage } from './ui/photo-progressive-image';
 export { PhotoMeta } from './ui/photo-meta';

@@ -11,7 +11,7 @@ import {
   PhotoCard,
   selectPhotos,
   usePhotosInfinite,
-  useRefreshThumbnail,
+  useRefreshPhotoUrls,
   type Photo,
 } from '@/entities/photo';
 import { canUpload, useAuthErrorRedirect } from '@/features/auth';
@@ -263,7 +263,7 @@ function GridCard({
   const enabled = useSelectEnabled();
   const selected = useIsSelected(photo.id);
   const toggle = usePhotoSelectStore((s) => s.toggle);
-  const refreshThumbnail = useRefreshThumbnail();
+  const refreshPhotoUrls = useRefreshPhotoUrls();
 
   const handleThumbnailError = async (attempt: number) => {
     log.bug(new Error('thumbnail load failed'), {
@@ -275,7 +275,8 @@ function GridCard({
     if (attempt > 1) return undefined;
 
     try {
-      return await refreshThumbnail(photo.id);
+      const refreshed = await refreshPhotoUrls(photo.id);
+      return refreshed.thumbnailUrl;
     } catch {
       return undefined; // 새 URL도 못 받으면 실패로 확정
     }

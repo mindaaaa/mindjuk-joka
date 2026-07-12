@@ -2,24 +2,16 @@ import { ImageOff } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { blurhashToDataUrl } from '../lib/blurhash';
+import type { ImageErrorHandler } from '../model/types';
 
 import { cn } from '@/shared/lib/utils/cn';
-
-/**
- * 썸네일 로드 실패 핸들러.
- * - attempt 1: 첫 실패 → 새 src(재서명 URL)를 반환하면 그걸로 한 번 더 시도한다
- * - attempt 2: 재시도까지 실패 → 반환값은 무시하고 실패로 확정한다
- */
-export type ThumbnailErrorHandler = (
-  attempt: number,
-) => Promise<string | undefined> | void;
 
 interface PhotoThumbnailProps {
   src?: string | undefined;
   alt: string;
   blurhash?: string | undefined;
   className?: string | undefined;
-  onLoadError?: ThumbnailErrorHandler | undefined;
+  onLoadError?: ImageErrorHandler | undefined;
 }
 
 export function PhotoThumbnail({

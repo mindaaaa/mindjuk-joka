@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { PhotoThumbnail, type ThumbnailErrorHandler } from './photo-thumbnail';
-import type { Photo } from '../model/types';
+import { PhotoThumbnail } from './photo-thumbnail';
+import type { ImageErrorHandler, Photo } from '../model/types';
 
 interface PhotoCardProps {
   photo: Photo;
@@ -9,7 +9,7 @@ interface PhotoCardProps {
   actionSlot?: ReactNode | undefined;
   selected?: boolean | undefined;
   onOpen?: ((id: string) => void) | undefined;
-  onThumbnailError?: ThumbnailErrorHandler | undefined;
+  onThumbnailError?: ImageErrorHandler | undefined;
 }
 
 export function PhotoCard({

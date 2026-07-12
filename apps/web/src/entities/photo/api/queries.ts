@@ -182,24 +182,24 @@ export function usePhotoDetail(id: string, options?: { enabled?: boolean }) {
 }
 
 /**
- * 썸네일 로드에 실패한 사진 하나만 새 presigned URL로 다시 받아온다.
+ * 이미지 로드에 실패한 사진 하나만 새 presigned URL(썸네일·원본)로 다시 받아온다.
+ *
+ * presigned 서명은 180초 만에 만료되므로, 목록을 오래 열어두고 스크롤하거나 상세를 재진입하면
+ * 이미 죽은 URL로 요청이 나갈 수 있다. 그때 이 훅으로 그 사진만 재서명해 다시 그린다.
  *
  * - 목록 쿼리 무효화 대신 상세 조회로 그 사진만 재서명 (전체 재다운로드 방지)
  * - 부수 효과로 상세 캐시도 채워져, 그 사진 상세 진입이 빨라짐
  */
-export function useRefreshThumbnail() {
+export function useRefreshPhotoUrls() {
   const queryClient = useQueryClient();
 
   return useCallback(
-    async (id: string): Promise<string | undefined> => {
-      const photo = await queryClient.fetchQuery({
+    (id: string): Promise<Photo> =>
+      queryClient.fetchQuery({
         queryKey: photoKeys.detail(id),
         queryFn: () => fetchPhotoDetail(id),
         staleTime: 0, // 캐시를 건너뛰고 새 서명 URL을 받아야 한다
-      });
-
-      return photo.thumbnailUrl;
-    },
+      }),
     [queryClient],
   );
 }
