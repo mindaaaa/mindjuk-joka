@@ -97,6 +97,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* 브라우저 기본 당겨서 새로고침(안드로이드 크롬)을 끄고, 앱이 그린 것만 남긴다. */
+    overscroll-behavior-y: contain;
   }
 }
 
