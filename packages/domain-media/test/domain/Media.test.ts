@@ -293,6 +293,46 @@ describe('Media', () => {
     });
   });
 
+  describe('markAsFavorite', () => {
+    it('isFavorite만 true로 바꾼 새 Media를 반환한다', () => {
+      // given
+      const media = Media.from(createMediaParams({ isFavorite: false }));
+
+      // when
+      const marked = media.markAsFavorite();
+
+      // then
+      expect(marked).toBeInstanceOf(Media);
+      expect(marked).not.toBe(media);
+      expect(marked.isFavorite).toBe(true);
+      expect(marked.id).toBe(media.id);
+      expect(marked.cid).toBe(media.cid);
+      expect(marked.state).toBe(media.state);
+      expect(marked.version).toBe(media.version);
+      expect(marked.content).toBe(media.content);
+    });
+  });
+
+  describe('unmarkAsFavorite', () => {
+    it('isFavorite만 false로 바꾼 새 Media를 반환한다', () => {
+      // given
+      const media = Media.from(createMediaParams({ isFavorite: true }));
+
+      // when
+      const unmarked = media.unmarkAsFavorite();
+
+      // then
+      expect(unmarked).toBeInstanceOf(Media);
+      expect(unmarked).not.toBe(media);
+      expect(unmarked.isFavorite).toBe(false);
+      expect(unmarked.id).toBe(media.id);
+      expect(unmarked.cid).toBe(media.cid);
+      expect(unmarked.state).toBe(media.state);
+      expect(unmarked.version).toBe(media.version);
+      expect(unmarked.content).toBe(media.content);
+    });
+  });
+
   describe('setContent', () => {
     it('새로운 content를 가진 Media를 반환한다', () => {
       // given
