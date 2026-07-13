@@ -55,7 +55,11 @@ export class MediaService {
   ): Promise<ListResponse<Media>> {
     const condition = ListMediaCondition.from({
       limit: request.limit,
-      filter: { albumId: context.album.id, states: request.states || [] },
+      filter: {
+        albumId: context.album.id,
+        userId: context.user.id,
+        states: request.states || [],
+      },
       cursor: request.cursor ? { cid: request.cursor } : null,
       sortOrder: request.sortOrder,
     });
@@ -74,7 +78,11 @@ export class MediaService {
   }
 
   get(context: Context, request: GetRequest): Promise<Media> {
-    return this.repository.findOne(context.album.id, request.cid);
+    return this.repository.findOne(
+      context.album.id,
+      context.user.id,
+      request.cid,
+    );
   }
 
   // 시스템 전용: 사용자 세션 없이 cid만으로 조회한다(권한 검사 없음).
@@ -89,7 +97,11 @@ export class MediaService {
   }
 
   async update(context: Context, request: UpdateMediaRequest): Promise<Media> {
-    const found = await this.repository.findOne(context.album.id, request.cid);
+    const found = await this.repository.findOne(
+      context.album.id,
+      context.user.id,
+      request.cid,
+    );
     if (found.isOwnedBy(context.user) || request.isForced) {
       return this.repository.update(found.updateBy(request));
     }
@@ -101,7 +113,11 @@ export class MediaService {
   }
 
   async delete(context: Context, request: DeleteRequest): Promise<null> {
-    const target = await this.repository.findOne(context.album.id, request.cid);
+    const target = await this.repository.findOne(
+      context.album.id,
+      context.user.id,
+      request.cid,
+    );
     if (target.isOwnedBy(context.user) || request.isForced) {
       return this.repository.deleteOne(target);
     }
