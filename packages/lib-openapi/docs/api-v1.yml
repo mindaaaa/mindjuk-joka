@@ -294,6 +294,59 @@ paths:
           $ref: '#/components/responses/Error'
       servers:
         - url: 'http://mindjuk.dev/api/v1'
+  '/media/{cid}/favorite':
+    put:
+      tags:
+        - joka
+      summary: 즐겨찾기 등록
+      description: Media를 즐겨찾기에 등록합니다.
+      operationId: addFavorite
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-Album-Id'
+        - name: mediaId
+          in: path
+          description: Media 식별자
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      servers:
+        - url: 'http://mindjuk.dev/api/v1'
+    delete:
+      tags:
+        - joka
+      summary: 즐겨찾기 해제
+      description: Media를 즐겨찾기에서 해제합니다.
+      operationId: removeFavorite
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-Album-Id'
+        - name: mediaId
+          in: path
+          description: Media 식별자
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+      servers:
+        - url: 'http://mindjuk.dev/api/v1'
   /albums:
     get:
       tags:
