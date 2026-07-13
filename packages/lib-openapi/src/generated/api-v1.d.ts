@@ -136,6 +136,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/media/{cid}/favorite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 즐겨찾기 등록
+         * @description Media를 즐겨찾기에 등록합니다.
+         */
+        put: operations["addFavorite"];
+        post?: never;
+        /**
+         * 즐겨찾기 해제
+         * @description Media를 즐겨찾기에서 해제합니다.
+         */
+        delete: operations["removeFavorite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/albums": {
         parameters: {
             query?: never;
@@ -859,6 +883,64 @@ export interface operations {
             403: components["responses"]["Error"];
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
+        };
+    };
+    addFavorite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 인증 토큰 */
+                Authorization: components["parameters"]["Authorization"];
+                /** @description 현재 속한 Album의 식별자 */
+                "X-Album-Id": components["parameters"]["X-Album-Id"];
+            };
+            path: {
+                /** @description Media 식별자 */
+                mediaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+        };
+    };
+    removeFavorite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 인증 토큰 */
+                Authorization: components["parameters"]["Authorization"];
+                /** @description 현재 속한 Album의 식별자 */
+                "X-Album-Id": components["parameters"]["X-Album-Id"];
+            };
+            path: {
+                /** @description Media 식별자 */
+                mediaId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
         };
     };
     listAlbums: {

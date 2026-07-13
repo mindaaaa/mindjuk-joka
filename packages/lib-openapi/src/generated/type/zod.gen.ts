@@ -356,6 +356,40 @@ export const zCreateContentData = z.object({
  */
 export const zCreateContentResponse = zContent;
 
+export const zRemoveFavoriteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
+});
+
+/**
+ * No Content
+ */
+export const zRemoveFavoriteResponse = z.void();
+
+export const zAddFavoriteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
+});
+
+/**
+ * No Content
+ */
+export const zAddFavoriteResponse = z.void();
+
 export const zListAlbumsData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
