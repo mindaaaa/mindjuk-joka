@@ -51,6 +51,7 @@ media.get('/', async (c) => {
   const order = c.req.query('order');
   const cursor = c.req.query('cursor');
   const states = c.req.query('states');
+  const isFavorite = c.req.query('isFavorite');
 
   if (size) {
     invokeRequest.size = size;
@@ -63,6 +64,9 @@ media.get('/', async (c) => {
   }
   if (states) {
     invokeRequest.states = states;
+  }
+  if (isFavorite) {
+    invokeRequest.isFavorite = isFavorite;
   }
 
   const actor = c.get('actor');

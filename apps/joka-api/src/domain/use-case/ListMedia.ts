@@ -12,6 +12,7 @@ export interface Request {
   order?: string;
   cursor?: string;
   states?: string;
+  isFavorite?: string;
 }
 
 export type Response = {
