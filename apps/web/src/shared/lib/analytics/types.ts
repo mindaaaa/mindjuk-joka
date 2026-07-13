@@ -3,8 +3,6 @@ import type { UserRole } from '@/entities/user';
 export type AnalyticsEvent =
   | 'auth.login_success'
   | 'auth.logout'
-  | 'album.list_view'
-  | 'album.select'
   | 'list.view'
   | 'list.scroll_depth'
   | 'list.refresh'
@@ -27,18 +25,19 @@ export type AnalyticsEvent =
 export type AnalyticsProps = Record<string, string | number | boolean | null>;
 
 /**
- * 자체 수집 서버(POST /v1/events)로 전송할 공통 이벤트 포맷
+ * 수집 서버(POST /v1/user-events)로 전송할 공통 이벤트 포맷
  *
+ * - name·timestamp·userRole은 서버 필수 필드다.
+ * - 그 밖의 필드는 서버가 추가 속성으로 함께 저장한다.
  * - anonUserId: 프라이버시 보호를 위해 user.id를 SHA-256(16hex)으로 해싱한 값 (원본 ID/이메일 포함 금지)
- * - userRole: 앨범별로 권한이 다르므로, Album Store의 Resolver를 통해 동적으로 주입
  * - route: 통계 그룹화를 위해 실제 URL이 아닌 라우트 패턴(예: /photos/:id) 형태로 정규화하여 기록
  */
 export interface EventEnvelope {
-  event: AnalyticsEvent;
+  name: AnalyticsEvent;
   timestamp: number;
+  userRole: UserRole;
   sessionId: string;
   anonUserId: string | null;
-  userRole: UserRole | null;
   route: string;
   appVersion: string;
   props?: AnalyticsProps;

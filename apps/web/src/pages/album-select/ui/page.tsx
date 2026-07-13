@@ -12,8 +12,6 @@ import {
   useMainAlbumStore,
   type Album,
 } from '@/entities/album';
-import { canUpload } from '@/features/auth';
-import { track } from '@/shared/lib/analytics';
 
 // 탭 후 배너를 잠깐 보여준 뒤 진입
 const NAV_DELAY_MS = 450;
@@ -45,8 +43,6 @@ export function AlbumSelectPage() {
       if (enteredRef.current) return;
       enteredRef.current = true;
 
-      track('album.select', { editable: canUpload(album.role) });
-
       setCurrent(album);
       navigate('/photos', { replace: true });
     },
@@ -58,14 +54,6 @@ export function AlbumSelectPage() {
 
   const isSingle = albumsQuery.isSuccess && albums.length === 1;
   const singleAlbum = isSingle ? albums[0] : null;
-
-  const listViewTracked = useRef(false);
-  useEffect(() => {
-    if (albumsQuery.isSuccess && !listViewTracked.current) {
-      listViewTracked.current = true;
-      track('album.list_view', { count: albumsQuery.data.length });
-    }
-  }, [albumsQuery.isSuccess, albumsQuery.data]);
 
   // 앨범이 하나뿐이면 안내 배너를 최소 1.5초 보여준 뒤 자동 진입
   useEffect(() => {
