@@ -1,6 +1,7 @@
 import {
   ConflictException,
   IllegalStateException,
+  InvalidArgumentException,
 } from '@joka/core/src/exception';
 
 import { Media, DraftMedia } from '../../src/domain/Media';
@@ -294,9 +295,11 @@ describe('Media', () => {
   });
 
   describe('markAsFavorite', () => {
-    it('isFavorite만 true로 바꾼 새 Media를 반환한다', () => {
+    it('COMPLETE 상태면 isFavorite만 true로 바꾼 새 Media를 반환한다', () => {
       // given
-      const media = Media.from(createMediaParams({ isFavorite: false }));
+      const media = Media.from(
+        createMediaParams({ isFavorite: false, state: 'COMPLETE' }),
+      );
 
       // when
       const marked = media.markAsFavorite();
@@ -311,12 +314,25 @@ describe('Media', () => {
       expect(marked.version).toBe(media.version);
       expect(marked.content).toBe(media.content);
     });
+
+    it.each(['DRAFT', 'PREPARING'])(
+      '%s 상태면 InvalidArgumentException을 던진다',
+      (state) => {
+        // given
+        const media = Media.from(createMediaParams({ state }));
+
+        // when & then
+        expect(() => media.markAsFavorite()).toThrow(InvalidArgumentException);
+      },
+    );
   });
 
   describe('unmarkAsFavorite', () => {
-    it('isFavorite만 false로 바꾼 새 Media를 반환한다', () => {
+    it('COMPLETE 상태면 isFavorite만 false로 바꾼 새 Media를 반환한다', () => {
       // given
-      const media = Media.from(createMediaParams({ isFavorite: true }));
+      const media = Media.from(
+        createMediaParams({ isFavorite: true, state: 'COMPLETE' }),
+      );
 
       // when
       const unmarked = media.unmarkAsFavorite();
@@ -331,6 +347,19 @@ describe('Media', () => {
       expect(unmarked.version).toBe(media.version);
       expect(unmarked.content).toBe(media.content);
     });
+
+    it.each(['DRAFT', 'PREPARING'])(
+      '%s 상태면 InvalidArgumentException을 던진다',
+      (state) => {
+        // given
+        const media = Media.from(createMediaParams({ state }));
+
+        // when & then
+        expect(() => media.unmarkAsFavorite()).toThrow(
+          InvalidArgumentException,
+        );
+      },
+    );
   });
 
   describe('setContent', () => {
