@@ -367,6 +367,10 @@ export class MediaRepository {
           .where(eq(contents.id, contentRow?.contentId));
       }
 
+      await trx
+        .delete(mediaFavorites)
+        .where(eq(mediaFavorites.mediaId, target.id));
+
       const [deleted] = await trx
         .delete(media)
         .where(
