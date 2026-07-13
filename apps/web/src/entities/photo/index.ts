@@ -4,12 +4,15 @@ export {
   usePhotoDetail,
   findPhotoInListCache,
   prependMediaToLists,
+  removeMediaFromLists,
   selectPhotos,
   nextCursorOf,
+  type PhotoCacheHit,
 } from './api/queries';
 export {
   useUpdatePhotoMetaMutation,
   useDeletePhotoMutation,
+  isAlreadyDeleted,
   type UpdatePhotoMetaVars,
 } from './api/mutations';
 

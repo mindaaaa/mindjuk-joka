@@ -9,7 +9,7 @@ import { toast } from '@/shared/ui/toast';
 
 function InviteButton() {
   const handleClick = () => {
-    toast('초대 코드 기능은 아직 준비 중이에요.');
+    toast.info('초대 코드 기능은 아직 준비 중이에요.');
   };
 
   return (

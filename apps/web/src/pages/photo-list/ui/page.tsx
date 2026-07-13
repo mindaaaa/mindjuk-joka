@@ -200,12 +200,11 @@ export function PhotoListPage() {
 }
 
 const TABS = [
-  { key: 'all', label: '전체', enabled: true },
-  { key: 'recent', label: '최근', enabled: false },
-  { key: 'favorite', label: '즐겨찾기', enabled: false },
+  { key: 'all', label: '전체', ready: true },
+  { key: 'favorite', label: '즐겨찾기', ready: false },
 ] as const;
 
-// TODO: 최근/즐겨찾기 필터 API 연결 (연결되면 active를 상태로 변경)
+// TODO: 즐겨찾기 필터 API 연결 (연결되면 ready: true + active를 상태로 변경, 안내 토스트 제거)
 function FilterTabs() {
   const active = 'all';
 
@@ -217,12 +216,14 @@ function FilterTabs() {
           <button
             key={tab.key}
             type="button"
-            disabled={!tab.enabled}
             aria-current={isActive ? 'page' : undefined}
+            onClick={() => {
+              if (!tab.ready) toast.info('즐겨찾기는 준비 중이에요.');
+            }}
             className={cn(
               'text-[22px] tracking-tight',
               isActive ? 'text-primary' : 'text-foreground',
-              !tab.enabled && 'opacity-25',
+              !tab.ready && 'opacity-25',
             )}
           >
             {tab.label}

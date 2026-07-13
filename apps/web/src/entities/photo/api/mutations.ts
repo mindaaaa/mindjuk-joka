@@ -5,11 +5,13 @@ import {
   type UseMutationOptions,
 } from '@tanstack/react-query';
 
-import { http } from '@/shared/api';
-
+import { photoKeys } from './keys';
+import { removeMediaFromLists } from './queries';
 import { toPhoto } from '../lib/mapper';
 import type { MediaDto, Photo } from '../model/types';
-import { photoKeys } from './keys';
+
+import { http } from '@/shared/api';
+import { ApiError } from '@/shared/api/error';
 
 export interface UpdatePhotoMetaVars {
   id: string;
@@ -64,6 +66,20 @@ export function useUpdatePhotoMetaMutation() {
   return useMutation(buildUpdatePhotoMetaOptions(queryClient));
 }
 
+/** 404는 "이미 삭제됨"이다. 실패가 아니라 목표 상태에 도달한 것으로 본다(멱등). */
+export function isAlreadyDeleted(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404;
+}
+
+/**
+ * 삭제된 사진의 상세/목록 캐시를 즉시 정리하고, 최종 정합은 invalidate로 위임한다.
+ */
+function purgeDeletedPhoto(queryClient: QueryClient, id: string): void {
+  queryClient.removeQueries({ queryKey: photoKeys.detail(id) });
+  removeMediaFromLists(queryClient, id);
+  queryClient.invalidateQueries({ queryKey: photoKeys.lists() });
+}
+
 export function buildDeletePhotoOptions(
   queryClient: QueryClient,
 ): UseMutationOptions<void, Error, string> {
@@ -71,9 +87,12 @@ export function buildDeletePhotoOptions(
     mutationFn: (id) => http.delete(`/v1/media/${id}`),
     meta: { operationId: 'deleteMedia' },
 
-    onSuccess: (_data, id) => {
-      queryClient.removeQueries({ queryKey: photoKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: photoKeys.lists() });
+    onSuccess: (_data, id) => purgeDeletedPhoto(queryClient, id),
+
+    onError: (error, id) => {
+      if (isAlreadyDeleted(error)) {
+        purgeDeletedPhoto(queryClient, id);
+      }
     },
   };
 }
