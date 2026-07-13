@@ -19,7 +19,9 @@ export function PhotoCard({
   onOpen,
 }: PhotoCardProps) {
   return (
-    <div className="group relative">
+    // content-visibility로 화면 밖 카드 렌더링 스킵함
+    // 200px은 미렌더 카드의 임시 높이 추정치(auto가 실측치로 자동 대체)
+    <div className="group relative [contain-intrinsic-size:auto_200px] [content-visibility:auto]">
       <button
         type="button"
         onClick={() => onOpen?.(photo.id)}
