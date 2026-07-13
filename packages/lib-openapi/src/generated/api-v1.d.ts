@@ -698,6 +698,8 @@ export interface operations {
                  * @example DRAFT,PREPARING,COMPLETE
                  */
                 states?: string;
+                /** @description 즐겨찾기 여부 필터(생략 시 전체) */
+                isFavorite?: "true" | "false";
             };
             header: {
                 /** @description 인증 토큰 */

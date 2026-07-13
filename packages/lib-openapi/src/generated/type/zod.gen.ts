@@ -210,7 +210,11 @@ export const zListMediaData = z.object({
             'DESC'
         ])),
         cursor: z.optional(z.string().min(1)),
-        states: z.optional(z.string().min(1))
+        states: z.optional(z.string().min(1)),
+        isFavorite: z.optional(z.enum([
+            'true',
+            'false'
+        ]))
     })),
     headers: z.object({
         Authorization: z.string(),

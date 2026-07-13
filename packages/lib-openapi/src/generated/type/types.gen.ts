@@ -352,6 +352,10 @@ export type ListMediaData = {
          * Media 상태 정보
          */
         states?: string;
+        /**
+         * 즐겨찾기 여부 필터(생략 시 전체)
+         */
+        isFavorite?: 'true' | 'false';
     };
     url: '/media';
 };
