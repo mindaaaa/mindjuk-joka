@@ -9,6 +9,7 @@ import {
   unique,
   foreignKey,
   uuid,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { v7 as uuidv7 } from 'uuid';
 
@@ -149,6 +150,33 @@ export const thumbnails = jokaSchema.table(
       columns: [t.contentId],
       foreignColumns: [contents.id],
       name: 'thumbnails_content_id_fk',
+    }),
+  }),
+);
+
+export const userEvents = jokaSchema.table(
+  'user_events',
+  {
+    id: serial('id').primaryKey(),
+    cid: uuid('cid')
+      .$defaultFn(() => uuidv7())
+      .unique()
+      .notNull(),
+    albumId: integer('album_id').notNull(),
+    event: jsonb('event').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdById: integer('created_by_id').notNull(),
+  },
+  (t) => ({
+    userEventsAlbumFk: foreignKey({
+      columns: [t.albumId],
+      foreignColumns: [albums.id],
+      name: 'user_events_album_id_fk',
+    }),
+    userEventsCreatedByFk: foreignKey({
+      columns: [t.createdById],
+      foreignColumns: [users.id],
+      name: 'user_events_created_by_fk',
     }),
   }),
 );

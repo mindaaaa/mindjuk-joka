@@ -13,6 +13,29 @@ info:
 servers:
   - url: 'http://mindjuk.dev/api/v1'
 paths:
+  /user-events:
+    post:
+      tags:
+        - joka
+      summary: User Event 수집
+      description: 사용자 행동 이벤트를 수집합니다.
+      operationId: createUserEvents
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-Album-Id'
+      requestBody:
+        $ref: '#/components/requestBodies/CreateUserEvents'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+      servers:
+        - url: 'http://mindjuk.dev/api/v1'
   /media:
     post:
       tags:
@@ -383,6 +406,36 @@ components:
       schema:
         type: string
   requestBodies:
+    CreateUserEvents:
+      description: User Event 수집 요청
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              events:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  properties:
+                    name:
+                      type: string
+                      description: 이벤트 이름
+                      minLength: 1
+                    timestamp:
+                      type: integer
+                      description: 이벤트 발생 시각(epoch millis)
+                      format: int64
+                    userRole:
+                      $ref: '#/components/schemas/Role'
+                  required:
+                    - name
+                    - timestamp
+                    - userRole
+            required:
+              - events
     CreateMedia:
       description: Media 생성 요청
       content:

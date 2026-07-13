@@ -211,6 +211,24 @@ export type Authorization = string;
 export type XAlbumId = string;
 
 /**
+ * User Event 수집 요청
+ */
+export type CreateUserEvents = {
+  events: Array<{
+    /**
+     * 이벤트 이름
+     */
+    name: string;
+    /**
+     * 이벤트 발생 시각(epoch millis)
+     */
+    timestamp: number;
+    userRole: Role;
+    [key: string]: unknown | string | number | Role;
+  }>;
+};
+
+/**
  * Media 생성 요청
  */
 export type CreateMedia = {
@@ -267,6 +285,54 @@ export type Logout = {
 export type ConfirmMedia = {
   [key: string]: never;
 };
+
+export type CreateUserEventsData = {
+  /**
+   * User Event 수집 요청
+   */
+  body?: CreateUserEvents;
+  headers: {
+    /**
+     * 인증 토큰
+     */
+    'Authorization': string;
+    /**
+     * 현재 속한 Album의 식별자
+     */
+    'X-Album-Id': string;
+  };
+  path?: never;
+  query?: never;
+  url: '/user-events';
+};
+
+export type CreateUserEventsErrors = {
+  /**
+   * 요청 처리 실패 응답
+   */
+  400: _Error;
+  /**
+   * 요청 처리 실패 응답
+   */
+  401: _Error;
+  /**
+   * 요청 처리 실패 응답
+   */
+  403: _Error;
+};
+
+export type CreateUserEventsError =
+  CreateUserEventsErrors[keyof CreateUserEventsErrors];
+
+export type CreateUserEventsResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type CreateUserEventsResponse =
+  CreateUserEventsResponses[keyof CreateUserEventsResponses];
 
 export type ListMediaData = {
   body?: never;

@@ -11,6 +11,7 @@ import albums from './infrastructure/web/v1/albums.controller';
 import authController from './infrastructure/web/v1/auth.controller';
 import me from './infrastructure/web/v1/me.controller';
 import media from './infrastructure/web/v1/media.controller';
+import userEvents from './infrastructure/web/v1/user-events.controller';
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173'];
 
@@ -40,11 +41,13 @@ app.use('*', hyperdrive);
 app.use('*', objectStorage);
 app.use('*', auth);
 app.use('/v1/media/*', actorResolver);
+app.use('/v1/user-events/*', actorResolver);
 
 app.route('/', authController);
 app.route('/', me);
 app.route('/', albums);
 app.route('/', media);
+app.route('/', userEvents);
 
 export default {
   fetch: app.fetch,

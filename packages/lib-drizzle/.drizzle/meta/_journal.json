@@ -8,6 +8,13 @@
       "when": 1777934341091,
       "tag": "0000_broken_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783863135451,
+      "tag": "0001_aspiring_ravenous",
+      "breakpoints": true
     }
   ]
 }
