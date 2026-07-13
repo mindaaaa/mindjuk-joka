@@ -105,6 +105,14 @@ paths:
           schema:
             type: string
             minLength: 1
+        - name: isFavorite
+          in: query
+          description: 즐겨찾기 여부 필터(생략 시 전체)
+          schema:
+            type: string
+            enum:
+              - 'true'
+              - 'false'
       responses:
         '200':
           $ref: '#/components/responses/ListMedia'
