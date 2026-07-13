@@ -6,7 +6,7 @@ describe('ListMediaCondition', () => {
       // given
       const params = {
         limit: 10,
-        filter: { albumId: 1, states: ['DRAFT', 'COMPLETE'] },
+        filter: { albumId: 1, userId: 1, states: ['DRAFT', 'COMPLETE'] },
         cursor: { cid: 'cursor-123' },
         sortOrder: 'asc',
       };
@@ -26,7 +26,7 @@ describe('ListMediaCondition', () => {
     it('limit이 없으면 기본값 20을 사용한다', () => {
       // given
       const params = {
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
       };
 
       // when
@@ -41,7 +41,7 @@ describe('ListMediaCondition', () => {
       // given
       const params = {
         limit: 10,
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
       };
 
       // when
@@ -55,7 +55,7 @@ describe('ListMediaCondition', () => {
       // given
       const params = {
         limit: 10,
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
       };
 
       // when
@@ -68,7 +68,7 @@ describe('ListMediaCondition', () => {
     it('허용되지 않는 state가 포함되면 예외를 던진다', () => {
       // given
       const params = {
-        filter: { albumId: 1, states: ['INVALID'] },
+        filter: { albumId: 1, userId: 1, states: ['INVALID'] },
       };
 
       // when & then
@@ -78,7 +78,7 @@ describe('ListMediaCondition', () => {
     it('소문자로 작성된 state는 허용하지 않는다', () => {
       // given
       const params = {
-        filter: { albumId: 1, states: ['complete'] },
+        filter: { albumId: 1, userId: 1, states: ['complete'] },
       };
 
       // when & then
@@ -88,7 +88,7 @@ describe('ListMediaCondition', () => {
     it('유효한 state와 유효하지 않은 state가 섞여 있으면 예외를 던진다', () => {
       // given
       const params = {
-        filter: { albumId: 1, states: ['DRAFT', 'invalid'] },
+        filter: { albumId: 1, userId: 1, states: ['DRAFT', 'invalid'] },
       };
 
       // when & then
@@ -99,7 +99,7 @@ describe('ListMediaCondition', () => {
       // given
       const params = {
         limit: 'invalid',
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
       };
 
       // when
@@ -122,7 +122,7 @@ describe('ListMediaCondition', () => {
     it('sortOrder가 desc이면 true를 반환한다', () => {
       // given
       const condition = ListMediaCondition.from({
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
         sortOrder: 'desc',
       });
 
@@ -133,7 +133,7 @@ describe('ListMediaCondition', () => {
     it('sortOrder가 asc이면 false를 반환한다', () => {
       // given
       const condition = ListMediaCondition.from({
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
         sortOrder: 'asc',
       });
 
@@ -147,7 +147,7 @@ describe('ListMediaCondition', () => {
       // given
       const condition = ListMediaCondition.from({
         limit: 10,
-        filter: { albumId: 1, states: [] },
+        filter: { albumId: 1, userId: 1, states: [] },
       });
 
       // when
@@ -163,7 +163,7 @@ describe('ListMediaCondition', () => {
       // given
       const params = {
         limit: 15,
-        filter: { albumId: 2, states: ['DRAFT'] },
+        filter: { albumId: 2, userId: 1, states: ['DRAFT'] },
         cursor: { cid: 'cursor-456' },
         sortOrder: 'asc',
       };
@@ -174,7 +174,7 @@ describe('ListMediaCondition', () => {
 
       // then
       expect(data.limit).toBe(15);
-      expect(data.filter).toEqual({ albumId: 2, states: ['DRAFT'] });
+      expect(data.filter).toEqual({ albumId: 2, userId: 1, states: ['DRAFT'] });
       expect(data.cursor).toEqual({ cid: 'cursor-456' });
       expect(data.sortOrder).toBe('asc');
     });

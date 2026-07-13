@@ -124,6 +124,11 @@ describe('MediaService', () => {
 
       // then
       expect(mockRepository.findMany).toHaveBeenCalledTimes(1);
+      expect(mockRepository.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: expect.objectContaining({ userId: 1 }),
+        }),
+      );
       expect(result.items).toBe(mockItems);
       expect(result.pagination.size).toBe(10);
       expect(result.pagination.hasNext).toBe(false);
@@ -178,7 +183,7 @@ describe('MediaService', () => {
       const result = await service.get(context as any, request);
 
       // then
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
       expect(result).toBe(expectedMedia);
     });
   });
@@ -249,7 +254,7 @@ describe('MediaService', () => {
       const result = await service.update(context as any, request as any);
 
       // then
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
       expect(foundMedia.updateBy).toHaveBeenCalledWith(request);
       expect(mockRepository.update).toHaveBeenCalledWith(updatedMedia);
       expect(result).toBe(updatedMedia);
@@ -316,7 +321,7 @@ describe('MediaService', () => {
       const result = await service.delete(context as any, request);
 
       // then
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
       expect(mockRepository.deleteOne).toHaveBeenCalledWith(targetMedia);
       expect(result).toBeNull();
     });
