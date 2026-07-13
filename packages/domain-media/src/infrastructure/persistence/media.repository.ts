@@ -15,6 +15,8 @@ import {
   aliasedTable,
   lte,
   gte,
+  isNull,
+  isNotNull,
   SQL,
   sql,
 } from 'drizzle-orm';
@@ -77,6 +79,12 @@ export class MediaRepository {
           ? lte(media.cid, condition.cursor.cid)
           : gte(media.cid, condition.cursor.cid),
       );
+    }
+    if (condition.filter.isFavorite === true) {
+      whereClause.push(isNotNull(mediaFavorites.id));
+    }
+    if (condition.filter.isFavorite === false) {
+      whereClause.push(isNull(mediaFavorites.id));
     }
 
     const responses = await this.selectAndJoinClause(condition.filter.userId)

@@ -23,6 +23,7 @@ interface ListRequest {
   states?: string[];
   cursor?: string;
   sortOrder?: string;
+  isFavorite?: boolean;
 }
 interface ListResponse<E> {
   items: E[];
@@ -59,6 +60,7 @@ export class MediaService {
         albumId: context.album.id,
         userId: context.user.id,
         states: request.states || [],
+        isFavorite: request.isFavorite,
       },
       cursor: request.cursor ? { cid: request.cursor } : null,
       sortOrder: request.sortOrder,
