@@ -806,6 +806,10 @@ export type RemoveFavoriteErrors = {
     /**
      * 요청 처리 실패 응답
      */
+    400: _Error;
+    /**
+     * 요청 처리 실패 응답
+     */
     401: _Error;
     /**
      * 요청 처리 실패 응답
@@ -851,6 +855,10 @@ export type AddFavoriteData = {
 };
 
 export type AddFavoriteErrors = {
+    /**
+     * 요청 처리 실패 응답
+     */
+    400: _Error;
     /**
      * 요청 처리 실패 응답
      */
