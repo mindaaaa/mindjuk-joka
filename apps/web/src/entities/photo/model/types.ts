@@ -1,5 +1,14 @@
 export type PhotoState = 'DRAFT' | 'PREPARING' | 'COMPLETE';
 
+/**
+ * 이미지 로드 실패 핸들러.
+ * - attempt 1: 첫 실패 → 새 src(재서명 URL)를 반환하면 그걸로 한 번 더 시도한다
+ * - attempt 2: 재시도까지 실패 → 반환값은 무시하고 실패로 확정한다
+ */
+export type ImageErrorHandler = (
+  attempt: number,
+) => Promise<string | undefined> | void;
+
 export interface UserSummary {
   id: string;
   name: string;

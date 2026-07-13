@@ -12,6 +12,7 @@ import {
   useDeletePhotoMutation,
   usePhotoDetail,
   usePhotosInfinite,
+  useRefreshPhotoUrls,
   type Photo,
 } from '@/entities/photo';
 import {
@@ -26,6 +27,7 @@ import { ApiError } from '@/shared/api/error';
 import { track } from '@/shared/lib/analytics';
 import { recordForbidden } from '@/shared/lib/business-ux-logging';
 import { errorFallbackMessage } from '@/shared/lib/error-fallback';
+import { log } from '@/shared/lib/logger';
 import { cn } from '@/shared/lib/utils/cn';
 import { Button } from '@/shared/ui/button';
 import {
@@ -93,10 +95,28 @@ export function PhotoDetailPage() {
   const query = usePhotoDetail(id, { enabled: !!albumId && !!id });
   const photo = query.data;
   const { prevId, nextId } = usePrevNext(id);
+  const refreshPhotoUrls = useRefreshPhotoUrls();
 
   useEffect(() => {
     track('detail.view', { source });
   }, [id, source]);
+
+  const handleImageError = async (attempt: number) => {
+    log.bug(new Error('photo image load failed'), {
+      operationId: 'photoImageLoad',
+      photoId: id,
+      attempt,
+    });
+
+    if (attempt > 1) return undefined; // 자동 재시도는 1회 (수동 버튼은 카운트를 되돌린다)
+
+    try {
+      const refreshed = await refreshPhotoUrls(id);
+      return refreshed.imageUrl;
+    } catch {
+      return undefined; // 새 URL도 못 받으면 실패로 확정
+    }
+  };
 
   if (query.isLoading || !photo) {
     return <DetailSkeleton />;
@@ -117,6 +137,7 @@ export function PhotoDetailPage() {
             previewSrc={photo.thumbnailUrl}
             blurhash={photo.blurhash}
             alt={photo.description}
+            onLoadError={handleImageError}
           />
         )}
 

@@ -1,8 +1,12 @@
+import { RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { blurhashToDataUrl } from '../lib/blurhash';
+import { useImageRetry } from '../lib/use-image-retry';
+import type { ImageErrorHandler } from '../model/types';
 
 import { cn } from '@/shared/lib/utils/cn';
+import { Button } from '@/shared/ui/button';
 
 interface PhotoProgressiveImageProps {
   /** 원본(최종 표시 픽셀) */
@@ -12,6 +16,8 @@ interface PhotoProgressiveImageProps {
   /** blurhash(초기 placeholder) */
   blurhash?: string | undefined;
   alt: string;
+  /** 원본 로드 실패 시 호출. 새 src(재서명 URL)를 반환하면 그걸로 다시 시도한다 */
+  onLoadError?: ImageErrorHandler | undefined;
 }
 
 /**
@@ -28,11 +34,16 @@ export function PhotoProgressiveImage({
   previewSrc,
   blurhash,
   alt,
+  onLoadError,
 }: PhotoProgressiveImageProps) {
   const [previewLoaded, setPreviewLoaded] = useState(false);
   const [fullLoaded, setFullLoaded] = useState(false);
   const [blurGone, setBlurGone] = useState(false);
   const [previewGone, setPreviewGone] = useState(false);
+  const { activeSrc, failed, retrying, handleError, retry } = useImageRetry(
+    src,
+    onLoadError,
+  );
 
   const blurUrl = useMemo(
     () => (blurhash ? blurhashToDataUrl(blurhash) : undefined),
@@ -72,13 +83,16 @@ export function PhotoProgressiveImage({
       )}
 
       {/* 3단계: 원본 (로드되면 위로 페이드인하며 아래를 정리) */}
-      {src && (
+      {activeSrc && !failed && (
+        // key: 재시도 시 새 엘리먼트로 교체해 이전 로드 상태가 남지 않게 한다
         <img
-          src={src}
+          key={activeSrc}
+          src={activeSrc}
           alt={alt}
           decoding="async"
           data-clarity-mask="True"
           onLoad={() => setFullLoaded(true)}
+          onError={handleError}
           onTransitionEnd={(e) => {
             if (e.propertyName === 'opacity' && fullLoaded) {
               setBlurGone(true);
@@ -90,6 +104,23 @@ export function PhotoProgressiveImage({
             fullLoaded ? 'opacity-100' : 'opacity-0',
           )}
         />
+      )}
+
+      {/* 원본을 끝내 못 받으면 blurhash·썸네일 위에 실패를 드러내고 다시 시도할 길을 준다 */}
+      {failed && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/50">
+          <p className="text-[14px] text-white">사진을 불러오지 못했어요</p>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="rounded-full"
+            onClick={retry}
+            disabled={retrying}
+          >
+            <RefreshCw className={cn('size-4', retrying && 'animate-spin')} />
+            {retrying ? '불러오는 중…' : '다시 불러오기'}
+          </Button>
+        </div>
       )}
     </>
   );

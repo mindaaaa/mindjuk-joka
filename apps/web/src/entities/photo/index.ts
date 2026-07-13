@@ -2,6 +2,7 @@ export { photoKeys, type PhotoListFilters } from './api/keys';
 export {
   usePhotosInfinite,
   usePhotoDetail,
+  useRefreshPhotoUrls,
   findPhotoInListCache,
   prependMediaToLists,
   removeMediaFromLists,
@@ -23,6 +24,7 @@ export type {
   PhotoState,
   MediaDto,
   MediaListResponse,
+  ImageErrorHandler,
 } from './model/types';
 
 export { PhotoCard } from './ui/photo-card';
