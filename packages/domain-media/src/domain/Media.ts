@@ -265,6 +265,44 @@ export class Media {
     return media;
   }
 
+  markAsFavorite(): Media {
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      this.state,
+      this.version,
+      this.content,
+      true,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
+  unmarkAsFavorite(): Media {
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      this.state,
+      this.version,
+      this.content,
+      false,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
   isOwnedBy(user: User): boolean {
     return this.created.by.id === user.id;
   }

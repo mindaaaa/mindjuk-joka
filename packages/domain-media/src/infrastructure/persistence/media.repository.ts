@@ -235,6 +235,26 @@ export class MediaRepository {
     return this.refine(found);
   }
 
+  async setFavorite(media: Media, userId: number): Promise<null> {
+    if (media.isFavorite) {
+      await this.connection
+        .insert(mediaFavorites)
+        .values({ mediaId: media.id, createdById: userId })
+        .onConflictDoNothing();
+    } else {
+      await this.connection
+        .delete(mediaFavorites)
+        .where(
+          and(
+            eq(mediaFavorites.mediaId, media.id),
+            eq(mediaFavorites.createdById, userId),
+          ),
+        );
+    }
+
+    return null;
+  }
+
   async update(target: Media): Promise<Media> {
     return this.connection.transaction(async (trx) => {
       // 1. update media

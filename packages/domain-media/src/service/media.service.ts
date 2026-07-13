@@ -85,6 +85,34 @@ export class MediaService {
     );
   }
 
+  async addFavorite(context: Context, request: GetRequest): Promise<Media> {
+    const found = await this.repository.findOne(
+      context.album.id,
+      context.user.id,
+      request.cid,
+    );
+
+    const marked = found.markAsFavorite();
+
+    await this.repository.setFavorite(marked, context.user.id);
+
+    return marked;
+  }
+
+  async removeFavorite(context: Context, request: GetRequest): Promise<Media> {
+    const found = await this.repository.findOne(
+      context.album.id,
+      context.user.id,
+      request.cid,
+    );
+
+    const unmarked = found.unmarkAsFavorite();
+
+    await this.repository.setFavorite(unmarked, context.user.id);
+
+    return unmarked;
+  }
+
   // 시스템 전용: 사용자 세션 없이 cid만으로 조회한다(권한 검사 없음).
   getByCid(mediaCid: string): Promise<Media> {
     return this.repository.findByCid(mediaCid);
