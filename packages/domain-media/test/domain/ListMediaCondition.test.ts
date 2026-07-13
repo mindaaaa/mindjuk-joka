@@ -23,6 +23,24 @@ describe('ListMediaCondition', () => {
       expect(condition.sortOrder).toBe('asc');
     });
 
+    it('filter.isFavorite를 그대로 반영한다', () => {
+      // given & when
+      const truthy = ListMediaCondition.from({
+        filter: { albumId: 1, userId: 1, states: [], isFavorite: true },
+      });
+      const falsy = ListMediaCondition.from({
+        filter: { albumId: 1, userId: 1, states: [], isFavorite: false },
+      });
+      const omitted = ListMediaCondition.from({
+        filter: { albumId: 1, userId: 1, states: [] },
+      });
+
+      // then
+      expect(truthy.filter.isFavorite).toBe(true);
+      expect(falsy.filter.isFavorite).toBe(false);
+      expect(omitted.filter.isFavorite).toBeUndefined();
+    });
+
     it('limit이 없으면 기본값 20을 사용한다', () => {
       // given
       const params = {

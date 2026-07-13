@@ -172,6 +172,26 @@ describe('MediaService', () => {
       // then
       expect(mockRepository.findMany).toHaveBeenCalledTimes(1);
     });
+
+    it('isFavorite 필터를 condition에 전달한다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { isFavorite: true };
+      mockRepository.findMany.mockResolvedValue({
+        items: [],
+        nextCursor: null,
+      });
+
+      // when
+      await service.list(context as any, request);
+
+      // then
+      expect(mockRepository.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: expect.objectContaining({ isFavorite: true }),
+        }),
+      );
+    });
   });
 
   describe('get', () => {
