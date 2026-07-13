@@ -6,6 +6,8 @@ export { default as CreateUploadUrlForMedia } from './command/CreateUploadUrlFor
 export { default as CreateContent } from './command/CreateContentImpl';
 export { default as ConfirmMedia } from './command/ConfirmMediaImpl';
 export { default as CreateUserEvents } from './command/CreateUserEventsImpl';
+export { default as AddFavorite } from './command/AddFavoriteImpl';
+export { default as RemoveFavorite } from './command/RemoveFavoriteImpl';
 
 // queries
 export { default as GetMedia } from './query/GetMediaImpl';
