@@ -30,7 +30,7 @@ app.use(
       return allowed.includes(origin) ? origin : null;
     },
     allowHeaders: ['Authorization', 'X-Album-Id', 'Content-Type'],
-    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
     exposeHeaders: ['Location'],
     maxAge: 600,
