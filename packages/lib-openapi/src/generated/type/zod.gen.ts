@@ -210,7 +210,11 @@ export const zListMediaData = z.object({
             'DESC'
         ])),
         cursor: z.optional(z.string().min(1)),
-        states: z.optional(z.string().min(1))
+        states: z.optional(z.string().min(1)),
+        isFavorite: z.optional(z.enum([
+            'true',
+            'false'
+        ]))
     })),
     headers: z.object({
         Authorization: z.string(),
@@ -355,6 +359,40 @@ export const zCreateContentData = z.object({
  * Content 생성 응답
  */
 export const zCreateContentResponse = zContent;
+
+export const zRemoveFavoriteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
+});
+
+/**
+ * No Content
+ */
+export const zRemoveFavoriteResponse = z.void();
+
+export const zAddFavoriteData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        mediaId: z.string()
+    }),
+    query: z.optional(z.never()),
+    headers: z.object({
+        Authorization: z.string(),
+        'X-Album-Id': z.string()
+    })
+});
+
+/**
+ * No Content
+ */
+export const zAddFavoriteResponse = z.void();
 
 export const zListAlbumsData = z.object({
     body: z.optional(z.never()),

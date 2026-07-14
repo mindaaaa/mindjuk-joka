@@ -1,6 +1,7 @@
 import {
   ConflictException,
   IllegalStateException,
+  InvalidArgumentException,
 } from '@joka/core/src/exception';
 import { Actioned } from '@joka/core/src/model/Actioned';
 import { Album } from '@joka/core/src/model/Album';
@@ -256,6 +257,56 @@ export class Media {
       this.version,
       desiredContent,
       this.isFavorite,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
+  markAsFavorite(): Media {
+    if (this.state !== Media.State.COMPLETE) {
+      throw new InvalidArgumentException('MEDIA_NOT_COMPLETED', [
+        `COMPLETE 상태의 Media만 즐겨찾기할 수 있습니다.`,
+      ]);
+    }
+
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      this.state,
+      this.version,
+      this.content,
+      true,
+      this.created,
+      this.updated,
+    );
+
+    Media.Schema.parse(media.data);
+
+    return media;
+  }
+
+  unmarkAsFavorite(): Media {
+    if (this.state !== Media.State.COMPLETE) {
+      throw new InvalidArgumentException('MEDIA_NOT_COMPLETED', [
+        `COMPLETE 상태의 Media만 즐겨찾기 해제할 수 있습니다.`,
+      ]);
+    }
+
+    const media = new Media(
+      this.id,
+      this.cid,
+      this.albumId,
+      this.description,
+      this.state,
+      this.version,
+      this.content,
+      false,
       this.created,
       this.updated,
     );

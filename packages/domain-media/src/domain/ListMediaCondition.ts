@@ -12,7 +12,9 @@ interface ConstructorParameters {
 
 interface Filter {
   albumId: number;
+  userId: number;
   states: string[];
+  isFavorite?: boolean | undefined;
 }
 
 interface Cursor {
@@ -57,7 +59,9 @@ export class ListMediaCondition {
       limit: z.int().positive(),
       filter: z.object({
         albumId: z.number().positive(),
+        userId: z.number().positive(),
         states: z.array(z.enum(Object.values(Media.State))).min(0),
+        isFavorite: z.boolean().optional(),
       }),
       cursor: z
         .object({

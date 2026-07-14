@@ -15,7 +15,10 @@ import {
   aliasedTable,
   lte,
   gte,
+  isNull,
+  isNotNull,
   SQL,
+  sql,
 } from 'drizzle-orm';
 
 import { Content } from '../../domain/Content';
@@ -23,7 +26,7 @@ import { ListMediaCondition } from '../../domain/ListMediaCondition';
 import { Media, DraftMedia } from '../../domain/Media';
 import { Thumbnail } from '../../domain/Thumbnail';
 
-const { media, contents, thumbnails, users } = Schema;
+const { media, contents, thumbnails, users, mediaFavorites } = Schema;
 
 export class MediaRepository {
   constructor() {}
@@ -77,8 +80,14 @@ export class MediaRepository {
           : gte(media.cid, condition.cursor.cid),
       );
     }
+    if (condition.filter.isFavorite === true) {
+      whereClause.push(isNotNull(mediaFavorites.id));
+    }
+    if (condition.filter.isFavorite === false) {
+      whereClause.push(isNull(mediaFavorites.id));
+    }
 
-    const responses = await this.selectAndJoinClause()
+    const responses = await this.selectAndJoinClause(condition.filter.userId)
       .where(and(...whereClause))
       .orderBy(condition.hasDescendingOrder ? desc(media.cid) : asc(media.cid))
       .limit(condition.adjustedLimit);
@@ -99,7 +108,7 @@ export class MediaRepository {
     };
   }
 
-  private selectAndJoinClause() {
+  private selectAndJoinClause(userId?: number) {
     const u1 = aliasedTable(users, 'u1');
     const u2 = aliasedTable(users, 'u2');
 
@@ -111,6 +120,7 @@ export class MediaRepository {
         description: media.description,
         state: media.state,
         version: media.version,
+        isFavorite: sql<boolean>`${mediaFavorites.id} is not null`,
         contentUrl: contents.url,
         contentSize: contents.size,
         contentETag: contents.eTag,
@@ -135,7 +145,16 @@ export class MediaRepository {
       .leftJoin(contents, eq(contents.mediaId, media.id))
       .leftJoin(thumbnails, eq(thumbnails.contentId, contents.id))
       .leftJoin(u1, eq(u1.id, media.createdById))
-      .leftJoin(u2, eq(u2.id, media.updatedById));
+      .leftJoin(u2, eq(u2.id, media.updatedById))
+      .leftJoin(
+        mediaFavorites,
+        userId
+          ? and(
+              eq(mediaFavorites.mediaId, media.id),
+              eq(mediaFavorites.createdById, userId),
+            )
+          : sql`false`,
+      );
   }
 
   // 상특: any를 쓰는데 거리낌이 없음
@@ -167,7 +186,7 @@ export class MediaRepository {
       state: media.state,
       version: media.version,
       content: content,
-      isFavorite: false, // TODO: 추후 개선 필요
+      isFavorite: !!media.isFavorite,
       created: {
         at: media.createdAt,
         by: {
@@ -189,16 +208,20 @@ export class MediaRepository {
     });
   }
 
-  async findOneOrNull(albumId: number, cid: string): Promise<Media | null> {
-    const [found] = await this.selectAndJoinClause()
+  async findOneOrNull(
+    albumId: number,
+    userId: number,
+    cid: string,
+  ): Promise<Media | null> {
+    const [found] = await this.selectAndJoinClause(userId)
       // TODO: album 삭제 여부는 서비스 단에서 처리할 것!
       .where(and(eq(media.cid, cid), eq(media.albumId, albumId)));
 
     return found ? this.refine(found) : null;
   }
 
-  async findOne(albumId: number, cid: string): Promise<Media> {
-    const media = await this.findOneOrNull(albumId, cid);
+  async findOne(albumId: number, userId: number, cid: string): Promise<Media> {
+    const media = await this.findOneOrNull(albumId, userId, cid);
     if (!media) {
       throw new NotFoundException('MEDIA_NOT_FOUND', [
         `Media(${cid})가 존재하지 않습니다.`,
@@ -218,6 +241,26 @@ export class MediaRepository {
     }
 
     return this.refine(found);
+  }
+
+  async setFavorite(media: Media, userId: number): Promise<null> {
+    if (media.isFavorite) {
+      await this.connection
+        .insert(mediaFavorites)
+        .values({ mediaId: media.id, createdById: userId })
+        .onConflictDoNothing();
+    } else {
+      await this.connection
+        .delete(mediaFavorites)
+        .where(
+          and(
+            eq(mediaFavorites.mediaId, media.id),
+            eq(mediaFavorites.createdById, userId),
+          ),
+        );
+    }
+
+    return null;
   }
 
   async update(target: Media): Promise<Media> {
@@ -351,6 +394,10 @@ export class MediaRepository {
           .delete(contents)
           .where(eq(contents.id, contentRow?.contentId));
       }
+
+      await trx
+        .delete(mediaFavorites)
+        .where(eq(mediaFavorites.mediaId, target.id));
 
       const [deleted] = await trx
         .delete(media)

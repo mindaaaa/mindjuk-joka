@@ -26,6 +26,8 @@ import {
   UpdateMedia,
   GetMedia,
   ListMedia,
+  AddFavorite,
+  RemoveFavorite,
 } from '../../../application/use-case';
 
 const media = new Hono<CloudflareEnv>().basePath('/v1/media');
@@ -49,6 +51,7 @@ media.get('/', async (c) => {
   const order = c.req.query('order');
   const cursor = c.req.query('cursor');
   const states = c.req.query('states');
+  const isFavorite = c.req.query('isFavorite');
 
   if (size) {
     invokeRequest.size = size;
@@ -61,6 +64,9 @@ media.get('/', async (c) => {
   }
   if (states) {
     invokeRequest.states = states;
+  }
+  if (isFavorite) {
+    invokeRequest.isFavorite = isFavorite;
   }
 
   const actor = c.get('actor');
@@ -161,6 +167,30 @@ media.delete('/:mediaId', async (c) => {
   const actor = c.get('actor');
 
   await DeleteMedia.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.body(null, 204);
+});
+
+media.put('/:mediaId/favorite', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const actor = c.get('actor');
+
+  await AddFavorite.invoke({
+    actor,
+    mediaCid,
+  });
+
+  return c.body(null, 204);
+});
+
+media.delete('/:mediaId/favorite', async (c) => {
+  const mediaCid = c.req.param('mediaId');
+  const actor = c.get('actor');
+
+  await RemoveFavorite.invoke({
     actor,
     mediaCid,
   });

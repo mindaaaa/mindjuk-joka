@@ -181,6 +181,32 @@ export const userEvents = jokaSchema.table(
   }),
 );
 
+export const mediaFavorites = jokaSchema.table(
+  'media_favorites',
+  {
+    id: serial('id').primaryKey(),
+    mediaId: integer('media_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdById: integer('created_by_id').notNull(),
+  },
+  (t) => ({
+    mediaFavoritesMediaFk: foreignKey({
+      columns: [t.mediaId],
+      foreignColumns: [media.id],
+      name: 'media_favorites_media_id_fk',
+    }).onDelete('cascade'),
+    mediaFavoritesCreatedByFk: foreignKey({
+      columns: [t.createdById],
+      foreignColumns: [users.id],
+      name: 'media_favorites_created_by_fk',
+    }).onDelete('cascade'),
+    mediaFavoritesUq1: unique('media_favorites_uq_1').on(
+      t.mediaId,
+      t.createdById,
+    ),
+  }),
+);
+
 // TODO: 얘네 필요함?
 /** Relations */
 export const mediaRelations = relations(media, ({ one }) => ({

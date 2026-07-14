@@ -31,6 +31,8 @@ const createMockMedia = (overrides: Record<string, any> = {}) => ({
   updated: { at: new Date(), by: createMockUser() },
   isOwnedBy: jest.fn().mockReturnValue(true),
   updateBy: jest.fn().mockReturnThis(),
+  markAsFavorite: jest.fn().mockReturnThis(),
+  unmarkAsFavorite: jest.fn().mockReturnThis(),
   data: {},
   ...overrides,
 });
@@ -80,6 +82,7 @@ describe('MediaService', () => {
       findMany: jest.fn(),
       findOne: jest.fn(),
       findByCid: jest.fn(),
+      setFavorite: jest.fn(),
       update: jest.fn(),
       deleteOne: jest.fn(),
     } as unknown as jest.Mocked<MediaRepository>;
@@ -124,6 +127,11 @@ describe('MediaService', () => {
 
       // then
       expect(mockRepository.findMany).toHaveBeenCalledTimes(1);
+      expect(mockRepository.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: expect.objectContaining({ userId: 1 }),
+        }),
+      );
       expect(result.items).toBe(mockItems);
       expect(result.pagination.size).toBe(10);
       expect(result.pagination.hasNext).toBe(false);
@@ -164,6 +172,26 @@ describe('MediaService', () => {
       // then
       expect(mockRepository.findMany).toHaveBeenCalledTimes(1);
     });
+
+    it('isFavorite 필터를 condition에 전달한다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { isFavorite: true };
+      mockRepository.findMany.mockResolvedValue({
+        items: [],
+        nextCursor: null,
+      });
+
+      // when
+      await service.list(context as any, request);
+
+      // then
+      expect(mockRepository.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: expect.objectContaining({ isFavorite: true }),
+        }),
+      );
+    });
   });
 
   describe('get', () => {
@@ -178,8 +206,52 @@ describe('MediaService', () => {
       const result = await service.get(context as any, request);
 
       // then
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
       expect(result).toBe(expectedMedia);
+    });
+  });
+
+  describe('addFavorite', () => {
+    it('Media를 조회한 뒤 즐겨찾기로 표시하여 저장한다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { cid: 'media-123' };
+      const markedMedia = createMockMedia({ isFavorite: true });
+      const foundMedia = createMockMedia({
+        markAsFavorite: jest.fn().mockReturnValue(markedMedia),
+      });
+      mockRepository.findOne.mockResolvedValue(foundMedia as any);
+
+      // when
+      const result = await service.addFavorite(context as any, request);
+
+      // then
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
+      expect(foundMedia.markAsFavorite).toHaveBeenCalledTimes(1);
+      expect(mockRepository.setFavorite).toHaveBeenCalledWith(markedMedia, 1);
+      expect(result).toBe(markedMedia);
+    });
+  });
+
+  describe('removeFavorite', () => {
+    it('Media를 조회한 뒤 즐겨찾기를 해제하여 저장한다', async () => {
+      // given
+      const context = createMockContext();
+      const request = { cid: 'media-123' };
+      const unmarkedMedia = createMockMedia({ isFavorite: false });
+      const foundMedia = createMockMedia({
+        unmarkAsFavorite: jest.fn().mockReturnValue(unmarkedMedia),
+      });
+      mockRepository.findOne.mockResolvedValue(foundMedia as any);
+
+      // when
+      const result = await service.removeFavorite(context as any, request);
+
+      // then
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
+      expect(foundMedia.unmarkAsFavorite).toHaveBeenCalledTimes(1);
+      expect(mockRepository.setFavorite).toHaveBeenCalledWith(unmarkedMedia, 1);
+      expect(result).toBe(unmarkedMedia);
     });
   });
 
@@ -249,7 +321,7 @@ describe('MediaService', () => {
       const result = await service.update(context as any, request as any);
 
       // then
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
       expect(foundMedia.updateBy).toHaveBeenCalledWith(request);
       expect(mockRepository.update).toHaveBeenCalledWith(updatedMedia);
       expect(result).toBe(updatedMedia);
@@ -316,7 +388,7 @@ describe('MediaService', () => {
       const result = await service.delete(context as any, request);
 
       // then
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 'media-123');
+      expect(mockRepository.findOne).toHaveBeenCalledWith(1, 1, 'media-123');
       expect(mockRepository.deleteOne).toHaveBeenCalledWith(targetMedia);
       expect(result).toBeNull();
     });

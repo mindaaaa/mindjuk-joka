@@ -1,6 +1,7 @@
 import {
   ConflictException,
   IllegalStateException,
+  InvalidArgumentException,
 } from '@joka/core/src/exception';
 
 import { Media, DraftMedia } from '../../src/domain/Media';
@@ -291,6 +292,74 @@ describe('Media', () => {
       expect(updated.version).toBe(2);
       expect(updated.id).toBe(media.id);
     });
+  });
+
+  describe('markAsFavorite', () => {
+    it('COMPLETE 상태면 isFavorite만 true로 바꾼 새 Media를 반환한다', () => {
+      // given
+      const media = Media.from(
+        createMediaParams({ isFavorite: false, state: 'COMPLETE' }),
+      );
+
+      // when
+      const marked = media.markAsFavorite();
+
+      // then
+      expect(marked).toBeInstanceOf(Media);
+      expect(marked).not.toBe(media);
+      expect(marked.isFavorite).toBe(true);
+      expect(marked.id).toBe(media.id);
+      expect(marked.cid).toBe(media.cid);
+      expect(marked.state).toBe(media.state);
+      expect(marked.version).toBe(media.version);
+      expect(marked.content).toBe(media.content);
+    });
+
+    it.each(['DRAFT', 'PREPARING'])(
+      '%s 상태면 InvalidArgumentException을 던진다',
+      (state) => {
+        // given
+        const media = Media.from(createMediaParams({ state }));
+
+        // when & then
+        expect(() => media.markAsFavorite()).toThrow(InvalidArgumentException);
+      },
+    );
+  });
+
+  describe('unmarkAsFavorite', () => {
+    it('COMPLETE 상태면 isFavorite만 false로 바꾼 새 Media를 반환한다', () => {
+      // given
+      const media = Media.from(
+        createMediaParams({ isFavorite: true, state: 'COMPLETE' }),
+      );
+
+      // when
+      const unmarked = media.unmarkAsFavorite();
+
+      // then
+      expect(unmarked).toBeInstanceOf(Media);
+      expect(unmarked).not.toBe(media);
+      expect(unmarked.isFavorite).toBe(false);
+      expect(unmarked.id).toBe(media.id);
+      expect(unmarked.cid).toBe(media.cid);
+      expect(unmarked.state).toBe(media.state);
+      expect(unmarked.version).toBe(media.version);
+      expect(unmarked.content).toBe(media.content);
+    });
+
+    it.each(['DRAFT', 'PREPARING'])(
+      '%s 상태면 InvalidArgumentException을 던진다',
+      (state) => {
+        // given
+        const media = Media.from(createMediaParams({ state }));
+
+        // when & then
+        expect(() => media.unmarkAsFavorite()).toThrow(
+          InvalidArgumentException,
+        );
+      },
+    );
   });
 
   describe('setContent', () => {

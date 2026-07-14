@@ -9,7 +9,7 @@ export class ListMediaImpl extends ListMedia {
   private readonly mediaService = Config.mediaService;
 
   override async invoke(request: Request): Promise<Response> {
-    const { actor, size, order, cursor, states } = request;
+    const { actor, size, order, cursor, states, isFavorite } = request;
     const { album, user } = actor;
 
     const listRequest: {
@@ -17,6 +17,7 @@ export class ListMediaImpl extends ListMedia {
       sortOrder?: string;
       cursor?: string;
       states?: string[];
+      isFavorite?: boolean;
     } = {};
 
     if (size) {
@@ -30,6 +31,12 @@ export class ListMediaImpl extends ListMedia {
     }
     if (states) {
       listRequest.states = states.split(',');
+    }
+    if (isFavorite === 'true') {
+      listRequest.isFavorite = true;
+    }
+    if (isFavorite === 'false') {
+      listRequest.isFavorite = false;
     }
 
     return this.mediaService.list({ album, user }, listRequest);
