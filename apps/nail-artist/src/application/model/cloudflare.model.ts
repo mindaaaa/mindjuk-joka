@@ -11,6 +11,7 @@ export interface ThumbnailJob {
 // OBJECT_STORAGE_* 는 joka-api와 동일한 시크릿 키를 재사용한다.
 export interface Bindings {
   HYPERDRIVE: Hyperdrive;
+  NEON_DATABASE_URL?: string;
   IMAGES: ImagesBinding;
   NAIL_CLIPPER: DurableObjectNamespace<NailClipperContainer>;
   OBJECT_STORAGE_ACCESS_KEY_ID: string;

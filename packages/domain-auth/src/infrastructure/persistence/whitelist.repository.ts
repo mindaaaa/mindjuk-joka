@@ -16,6 +16,6 @@ export class WhitelistRepository {
   }
 
   private get connection() {
-    return ClientFactory.createInstance();
+    return ClientFactory.createReadInstance();
   }
 }

@@ -26,8 +26,12 @@ export class UserRepository {
     return ClientFactory.createInstance();
   }
 
+  private get readConnection() {
+    return ClientFactory.createReadInstance();
+  }
+
   async findByCid(cid: string): Promise<User | null> {
-    const [found] = await this.connection
+    const [found] = await this.readConnection
       .select({
         id: users.id,
         cid: users.cid,
@@ -45,7 +49,7 @@ export class UserRepository {
     email: Email,
     provider: string,
   ): Promise<User | null> {
-    const [found] = await this.connection
+    const [found] = await this.readConnection
       .select({
         id: users.id,
         cid: users.cid,

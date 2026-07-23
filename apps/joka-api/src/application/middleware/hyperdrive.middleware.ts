@@ -9,6 +9,8 @@ const hyperdriveMiddleware = createMiddleware<CloudflareEnv>(
     if (hyperdrive) {
       ClientFactory.configure(hyperdrive.connectionString);
     }
+    // 읽기 경로 Neon endpoint / 미설정시 읽기도 postgres.js를 사용함
+    ClientFactory.configureRead(c.env.NEON_DATABASE_URL);
     await next();
   },
 );

@@ -103,7 +103,7 @@ export class ActorRepository {
   }
 
   private get connection() {
-    return ClientFactory.createInstance();
+    return ClientFactory.createReadInstance();
   }
 
   private refine(actor: any): Actor {

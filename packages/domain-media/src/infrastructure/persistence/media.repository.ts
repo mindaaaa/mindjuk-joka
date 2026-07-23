@@ -63,6 +63,10 @@ export class MediaRepository {
     return ClientFactory.createInstance();
   }
 
+  private get readConnection() {
+    return ClientFactory.createReadInstance();
+  }
+
   async findMany(condition: ListMediaCondition): Promise<{
     items: Media[];
     nextCursor: { cid: string } | null;
@@ -112,7 +116,7 @@ export class MediaRepository {
     const u1 = aliasedTable(users, 'u1');
     const u2 = aliasedTable(users, 'u2');
 
-    return this.connection
+    return this.readConnection
       .select({
         id: media.id,
         cid: media.cid,

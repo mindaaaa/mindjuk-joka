@@ -12,6 +12,7 @@ export default {
   async queue(batch: MessageBatch<ThumbnailJob>, env: Bindings): Promise<void> {
     // 배치당 1회 배선 (joka-api의 hyperdrive/object-storage 미들웨어 관용구와 동형).
     ClientFactory.configure(env.HYPERDRIVE.connectionString);
+    ClientFactory.configureRead(env.NEON_DATABASE_URL);
 
     try {
       S3Client.getInstance();

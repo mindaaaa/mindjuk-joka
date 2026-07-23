@@ -3,10 +3,12 @@
   "version": "0.0.1",
   "description": "lib-drizzle package",
   "scripts": {
+    "test": "jest",
     "drizzle:generate": "npx drizzle-kit generate",
     "drizzle:push": "npx drizzle-kit push"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
     "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.8",
     "uuid": "^13.0.0"
