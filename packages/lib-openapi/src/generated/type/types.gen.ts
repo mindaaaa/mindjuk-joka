@@ -343,7 +343,7 @@ export type ListMediaData = {
         /**
          * 정렬 순서
          */
-        order?: 'ASC' | 'DESC';
+        order?: 'asc' | 'desc';
         /**
          * 커서
          */
@@ -398,7 +398,7 @@ export type ListMediaResponses = {
             /**
              * 정렬 순서
              */
-            order: 'ASC' | 'DESC';
+            order: 'asc' | 'desc';
             /**
              * 커서
              */
@@ -905,7 +905,7 @@ export type ListAlbumsData = {
         /**
          * 정렬 순서
          */
-        order?: 'ASC' | 'DESC';
+        order?: 'asc' | 'desc';
         /**
          * 커서
          */
@@ -940,11 +940,11 @@ export type ListAlbumsResponses = {
             /**
              * 정렬 순서
              */
-            order: 'ASC' | 'DESC';
+            order: 'asc' | 'desc';
             /**
              * 커서
              */
-            nextCursor?: string;
+            nextCursor?: string | null;
             /**
              * 다음 페이지 존재 여부
              */

@@ -437,7 +437,7 @@ export interface components {
                          * @description 정렬 순서
                          * @enum {string}
                          */
-                        order: "ASC" | "DESC";
+                        order: "asc" | "desc";
                         /** @description 커서 */
                         nextCursor?: string;
                         /** @description 다음 페이지 존재 여부 */
@@ -560,9 +560,9 @@ export interface components {
                          * @description 정렬 순서
                          * @enum {string}
                          */
-                        order: "ASC" | "DESC";
+                        order: "asc" | "desc";
                         /** @description 커서 */
-                        nextCursor?: string;
+                        nextCursor?: string | null;
                         /** @description 다음 페이지 존재 여부 */
                         hasNext: boolean;
                     };
@@ -690,7 +690,7 @@ export interface operations {
                 /** @description 정렬 기준 */
                 sortBy?: "CREATED_AT";
                 /** @description 정렬 순서 */
-                order?: "ASC" | "DESC";
+                order?: "asc" | "desc";
                 /** @description 커서 */
                 cursor?: string;
                 /**
@@ -953,7 +953,7 @@ export interface operations {
                 /** @description 목록에 포함될 요소 개수 */
                 size?: string;
                 /** @description 정렬 순서 */
-                order?: "ASC" | "DESC";
+                order?: "asc" | "desc";
                 /** @description 커서 */
                 cursor?: string;
             };

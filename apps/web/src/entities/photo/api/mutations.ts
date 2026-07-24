@@ -8,10 +8,11 @@ import {
 import { photoKeys } from './keys';
 import { removeMediaFromLists } from './queries';
 import { toPhoto } from '../lib/mapper';
-import type { MediaDto, Photo } from '../model/types';
+import type { Photo } from '../model/types';
 
 import { http } from '@/shared/api';
 import { ApiError } from '@/shared/api/error';
+import { MediaSchema } from '@/shared/api/schemas';
 
 export interface UpdatePhotoMetaVars {
   id: string;
@@ -28,7 +29,9 @@ export function buildUpdatePhotoMetaOptions(
 ): UseMutationOptions<Photo, Error, UpdatePhotoMetaVars, UpdateContext> {
   return {
     mutationFn: ({ id, description }) =>
-      http.patch<MediaDto>(`/v1/media/${id}`, { description }).then(toPhoto),
+      http
+        .patch(`/v1/media/${id}`, { description }, { schema: MediaSchema })
+        .then(toPhoto),
     meta: { operationId: 'updateMedia' },
 
     onMutate: async ({ id, description }) => {

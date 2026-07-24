@@ -22,7 +22,6 @@ const content: MediaContent = {
   size: 1234,
   eTag: 'etag',
   mimeType: 'image/jpeg',
-  thumbnail: null,
 };
 
 describe('toPhoto', () => {
@@ -36,7 +35,7 @@ describe('toPhoto', () => {
   });
 
   test('content가 없으면 키 자체를 만들지 않는다', () => {
-    const photo = toPhoto(baseDto({ state: 'PREPARING', content: null }));
+    const photo = toPhoto(baseDto({ state: 'PREPARING', content: undefined }));
 
     expect('imageUrl' in photo).toBe(false);
     expect('downloadUrl' in photo).toBe(false);
@@ -45,7 +44,7 @@ describe('toPhoto', () => {
   });
 
   test('DRAFT 상태(content 없음)도 안전하게 매핑한다', () => {
-    const photo = toPhoto(baseDto({ state: 'DRAFT', content: null }));
+    const photo = toPhoto(baseDto({ state: 'DRAFT', content: undefined }));
 
     expect(photo.state).toBe('DRAFT');
     expect('imageUrl' in photo).toBe(false);

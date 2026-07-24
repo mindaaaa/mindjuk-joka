@@ -16,6 +16,7 @@ import type {
 } from '../model/types';
 
 import { buildQuery, http } from '@/shared/api';
+import { MediaListSchema, MediaSchema } from '@/shared/api/schemas';
 import { recordMediaListSlow } from '@/shared/lib/business-ux-logging';
 
 const PAGE_SIZE = 20;
@@ -60,7 +61,7 @@ async function fetchPhotoPage(
   const path = mediaListPath(filters, cursor);
 
   const startedAt = performance.now();
-  const response = await http.get<MediaListResponse>(path);
+  const response = await http.get(path, { schema: MediaListSchema });
   recordMediaListSlow(performance.now() - startedAt, 'listMedia');
 
   return response;
@@ -174,7 +175,7 @@ export function removeMediaFromLists(
 }
 
 async function fetchPhotoDetail(id: string): Promise<Photo> {
-  const dto = await http.get<MediaDto>(`/v1/media/${id}`);
+  const dto = await http.get(`/v1/media/${id}`, { schema: MediaSchema });
   return toPhoto(dto);
 }
 

@@ -6,6 +6,7 @@ import {
   attachAlbumHeader,
 } from './interceptors';
 import { createRefresher } from './refresh';
+import { validate, type ResponseSchema } from './response-validation';
 
 import { env } from '@/shared/config/env';
 import { trackApiTiming } from '@/shared/lib/analytics';
@@ -20,17 +21,34 @@ export interface HttpClientOptions {
   onUnauthorized?: () => void;
 }
 
-export interface HttpInit extends Omit<RequestInit, 'body'> {
+export interface HttpInit<T = unknown> extends Omit<RequestInit, 'body'> {
   body?: unknown;
+  /** 넘기면 응답을 런타임 검증하고 T를 추론한다. 생략하면 검증 없이 그대로 캐스팅한다. */
+  schema?: ResponseSchema<T>;
 }
 
+/** 스키마 없이 요청 옵션만 전달할 때 쓴다. 응답 타입과 무관하므로 어떤 호출에도 넘길 수 있다. */
+export type RequestOptions = Omit<HttpInit, 'schema'>;
+
 export interface HttpClient {
-  request<T = unknown>(path: string, init?: HttpInit): Promise<T>;
-  get<T = unknown>(path: string, init?: HttpInit): Promise<T>;
-  post<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
-  put<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
-  patch<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
-  delete<T = unknown>(path: string, init?: HttpInit): Promise<T>;
+  request<T = unknown>(path: string, init?: HttpInit<T>): Promise<T>;
+  get<T = unknown>(path: string, init?: HttpInit<T>): Promise<T>;
+  post<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: HttpInit<T>,
+  ): Promise<T>;
+  put<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: HttpInit<T>,
+  ): Promise<T>;
+  patch<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: HttpInit<T>,
+  ): Promise<T>;
+  delete<T = unknown>(path: string, init?: HttpInit<T>): Promise<T>;
 }
 
 function isRawBody(body: unknown): body is BodyInit {
@@ -42,8 +60,8 @@ function isRawBody(body: unknown): body is BodyInit {
   );
 }
 
-function normalize(init: HttpInit): RequestInit {
-  const { body, credentials, ...rest } = init;
+function normalize(init: HttpInit<unknown>): RequestInit {
+  const { body, credentials, schema: _schema, ...rest } = init;
   const withCredentials: RequestInit = {
     ...rest,
     credentials: credentials ?? 'include',
@@ -69,23 +87,6 @@ function normalize(init: HttpInit): RequestInit {
   };
 }
 
-async function parseResponse(response: Response): Promise<unknown> {
-  if (response.status === 204) {
-    return undefined;
-  }
-
-  const text = await response.text();
-  if (!text) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
-
 async function sendRequest(ctx: ApiRequest): Promise<Response> {
   const method = ctx.options.method ?? 'GET';
   const start = performance.now();
@@ -106,6 +107,23 @@ async function sendRequest(ctx: ApiRequest): Promise<Response> {
     });
     reportApiError(err, { url: ctx.url });
     throw err;
+  }
+}
+
+async function parseResponse(response: Response): Promise<unknown> {
+  if (response.status === 204) {
+    return undefined;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
   }
 }
 
@@ -130,7 +148,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   const onUnauthorized =
     options.onUnauthorized ?? (() => authTokenStore.clear());
 
-  function buildRequest(path: string, init: HttpInit): ApiRequest {
+  function buildRequest(path: string, init: HttpInit<unknown>): ApiRequest {
     return attachAlbumHeader(
       attachAuthHeader({
         url: `${baseURL}${path}`,
@@ -155,7 +173,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
 
   async function request<T = unknown>(
     path: string,
-    init: HttpInit = {},
+    init: HttpInit<T> = {},
     isRetry = false,
   ): Promise<T> {
     const ctx = buildRequest(path, init);
@@ -172,7 +190,9 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
     }
 
     const data = await parseResponse(response);
-    return data as T;
+    return init.schema
+      ? validate(data, init.schema, ctx.url, response.status)
+      : (data as T);
   }
 
   const client: HttpClient = {

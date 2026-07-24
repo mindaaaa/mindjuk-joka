@@ -11,6 +11,9 @@ const RETRYABLE_CLIENT_ERRORS = new Set([408, 429]); // 타임아웃, 레이트�
 // 4xx는 재요청해도 결과가 같다 → 재시도 안 함(408·429만 일시적이라 예외)
 function isRetryable(error: unknown): boolean {
   if (error instanceof ApiError) {
+    // 계약 위반은 재시도 무의미
+    if (error.code === 'CONTRACT') return false;
+
     const { status } = error;
     if (status >= 400 && status < 500) {
       return RETRYABLE_CLIENT_ERRORS.has(status);

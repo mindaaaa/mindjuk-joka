@@ -1,4 +1,5 @@
 import { ForbiddenException } from '@joka/core/src/exception';
+import type { ListAlbumsResponses } from '@joka/lib-openapi/src/generated/type/types.gen';
 import { Hono } from 'hono';
 
 import Config from '../../../application/config';
@@ -31,17 +32,16 @@ albums.get('/', async (c) => {
 
   const result = await Config.actorService.list(user, request);
 
-  return c.json(
-    {
-      items: result.items.map((actor) => ({
-        id: actor.album.cid,
-        name: actor.album.name,
-        role: actor.role,
-      })),
-      pagination: result.pagination,
-    },
-    200,
-  );
+  const body: ListAlbumsResponses[200] = {
+    items: result.items.map((actor) => ({
+      id: actor.album.cid,
+      name: actor.album.name,
+      role: actor.role,
+    })),
+    pagination: result.pagination,
+  };
+
+  return c.json(body, 200);
 });
 
 export default albums;

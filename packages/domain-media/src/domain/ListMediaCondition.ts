@@ -26,6 +26,8 @@ const SortOrder = {
   DESC: 'desc',
 } as const;
 
+export type SortOrderValue = (typeof SortOrder)[keyof typeof SortOrder];
+
 // TODO: 일단 최신순 기준으로만 정렬함!
 export class ListMediaCondition {
   static get DefaultLimit() {
@@ -76,7 +78,7 @@ export class ListMediaCondition {
     public readonly limit: number,
     public readonly filter: Filter,
     public readonly cursor: Nullable<Cursor>,
-    public readonly sortOrder: (typeof SortOrder)[keyof typeof SortOrder],
+    public readonly sortOrder: SortOrderValue,
   ) {}
 
   get hasDescendingOrder(): boolean {
@@ -95,7 +97,7 @@ export class ListMediaCondition {
 
 export interface ListMediaPagination {
   size: number;
-  order: string;
+  order: SortOrderValue;
   nextCursor: Nullable<string>;
   hasNext: boolean;
 }

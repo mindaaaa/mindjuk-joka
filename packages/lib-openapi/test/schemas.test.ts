@@ -237,7 +237,7 @@ describe('Zod schemas', () => {
         pagination: {
           size: 20,
           sortBy: 'CREATED_AT' as const,
-          order: 'DESC' as const,
+          order: 'desc' as const,
           nextCursor: 'cursor-abc',
           hasNext: true,
         },

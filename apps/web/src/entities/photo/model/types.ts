@@ -1,3 +1,11 @@
+import type {
+  MediaContent,
+  MediaDto,
+  MediaListResponse,
+  MediaPagination,
+  MediaThumbnail,
+} from '@/shared/api/schemas';
+
 export type PhotoState = 'DRAFT' | 'PREPARING' | 'COMPLETE';
 
 /**
@@ -42,53 +50,14 @@ export interface Photo {
   createdBy: UserSummary;
 }
 
-export interface MediaLocation {
-  url: string;
-  accessUrl: string;
-}
-
-export interface MediaThumbnail {
-  location: MediaLocation;
-  size: number;
-  eTag: string;
-  mimeType: string;
-  blurhash: string;
-}
-
-export interface MediaContent {
-  location: MediaLocation;
-  size: number;
-  eTag: string;
-  mimeType: string;
-  thumbnail?: MediaThumbnail | null;
-}
-
-export interface MediaCreated {
-  at: string;
-  by: UserSummary;
-}
-
-export interface MediaDto {
-  id: string;
-  description: string;
-  state: PhotoState;
-  content?: MediaContent | null;
-  isFavorite: boolean;
-  created: MediaCreated;
-}
-
-export interface MediaPagination {
-  size: number;
-  sortBy: 'CREATED_AT';
-  order: 'ASC' | 'DESC';
-  nextCursor?: string;
-  hasNext: boolean;
-}
-
-export interface MediaListResponse {
-  items: MediaDto[];
-  pagination: MediaPagination;
-}
+/** 서버 응답(DTO) 타입은 OpenAPI 스펙에서 생성된 스키마에서 파생한다. */
+export type {
+  MediaContent,
+  MediaDto,
+  MediaListResponse,
+  MediaPagination,
+  MediaThumbnail,
+};
 
 /** useInfiniteQuery 캐시 형태 (setQueriesData/getQueriesData용) */
 export interface InfiniteMedia {

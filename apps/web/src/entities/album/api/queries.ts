@@ -1,19 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { http } from '@/shared/api';
-
-import type { Album } from '../model/types';
 import { albumKeys } from './keys';
 
-interface AlbumListResponse {
-  items: Album[];
-}
+import { http } from '@/shared/api';
+import { AlbumListSchema } from '@/shared/api/schemas';
 
 export function useAlbums(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: albumKeys.list(),
     queryFn: async () => {
-      const response = await http.get<AlbumListResponse>('/v1/albums');
+      const response = await http.get('/v1/albums', {
+        schema: AlbumListSchema,
+      });
       return response.items;
     },
     staleTime: 30 * 60 * 1000,
