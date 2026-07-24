@@ -108,13 +108,15 @@ export function PhotoListPage() {
   const enabled = useSelectEnabled();
   const selectedIds = useSelectedIds();
 
+  const [favorite, setFavorite] = useState(false);
+
   const albumId = useAlbumStore((s) => s.current?.id);
 
   const albumsQuery = useAlbums();
   const albumsSettled = albumsQuery.isSuccess || albumsQuery.isError;
 
   const query = usePhotosInfinite(
-    { sortBy: 'createdAt', order },
+    { sortBy: 'createdAt', order, ...(favorite && { isFavorite: true }) },
     { enabled: !!albumId },
   );
   const photos = selectPhotos(query.data);
@@ -161,7 +163,10 @@ export function PhotoListPage() {
       className={`mx-auto max-w-5xl space-y-4 px-4 pt-4 ${enabled ? 'pb-24' : ''}`}
     >
       <div className="flex items-center justify-between gap-3 px-2">
-        <FilterTabs />
+        <FilterTabs
+          active={favorite ? 'favorite' : 'all'}
+          onChange={(key) => setFavorite(key === 'favorite')}
+        />
         <SortSheet />
       </div>
 
@@ -188,7 +193,9 @@ export function PhotoListPage() {
                 key={photo.id}
                 photo={photo}
                 onOpen={(id) =>
-                  navigate(`/photos/${id}`, { state: { source: 'grid' } })
+                  navigate(`/photos/${id}`, {
+                    state: { source: 'grid', favorite },
+                  })
                 }
               />
             )}
@@ -205,14 +212,19 @@ export function PhotoListPage() {
 }
 
 const TABS = [
-  { key: 'all', label: '전체', ready: true },
-  { key: 'favorite', label: '즐겨찾기', ready: false },
+  { key: 'all', label: '전체' },
+  { key: 'favorite', label: '즐겨찾기' },
 ] as const;
 
-// TODO: 즐겨찾기 필터 API 연결 (연결되면 ready: true + active를 상태로 변경, 안내 토스트 제거)
-function FilterTabs() {
-  const active = 'all';
+type FilterKey = (typeof TABS)[number]['key'];
 
+function FilterTabs({
+  active,
+  onChange,
+}: {
+  active: FilterKey;
+  onChange: (key: FilterKey) => void;
+}) {
   return (
     <nav className="flex items-center gap-8" aria-label="사진 필터">
       {TABS.map((tab) => {
@@ -222,13 +234,10 @@ function FilterTabs() {
             key={tab.key}
             type="button"
             aria-current={isActive ? 'page' : undefined}
-            onClick={() => {
-              if (!tab.ready) toast.info('즐겨찾기는 준비 중이에요.');
-            }}
+            onClick={() => onChange(tab.key)}
             className={cn(
               'text-[22px] tracking-tight',
               isActive ? 'text-primary' : 'text-foreground',
-              !tab.ready && 'opacity-25',
             )}
           >
             {tab.label}

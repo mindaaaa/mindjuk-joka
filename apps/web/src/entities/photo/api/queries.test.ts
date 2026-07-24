@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { photoKeys } from './keys';
 import {
   findPhotoInListCache,
+  mediaListPath,
   nextCursorOf,
   removeMediaFromLists,
   selectPhotos,
@@ -45,6 +46,32 @@ function dto(id: string): MediaDto {
     },
   };
 }
+
+describe('mediaListPath', () => {
+  test('즐겨찾기 필터가 없으면 isFavorite 쿼리를 붙이지 않는다(전체)', () => {
+    const path = mediaListPath({ order: 'desc' }, undefined);
+
+    expect(path).not.toContain('isFavorite');
+    expect(path).toContain('order=desc');
+    expect(path).toContain('states=COMPLETE');
+  });
+
+  test('isFavorite=true면 isFavorite=true 쿼리를 붙인다', () => {
+    expect(
+      mediaListPath({ order: 'desc', isFavorite: true }, undefined),
+    ).toContain('isFavorite=true');
+  });
+
+  test('isFavorite=false는 전체와 동일하게 파라미터를 생략한다', () => {
+    expect(
+      mediaListPath({ order: 'desc', isFavorite: false }, undefined),
+    ).not.toContain('isFavorite');
+  });
+
+  test('cursor가 있으면 쿼리에 포함한다', () => {
+    expect(mediaListPath({ order: 'asc' }, 'c2')).toContain('cursor=c2');
+  });
+});
 
 describe('nextCursorOf', () => {
   test('hasNext가 true면 nextCursor를 반환한다', () => {

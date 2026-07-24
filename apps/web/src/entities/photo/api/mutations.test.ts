@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { photoKeys } from './keys';
 import {
   buildDeletePhotoOptions,
+  buildToggleFavoriteOptions,
   buildUpdatePhotoMetaOptions,
   isAlreadyDeleted,
 } from './mutations';
@@ -14,11 +15,12 @@ import { ApiError } from '@/shared/api/error';
 
 const mocks = vi.hoisted(() => ({
   patch: vi.fn(),
+  put: vi.fn(),
   del: vi.fn(),
 }));
 
 vi.mock('@/shared/api', () => ({
-  http: { patch: mocks.patch, delete: mocks.del },
+  http: { patch: mocks.patch, put: mocks.put, delete: mocks.del },
 }));
 
 function photo(overrides: Partial<Photo> = {}): Photo {
@@ -73,6 +75,13 @@ function runUpdate(qc: QueryClient, vars: { id: string; description: string }) {
 
 function runDelete(qc: QueryClient, id: string) {
   return new MutationObserver(qc, buildDeletePhotoOptions(qc)).mutate(id);
+}
+
+function runToggleFavorite(
+  qc: QueryClient,
+  vars: { id: string; isFavorite: boolean },
+) {
+  return new MutationObserver(qc, buildToggleFavoriteOptions(qc)).mutate(vars);
 }
 
 describe('buildUpdatePhotoMetaOptions', () => {
@@ -213,6 +222,66 @@ describe('buildDeletePhotoOptions', () => {
 
     expect(listIds(qc)).toEqual(['p1', 'p2']);
     expect(qc.getQueryData(photoKeys.detail('p1'))).toBeDefined();
+  });
+});
+
+describe('buildToggleFavoriteOptions', () => {
+  let qc: QueryClient;
+
+  beforeEach(() => {
+    mocks.put.mockReset();
+    mocks.del.mockReset();
+    qc = new QueryClient();
+    qc.setQueryData(photoKeys.detail('p1'), photo({ isFavorite: false }));
+  });
+
+  test('등록(target true)이면 PUT을 호출하고 상세 캐시를 즉시 켠다', async () => {
+    mocks.put.mockResolvedValueOnce(undefined);
+
+    await runToggleFavorite(qc, { id: 'p1', isFavorite: true });
+
+    expect(mocks.put).toHaveBeenCalledWith('/v1/media/p1/favorite');
+    expect(mocks.del).not.toHaveBeenCalled();
+    expect(qc.getQueryData<Photo>(photoKeys.detail('p1'))?.isFavorite).toBe(
+      true,
+    );
+  });
+
+  test('해제(target false)면 DELETE를 호출하고 상세 캐시를 즉시 끈다', async () => {
+    qc.setQueryData(photoKeys.detail('p1'), photo({ isFavorite: true }));
+    mocks.del.mockResolvedValueOnce(undefined);
+
+    await runToggleFavorite(qc, { id: 'p1', isFavorite: false });
+
+    expect(mocks.del).toHaveBeenCalledWith('/v1/media/p1/favorite');
+    expect(mocks.put).not.toHaveBeenCalled();
+    expect(qc.getQueryData<Photo>(photoKeys.detail('p1'))?.isFavorite).toBe(
+      false,
+    );
+  });
+
+  test('실패 시 이전 상태로 롤백한다', async () => {
+    mocks.put.mockRejectedValueOnce(new Error('fail'));
+
+    await expect(
+      runToggleFavorite(qc, { id: 'p1', isFavorite: true }),
+    ).rejects.toThrow('fail');
+
+    expect(qc.getQueryData<Photo>(photoKeys.detail('p1'))?.isFavorite).toBe(
+      false,
+    );
+  });
+
+  test('성공 후 상세와 목록 쿼리를 무효화한다', async () => {
+    mocks.put.mockResolvedValueOnce(undefined);
+    const invalidate = vi.spyOn(qc, 'invalidateQueries');
+
+    await runToggleFavorite(qc, { id: 'p1', isFavorite: true });
+
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: photoKeys.detail('p1'),
+    });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: photoKeys.lists() });
   });
 });
 

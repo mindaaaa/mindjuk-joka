@@ -28,6 +28,7 @@ export interface HttpClient {
   request<T = unknown>(path: string, init?: HttpInit): Promise<T>;
   get<T = unknown>(path: string, init?: HttpInit): Promise<T>;
   post<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
+  put<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
   patch<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
   delete<T = unknown>(path: string, init?: HttpInit): Promise<T>;
 }
@@ -179,6 +180,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
     get: (path, init) => request(path, { ...init, method: 'GET' }),
     post: (path, body, init) =>
       request(path, { ...init, method: 'POST', body }),
+    put: (path, body, init) => request(path, { ...init, method: 'PUT', body }),
     patch: (path, body, init) =>
       request(path, { ...init, method: 'PATCH', body }),
     delete: (path, init) => request(path, { ...init, method: 'DELETE' }),

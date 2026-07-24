@@ -35,16 +35,29 @@ export function selectPhotos(
     .map(toPhoto);
 }
 
-async function fetchPhotoPage(
-  order: 'asc' | 'desc',
+/**
+ * 목록 조회 URL을 만든다.
+ * - 즐겨찾기 필터는 켜졌을 때만 isFavorite=true를 붙인다
+ * - 생략 시 전체 조회한다.
+ */
+export function mediaListPath(
+  filters: { order: 'asc' | 'desc'; isFavorite?: boolean },
   cursor: string | undefined,
-): Promise<MediaListResponse> {
-  const path = `/v1/media${buildQuery({
+): string {
+  return `/v1/media${buildQuery({
     size: PAGE_SIZE,
-    order,
+    order: filters.order,
     states: 'COMPLETE',
+    isFavorite: filters.isFavorite ? 'true' : undefined,
     cursor,
   })}`;
+}
+
+async function fetchPhotoPage(
+  filters: { order: 'asc' | 'desc'; isFavorite?: boolean },
+  cursor: string | undefined,
+): Promise<MediaListResponse> {
+  const path = mediaListPath(filters, cursor);
 
   const startedAt = performance.now();
   const response = await http.get<MediaListResponse>(path);
@@ -209,12 +222,14 @@ export function usePhotosInfinite(
   options?: { enabled?: boolean },
 ) {
   const order = filters?.order ?? 'desc';
+  const isFavorite = filters?.isFavorite;
   const initialCursor: string | undefined = undefined;
 
   return useInfiniteQuery({
     queryKey: photoKeys.list(filters),
     initialPageParam: initialCursor,
-    queryFn: ({ pageParam }) => fetchPhotoPage(order, pageParam),
+    queryFn: ({ pageParam }) =>
+      fetchPhotoPage({ order, ...(isFavorite && { isFavorite }) }, pageParam),
     getNextPageParam: nextCursorOf,
     enabled: options?.enabled ?? true, // 앨범이 준비된 뒤에만 조회
     staleTime: 60_000,
