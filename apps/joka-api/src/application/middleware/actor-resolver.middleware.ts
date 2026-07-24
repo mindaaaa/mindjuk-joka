@@ -5,6 +5,7 @@ import {
 } from '@joka/core/src/exception';
 import { createMiddleware } from 'hono/factory';
 
+import { ActorCache } from '../../infrastructure/cache/actor.cache';
 import Config from '../config';
 import type { CloudflareEnv } from '../model';
 
@@ -25,6 +26,14 @@ const actorResolverMiddleware = createMiddleware<CloudflareEnv>(
       ]);
     }
 
+    const cache = caches.default;
+    const cached = await ActorCache.get(cache, jwtPayload.sub, albumCid);
+    if (cached) {
+      c.set('actor', cached);
+      await next();
+      return;
+    }
+
     const user = await Config.authService.findUserOrNull(jwtPayload.sub);
     if (!user) {
       throw new ForbiddenException('FORBIDDEN', [
@@ -41,6 +50,9 @@ const actorResolverMiddleware = createMiddleware<CloudflareEnv>(
       ]);
     }
     c.set('actor', actor);
+    c.executionCtx.waitUntil(
+      ActorCache.set(cache, actor, jwtPayload.sub, albumCid),
+    );
 
     await next();
   },

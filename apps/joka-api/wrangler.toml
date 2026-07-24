@@ -7,6 +7,10 @@ compatibility_date = "2024-09-23"
 # workers.dev 서브도메인 유지 (로컬용)
 workers_dev = true
 
+# Smart Placement: Worker를 origin(Neon 싱가포르) 근처에서 실행해 DB 왕복 지연을 축소
+[placement]
+mode = "smart"
+
 # 커스텀 도메인
 [[routes]]
 pattern = "api.mindjuk.quest"
