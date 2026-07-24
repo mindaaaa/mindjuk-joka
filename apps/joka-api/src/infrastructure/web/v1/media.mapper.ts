@@ -106,7 +106,7 @@ export const toPaginationResponse = (
   const result: ApiPagination = {
     size: pagination.size,
     sortBy: 'CREATED_AT',
-    order: pagination.order as ApiPagination['order'],
+    order: pagination.order,
     hasNext: pagination.hasNext,
   };
 

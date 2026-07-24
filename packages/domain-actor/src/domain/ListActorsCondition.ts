@@ -21,6 +21,8 @@ const SortOrder = {
   DESC: 'desc',
 } as const;
 
+export type SortOrderValue = (typeof SortOrder)[keyof typeof SortOrder];
+
 export class ListActorsCondition {
   static get DefaultLimit() {
     return 20;
@@ -87,7 +89,7 @@ export class ListActorsCondition {
 
 export interface ListAlbumsPagination {
   size: number;
-  order: string;
+  order: SortOrderValue;
   nextCursor: Nullable<string>;
   hasNext: boolean;
 }
