@@ -43,19 +43,21 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { toast } from '@/shared/ui/toast';
 
 /**
- * 현재 정렬 순서에 맞는 목록 캐시에서 이전/다음 사진 id를 계산한다.
+ * 진입한 목록과 같은 필터의 캐시에서 이전/다음 사진 id를 계산한다.
  *
  * - 목록을 새로 요청하지 않고({ enabled: false }) 이미 로드된 캐시만 읽는다.
- * - 목록을 거쳐 들어온 경우 인접 사진으로 이동할 수 있다.
+ * - favorite은 진입한 목록의 필터를 그대로 따라가, 즐겨찾기 목록에서 들어오면
+ *   인접 이동도 즐겨찾기 안에서만 이뤄진다(전체 목록과 캐시 키가 갈림).
  * - 직접 진입(캐시 없음)이거나 목록에 없는 id면 prev/next 모두 undefined → 버튼 비활성.
  *
  * @param currentId - 현재 보고 있는 사진 id.
+ * @param favorite - 즐겨찾기 필터로 진입했는지.
  * @returns 이전/다음 사진 id. 없으면 각각 undefined.
  */
-function usePrevNext(currentId: string) {
+function usePrevNext(currentId: string, favorite: boolean) {
   const order = usePhotoSortStore((s) => s.order);
   const { data } = usePhotosInfinite(
-    { sortBy: 'createdAt', order },
+    { sortBy: 'createdAt', order, ...(favorite && { isFavorite: true }) },
     { enabled: false },
   );
 
@@ -84,10 +86,21 @@ function readNavSource(state: unknown): string {
   return 'direct';
 }
 
+/** 라우터 state에서 즐겨찾기 목록 진입 여부를 안전하게 읽는다. */
+function readNavFavorite(state: unknown): boolean {
+  return (
+    typeof state === 'object' &&
+    state !== null &&
+    'favorite' in state &&
+    state.favorite === true
+  );
+}
+
 export function PhotoDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
   const { state } = useLocation();
   const source = readNavSource(state);
+  const favorite = readNavFavorite(state);
 
   const albumId = useAlbumStore((s) => s.current?.id);
   const user = useAuthUser();
@@ -95,7 +108,7 @@ export function PhotoDetailPage() {
 
   const query = usePhotoDetail(id, { enabled: !!albumId && !!id });
   const photo = query.data;
-  const { prevId, nextId } = usePrevNext(id);
+  const { prevId, nextId } = usePrevNext(id, favorite);
   const refreshPhotoUrls = useRefreshPhotoUrls();
 
   useEffect(() => {
@@ -142,8 +155,8 @@ export function PhotoDetailPage() {
           />
         )}
 
-        <NavArrow direction="prev" targetId={prevId} />
-        <NavArrow direction="next" targetId={nextId} />
+        <NavArrow direction="prev" targetId={prevId} favorite={favorite} />
+        <NavArrow direction="next" targetId={nextId} favorite={favorite} />
       </div>
 
       <ErrorBoundary fallback={(error) => <MetaErrorFallback error={error} />}>
@@ -213,9 +226,11 @@ function FavoriteButton({ photo }: { photo: Photo }) {
 function NavArrow({
   direction,
   targetId,
+  favorite,
 }: {
   direction: 'prev' | 'next';
   targetId: string | undefined;
+  favorite: boolean;
 }) {
   const navigate = useNavigate();
   const isPrev = direction === 'prev';
@@ -228,7 +243,9 @@ function NavArrow({
       disabled={!targetId}
       onClick={() =>
         targetId &&
-        navigate(`/photos/${targetId}`, { state: { source: 'nav' } })
+        navigate(`/photos/${targetId}`, {
+          state: { source: 'nav', favorite },
+        })
       }
       className={cn(
         'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/40 text-white hover:bg-black/60 hover:text-white',

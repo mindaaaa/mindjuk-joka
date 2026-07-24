@@ -193,7 +193,9 @@ export function PhotoListPage() {
                 key={photo.id}
                 photo={photo}
                 onOpen={(id) =>
-                  navigate(`/photos/${id}`, { state: { source: 'grid' } })
+                  navigate(`/photos/${id}`, {
+                    state: { source: 'grid', favorite },
+                  })
                 }
               />
             )}
