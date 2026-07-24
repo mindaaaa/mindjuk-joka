@@ -1,6 +1,7 @@
 import {
   zAlbum,
   zContent,
+  zCreateUploadUrlForMediaResponse,
   zGetMyInfoResponse,
   zListAlbumsResponse,
   zListMediaResponse,
@@ -26,6 +27,7 @@ export const MediaListSchema = zListMediaResponse.extend({
 export const AlbumListSchema = zListAlbumsResponse;
 export const AlbumSchema = zAlbum;
 export const MeSchema = zGetMyInfoResponse;
+export const UploadUrlSchema = zCreateUploadUrlForMediaResponse;
 
 export type MediaDto = z.infer<typeof MediaSchema>;
 export type MediaContent = z.infer<typeof zContentSchema>;
@@ -35,3 +37,4 @@ export type MediaPagination = MediaListResponse['pagination'];
 export type AlbumListResponse = z.infer<typeof AlbumListSchema>;
 export type AlbumDto = z.infer<typeof AlbumSchema>;
 export type MeResponse = z.infer<typeof MeSchema>;
+export type UploadUrlResponse = z.infer<typeof UploadUrlSchema>;

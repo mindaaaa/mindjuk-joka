@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { uploadSinglePhoto } from './mutations';
 import type { UploadQueueItem } from '../model/types';
 
+import { MediaSchema, UploadUrlSchema } from '@/shared/api/schemas';
+
 const mocks = vi.hoisted(() => ({
   httpPost: vi.fn(),
   putToS3: vi.fn(),
@@ -145,7 +147,7 @@ describe('uploadSinglePhoto', () => {
       1,
       '/v1/media',
       { description: 'a.jpg' },
-      undefined,
+      { schema: MediaSchema },
     );
   });
 
@@ -207,13 +209,13 @@ describe('uploadSinglePhoto', () => {
       1,
       '/v1/media',
       { description: '설명' },
-      undefined,
+      { schema: MediaSchema },
     );
     expect(mocks.httpPost).toHaveBeenNthCalledWith(
       2,
       '/v1/media/media-1/upload-urls',
       {},
-      undefined,
+      { schema: UploadUrlSchema },
     );
     expect(mocks.httpPost).toHaveBeenNthCalledWith(
       3,
@@ -274,8 +276,9 @@ describe('uploadSinglePhoto', () => {
       signal: controller.signal,
     });
 
+    // create·upload-urls는 schema도 함께 실리므로 signal 포함 여부만 검증
     for (const call of mocks.httpPost.mock.calls) {
-      expect(call[2]).toEqual({ signal: controller.signal });
+      expect(call[2]).toMatchObject({ signal: controller.signal });
     }
     expect(mocks.putToS3).toHaveBeenCalledWith(
       'https://s3/url',

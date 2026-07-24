@@ -3,16 +3,8 @@ import { UploadQueueItem, UploadStep } from '../model/types';
 
 import { http } from '@/shared/api';
 import type { RequestOptions } from '@/shared/api/client';
+import { MediaSchema, UploadUrlSchema } from '@/shared/api/schemas';
 import { createMediaUploadFlow } from '@/shared/lib/media-upload-logging';
-
-interface CreateMediaResponse {
-  id: string;
-  state: string;
-}
-
-interface UploadUrlsResponse {
-  url: string;
-}
 
 export interface UploadCallbacks {
   onStep: (step: UploadStep) => void;
@@ -64,10 +56,10 @@ async function createMedia(
   item: UploadQueueItem,
   reqOptions?: RequestOptions,
 ): Promise<string> {
-  const created = await http.post<CreateMediaResponse>(
+  const created = await http.post(
     '/v1/media',
     { description: item.description.trim() || item.file.name },
-    reqOptions,
+    { ...reqOptions, schema: MediaSchema },
   );
 
   return created.id;
@@ -77,10 +69,10 @@ async function getUploadUrl(
   mediaId: string,
   reqOptions?: RequestOptions,
 ): Promise<string> {
-  const { url } = await http.post<UploadUrlsResponse>(
+  const { url } = await http.post(
     `/v1/media/${mediaId}/upload-urls`,
     {},
-    reqOptions,
+    { ...reqOptions, schema: UploadUrlSchema },
   );
 
   return url;
