@@ -6,6 +6,7 @@ import {
   attachAlbumHeader,
 } from './interceptors';
 import { createRefresher } from './refresh';
+import { validate, type ResponseSchema } from './response-validation';
 
 import { env } from '@/shared/config/env';
 import { trackApiTiming } from '@/shared/lib/analytics';
@@ -18,18 +19,6 @@ export interface HttpClientOptions {
   refreshPath?: string;
   refresh?: () => Promise<string>;
   onUnauthorized?: () => void;
-}
-
-/**
- * 응답 검증 스키마
- * - zod 스키마가 구조적으로 만족하므로 client는 zod에 직접 의존하지 않는다.
- */
-export interface ResponseSchema<T> {
-  safeParse(
-    data: unknown,
-  ):
-    | { success: true; data: T }
-    | { success: false; error: { issues: unknown[] } };
 }
 
 export interface HttpInit<T = unknown> extends Omit<RequestInit, 'body'> {
@@ -98,23 +87,6 @@ function normalize(init: HttpInit<unknown>): RequestInit {
   };
 }
 
-async function parseResponse(response: Response): Promise<unknown> {
-  if (response.status === 204) {
-    return undefined;
-  }
-
-  const text = await response.text();
-  if (!text) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
-
 async function sendRequest(ctx: ApiRequest): Promise<Response> {
   const method = ctx.options.method ?? 'GET';
   const start = performance.now();
@@ -138,6 +110,23 @@ async function sendRequest(ctx: ApiRequest): Promise<Response> {
   }
 }
 
+async function parseResponse(response: Response): Promise<unknown> {
+  if (response.status === 204) {
+    return undefined;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
 async function failWith(
   response: Response,
   ctx: ApiRequest,
@@ -145,31 +134,6 @@ async function failWith(
 ): Promise<never> {
   const err = await toApiError(response);
   reportApiError(err, { url: ctx.url, ...extra });
-  throw err;
-}
-
-/**
- * 응답이 API 계약(OpenAPI 스펙)과 다르면 계약 위반(CONTRACT)으로 다룬다.
- * - HTTP 자체는 성공(2xx)이므로 실제 status를 그대로 싣고, 성격은 code로 구분한다.
- * - 사용자 문구·재시도 정책은 code로 분기된다.
- */
-function validate<T>(
-  data: unknown,
-  schema: ResponseSchema<T>,
-  ctx: ApiRequest,
-  status: number,
-): T {
-  const parsed = schema.safeParse(data);
-  if (parsed.success) {
-    return parsed.data;
-  }
-
-  const err = new ApiError({ status, code: 'CONTRACT' });
-  reportApiError(err, {
-    url: ctx.url,
-    schemaViolation: true,
-    issues: parsed.error.issues,
-  });
   throw err;
 }
 
@@ -227,7 +191,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
 
     const data = await parseResponse(response);
     return init.schema
-      ? validate(data, init.schema, ctx, response.status)
+      ? validate(data, init.schema, ctx.url, response.status)
       : (data as T);
   }
 
