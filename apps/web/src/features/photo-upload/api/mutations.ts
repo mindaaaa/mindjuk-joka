@@ -2,7 +2,7 @@ import { putToS3, PutToS3Options } from '../lib/s3-uploader';
 import { UploadQueueItem, UploadStep } from '../model/types';
 
 import { http } from '@/shared/api';
-import type { HttpInit } from '@/shared/api/client';
+import type { RequestOptions } from '@/shared/api/client';
 import { createMediaUploadFlow } from '@/shared/lib/media-upload-logging';
 
 interface CreateMediaResponse {
@@ -62,7 +62,7 @@ export async function uploadSinglePhoto(
 
 async function createMedia(
   item: UploadQueueItem,
-  reqOptions?: HttpInit,
+  reqOptions?: RequestOptions,
 ): Promise<string> {
   const created = await http.post<CreateMediaResponse>(
     '/v1/media',
@@ -75,7 +75,7 @@ async function createMedia(
 
 async function getUploadUrl(
   mediaId: string,
-  reqOptions?: HttpInit,
+  reqOptions?: RequestOptions,
 ): Promise<string> {
   const { url } = await http.post<UploadUrlsResponse>(
     `/v1/media/${mediaId}/upload-urls`,
@@ -89,7 +89,7 @@ async function getUploadUrl(
 async function registerContents(
   mediaId: string,
   url: string,
-  reqOptions?: HttpInit,
+  reqOptions?: RequestOptions,
 ): Promise<void> {
   await http.post(`/v1/media/${mediaId}/contents`, { url }, reqOptions);
 }
@@ -97,7 +97,7 @@ async function registerContents(
 async function confirmMedia(
   mediaId: string,
   flow: UploadFlow,
-  reqOptions?: HttpInit,
+  reqOptions?: RequestOptions,
 ): Promise<void> {
   try {
     await http.post(`/v1/media/${mediaId}/confirm`, {}, reqOptions);

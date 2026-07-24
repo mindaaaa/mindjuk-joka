@@ -20,7 +20,7 @@ function page(
     pagination: {
       size: 20,
       sortBy: 'CREATED_AT',
-      order: 'DESC',
+      order: 'desc',
       hasNext: false,
       ...pagination,
     },
@@ -38,7 +38,6 @@ function dto(id: string): MediaDto {
       size: 1,
       eTag: 'e',
       mimeType: 'image/jpeg',
-      thumbnail: null,
     },
     created: {
       at: '2026-01-01T00:00:00.000Z',
@@ -107,7 +106,11 @@ describe('selectPhotos', () => {
   });
 
   test('content 없는 항목은 제외한다', () => {
-    const draft: MediaDto = { ...dto('d'), state: 'PREPARING', content: null };
+    const draft: MediaDto = {
+      ...dto('d'),
+      state: 'PREPARING',
+      content: undefined,
+    };
     const data = { pages: [page([dto('a'), draft])] };
     const photos = selectPhotos(data);
 

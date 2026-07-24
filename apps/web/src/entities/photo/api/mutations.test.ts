@@ -12,6 +12,7 @@ import { selectPhotos } from './queries';
 import type { MediaDto, MediaPagination, Photo } from '../model/types';
 
 import { ApiError } from '@/shared/api/error';
+import { MediaSchema } from '@/shared/api/schemas';
 
 const mocks = vi.hoisted(() => ({
   patch: vi.fn(),
@@ -46,7 +47,6 @@ function mediaDto(description: string): MediaDto {
       size: 10,
       eTag: 'e',
       mimeType: 'image/jpeg',
-      thumbnail: null,
     },
     created: { at: '2026-01-01T00:00:00.000Z', by: photo().createdBy },
   };
@@ -59,7 +59,7 @@ function otherDto(id: string): MediaDto {
 const pagination: MediaPagination = {
   size: 20,
   sortBy: 'CREATED_AT',
-  order: 'DESC',
+  order: 'desc',
   hasNext: false,
 };
 
@@ -101,9 +101,11 @@ describe('buildUpdatePhotoMetaOptions', () => {
     expect(qc.getQueryData<Photo>(photoKeys.detail('p1'))?.description).toBe(
       '바뀐 설명',
     );
-    expect(mocks.patch).toHaveBeenCalledWith('/v1/media/p1', {
-      description: '바뀐 설명',
-    });
+    expect(mocks.patch).toHaveBeenCalledWith(
+      '/v1/media/p1',
+      { description: '바뀐 설명' },
+      { schema: MediaSchema },
+    );
   });
 
   // TODO: RTL 도입 시 활성화
