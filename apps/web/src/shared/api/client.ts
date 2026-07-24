@@ -20,17 +20,46 @@ export interface HttpClientOptions {
   onUnauthorized?: () => void;
 }
 
-export interface HttpInit extends Omit<RequestInit, 'body'> {
-  body?: unknown;
+/**
+ * 응답 검증 스키마
+ * - zod 스키마가 구조적으로 만족하므로 client는 zod에 직접 의존하지 않는다.
+ */
+export interface ResponseSchema<T> {
+  safeParse(
+    data: unknown,
+  ):
+    | { success: true; data: T }
+    | { success: false; error: { issues: unknown[] } };
 }
 
+export interface HttpInit<T = unknown> extends Omit<RequestInit, 'body'> {
+  body?: unknown;
+  /** 넘기면 응답을 런타임 검증하고 T를 추론한다. 생략하면 검증 없이 그대로 캐스팅한다. */
+  schema?: ResponseSchema<T>;
+}
+
+/** 스키마 없이 요청 옵션만 전달할 때 쓴다. 응답 타입과 무관하므로 어떤 호출에도 넘길 수 있다. */
+export type RequestOptions = Omit<HttpInit, 'schema'>;
+
 export interface HttpClient {
-  request<T = unknown>(path: string, init?: HttpInit): Promise<T>;
-  get<T = unknown>(path: string, init?: HttpInit): Promise<T>;
-  post<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
-  put<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
-  patch<T = unknown>(path: string, body?: unknown, init?: HttpInit): Promise<T>;
-  delete<T = unknown>(path: string, init?: HttpInit): Promise<T>;
+  request<T = unknown>(path: string, init?: HttpInit<T>): Promise<T>;
+  get<T = unknown>(path: string, init?: HttpInit<T>): Promise<T>;
+  post<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: HttpInit<T>,
+  ): Promise<T>;
+  put<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: HttpInit<T>,
+  ): Promise<T>;
+  patch<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: HttpInit<T>,
+  ): Promise<T>;
+  delete<T = unknown>(path: string, init?: HttpInit<T>): Promise<T>;
 }
 
 function isRawBody(body: unknown): body is BodyInit {
@@ -42,8 +71,8 @@ function isRawBody(body: unknown): body is BodyInit {
   );
 }
 
-function normalize(init: HttpInit): RequestInit {
-  const { body, credentials, ...rest } = init;
+function normalize(init: HttpInit<unknown>): RequestInit {
+  const { body, credentials, schema: _schema, ...rest } = init;
   const withCredentials: RequestInit = {
     ...rest,
     credentials: credentials ?? 'include',
@@ -119,6 +148,31 @@ async function failWith(
   throw err;
 }
 
+/**
+ * 응답이 API 계약(OpenAPI 스펙)과 다르면 계약 위반(CONTRACT)으로 다룬다.
+ * - HTTP 자체는 성공(2xx)이므로 실제 status를 그대로 싣고, 성격은 code로 구분한다.
+ * - 사용자 문구·재시도 정책은 code로 분기된다.
+ */
+function validate<T>(
+  data: unknown,
+  schema: ResponseSchema<T>,
+  ctx: ApiRequest,
+  status: number,
+): T {
+  const parsed = schema.safeParse(data);
+  if (parsed.success) {
+    return parsed.data;
+  }
+
+  const err = new ApiError({ status, code: 'CONTRACT' });
+  reportApiError(err, {
+    url: ctx.url,
+    schemaViolation: true,
+    issues: parsed.error.issues,
+  });
+  throw err;
+}
+
 export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   const baseURL = options.baseURL ?? DEFAULT_BASE_URL;
   const refresh =
@@ -130,7 +184,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   const onUnauthorized =
     options.onUnauthorized ?? (() => authTokenStore.clear());
 
-  function buildRequest(path: string, init: HttpInit): ApiRequest {
+  function buildRequest(path: string, init: HttpInit<unknown>): ApiRequest {
     return attachAlbumHeader(
       attachAuthHeader({
         url: `${baseURL}${path}`,
@@ -155,7 +209,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
 
   async function request<T = unknown>(
     path: string,
-    init: HttpInit = {},
+    init: HttpInit<T> = {},
     isRetry = false,
   ): Promise<T> {
     const ctx = buildRequest(path, init);
@@ -172,7 +226,9 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
     }
 
     const data = await parseResponse(response);
-    return data as T;
+    return init.schema
+      ? validate(data, init.schema, ctx, response.status)
+      : (data as T);
   }
 
   const client: HttpClient = {

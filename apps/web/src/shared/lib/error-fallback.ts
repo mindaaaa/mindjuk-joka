@@ -6,6 +6,9 @@ import { ApiError } from '@/shared/api/error';
  */
 export function errorFallbackMessage(error: unknown): string {
   if (error instanceof ApiError) {
+    // 계약 위반은 재시도가 무의미하므로 → 재시도 뉘앙스 없이 담백하게 알림
+    if (error.code === 'CONTRACT') return '어라, 뭔가 안 맞아요. 곧 고칠게요';
+
     const isNetworkError =
       error.code === 'NETWORK' ||
       error.code === 'TIMEOUT' ||

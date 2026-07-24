@@ -10,6 +10,7 @@ export type ApiErrorCode =
   | 'CONFLICT'
   | 'VALIDATION'
   | 'SERVER'
+  | 'CONTRACT'
   | 'UNKNOWN';
 
 type ErrorLayer = 'expected' | 'operational' | 'bug';
@@ -50,6 +51,11 @@ const ERROR_CONFIG: Record<
   SERVER: {
     layer: 'operational',
     defaultMessage: '서버 내부 오류가 발생했습니다.',
+  },
+  // 응답이 스펙과 다름(서버 코드 버그) → 재시도 무의미하므로 bug 계층으로 알림
+  CONTRACT: {
+    layer: 'bug',
+    defaultMessage: '응답이 API 계약과 일치하지 않습니다.',
   },
   UNKNOWN: { layer: 'bug', defaultMessage: '알 수 없는 오류가 발생했습니다.' },
 };
