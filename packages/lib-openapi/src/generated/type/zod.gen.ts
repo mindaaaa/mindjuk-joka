@@ -206,8 +206,8 @@ export const zListMediaData = z.object({
             'CREATED_AT'
         ])),
         order: z.optional(z.enum([
-            'ASC',
-            'DESC'
+            'asc',
+            'desc'
         ])),
         cursor: z.optional(z.string().min(1)),
         states: z.optional(z.string().min(1)),
@@ -233,8 +233,8 @@ export const zListMediaResponse = z.object({
             'CREATED_AT'
         ]),
         order: z.enum([
-            'ASC',
-            'DESC'
+            'asc',
+            'desc'
         ]),
         nextCursor: z.optional(z.string().min(1)),
         hasNext: z.boolean()
@@ -400,8 +400,8 @@ export const zListAlbumsData = z.object({
     query: z.optional(z.object({
         size: z.optional(z.string().min(1)).default('20'),
         order: z.optional(z.enum([
-            'ASC',
-            'DESC'
+            'asc',
+            'desc'
         ])),
         cursor: z.optional(z.string().min(1))
     })),
@@ -418,10 +418,13 @@ export const zListAlbumsResponse = z.object({
     pagination: z.object({
         size: z.int(),
         order: z.enum([
-            'ASC',
-            'DESC'
+            'asc',
+            'desc'
         ]),
-        nextCursor: z.optional(z.string()),
+        nextCursor: z.optional(z.union([
+            z.string(),
+            z.null()
+        ])),
         hasNext: z.boolean()
     })
 });
