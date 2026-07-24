@@ -13,8 +13,10 @@ export {
 export {
   useUpdatePhotoMetaMutation,
   useDeletePhotoMutation,
+  useToggleFavoriteMutation,
   isAlreadyDeleted,
   type UpdatePhotoMetaVars,
+  type ToggleFavoriteVars,
 } from './api/mutations';
 
 export { toPhoto } from './lib/mapper';

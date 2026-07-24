@@ -13,6 +13,7 @@ import {
   usePhotoDetail,
   usePhotosInfinite,
   useRefreshPhotoUrls,
+  useToggleFavoriteMutation,
   type Photo,
 } from '@/entities/photo';
 import {
@@ -176,22 +177,36 @@ function DetailHeader({
         <X className="size-6" />
       </Button>
       <div className="flex items-center gap-1">
-        {/* TODO: 즐겨찾기 토글 API + 뮤테이션 연결 (현재 시각 스텁) */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          aria-label="즐겨찾기"
-          aria-pressed={photo.isFavorite}
-        >
-          <Heart
-            className={photo.isFavorite ? 'fill-primary text-primary' : ''}
-          />
-        </Button>
+        <FavoriteButton photo={photo} />
         <DownloadButton photo={photo} variant="ghost" size="icon" />
         {canWrite && <DeletePhotoButton photo={photo} />}
       </div>
     </div>
+  );
+}
+
+function FavoriteButton({ photo }: { photo: Photo }) {
+  const mutation = useToggleFavoriteMutation();
+
+  const handleToggle = () => {
+    mutation.mutate(
+      { id: photo.id, isFavorite: !photo.isFavorite },
+      { onError: () => toast.error('즐겨찾기 변경에 실패했어요.') },
+    );
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="rounded-full"
+      aria-label="즐겨찾기"
+      aria-pressed={photo.isFavorite}
+      disabled={mutation.isPending}
+      onClick={handleToggle}
+    >
+      <Heart className={photo.isFavorite ? 'fill-primary text-primary' : ''} />
+    </Button>
   );
 }
 
