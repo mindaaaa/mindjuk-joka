@@ -1,6 +1,8 @@
 export interface PhotoListFilters {
   sortBy?: 'createdAt' | 'updatedAt';
   order?: 'asc' | 'desc';
+  /** true면 즐겨찾기 사진만 필터/false면 전체. */
+  isFavorite?: boolean;
 }
 
 export const photoKeys = {
