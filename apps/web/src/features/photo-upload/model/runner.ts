@@ -60,7 +60,6 @@ function buildOptimisticDto(
       size: item.file.size,
       eTag: '',
       mimeType: item.file.type || 'application/octet-stream',
-      thumbnail: null,
     },
   };
 }
